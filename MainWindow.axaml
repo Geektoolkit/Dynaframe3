@@ -1,0 +1,19 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="Dynaframe3.MainWindow"
+        TransparencyLevelHint="Transparent"
+        Background="Black"
+        Title="Dynaframe3" 
+        VerticalContentAlignment="Stretch"
+        HorizontalContentAlignment="Stretch"
+        Name="mainWindow"
+        SystemDecorations="None">
+  <Panel Name="mainPanel">
+    <Image Name="Back"  Stretch="UniformToFill" Opacity="0"/>
+    <Image Name="Front" Stretch="UniformToFill" />
+    <TextBlock Name="tb" Text="" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="30" Foreground="AliceBlue" Opacity="1" Margin="30"/>
+  </Panel>
+</Window>

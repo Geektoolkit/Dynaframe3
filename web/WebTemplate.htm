@@ -1,0 +1,49 @@
+﻿<body bgcolor="lightblue">
+	<head>
+		<style>
+			a.button {
+				-webkit-appearance: button;
+				-moz-appearance: button;
+				appearance: button;
+				text-decoration: none;
+				color: #003;
+				font-size: 30px;
+				background-color: #63B8EE;
+				border: none;
+				padding: 10px 20px;
+				text-align: left font-family: 'Open Sans';
+				border-radius: 8px;
+				border: 3px solid #3866A3;
+			}
+		</style>
+	</head>
+	<h1>Welcome to DynaFrame!</h1>
+	<hr />
+	<h3>Settings:</h3>
+	<!-- DIRECTORIES -->
+	<form action="default.htm">
+		Width (X Resolution): <input type="text" name="width"  <!--DEFAULTWIDTH--><br>
+		Height (Y Resolution): <input type="text" name="height" <!--DEFAULTHEIGHT--><br>
+		Infobar (clock) font size: <input type="text" name="infobarfontsize" <!--INFOBARFONTSIZE--><br>
+		<br />
+		<b></b>Common Resolutions:</b> <br />
+		<ul>
+			<li>4k (100%) 3840(width) 2160 (Height)</li>
+			<li>1440p (or 4k@150% scaling) 2560x1440</li>
+			<li>1080p 1920x1080</li>
+		</ul>
+		<br />
+		Shuffle: <input type="radio" name="shuffle" id="shuffle" value="on"><label for="shuffle">On</label><input type="radio" name="shuffle" value="off"><label for="off">Off</label><br>
+		Show Time: <input type="radio" name="clock" id="clock" value="on"><label for="clock">On</label><input type="radio" name="clock" value="off"><label for="clock">Off</label><br>
+		Rotate:
+		<input type="radio" name="rotation" value="0">
+		<label>0</label>
+		<input type="radio" name="rotation" value="90">
+		<label>90</label>
+		<input type="radio" name="rotation" value="180">
+		<label>180</label>
+		<input type="radio" name="rotation" value="270">
+		<label>270</label><br /><br />
+		<input type="submit" value="Submit">
+	</form>
+</body>

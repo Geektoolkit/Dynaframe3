@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Dynaframe</AssemblyName>
+    <Version>2.0.0</Version>
+    <Authors>Joe Farro</Authors>
+    <Company>Geektoolkit</Company>
+    <Product>Dynaframe</Product>
+    <Description>Dynaframe is a dynamic photo application which can show images and videos as slideshows. It features a web frontend, home automation integration, and more.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="web\WebTemplate.htm" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="web\WebTemplate.htm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.10.999-cibuild0010094-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0010094-beta" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.7" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.7" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="images\20191024_222304817_iOS.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="images\2.mov">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="web\Default.htm">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
