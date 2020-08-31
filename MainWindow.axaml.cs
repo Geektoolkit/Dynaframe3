@@ -41,21 +41,27 @@ namespace Dynaframe3
         // Transitions used for animating the fades
         DoubleTransition fadeTransition;
 
-
-
         string PlayingDirectory = "";
         SimpleHTTPServer server;
 
         enum InfoBar { Clock, FileInfo, DateTime, Error, IP}
         InfoBar infoBar = InfoBar.IP;
 
+        // Directories of interest
         string MediaDirectory = "";
+
+        /// <summary>
+        /// Tracks number of times the system has gone through a loop. useful for
+        /// settings such as the IP address 
+        /// </summary>
         int numberOfTimes = 0;
+        const int NumberOfSecondsToShowIP = 15;
 
         /// <summary>
         /// This controls the time between 'slides'
         /// </summary>
         // Timer which controls 'slides'
+        // set to a low number to force a quick 'first slide' to appear
         System.Timers.Timer slideTimer = new System.Timers.Timer(500);
 
         /// <summary>
@@ -377,7 +383,7 @@ namespace Dynaframe3
                         numberOfTimes++;
 
                         tb.Text = Helpers.GetIPString();
-                        if (numberOfTimes > 10)
+                        if (numberOfTimes > NumberOfSecondsToShowIP)
                         {
                             infoBar = InfoBar.Clock;
                         }

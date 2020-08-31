@@ -1,4 +1,5 @@
-﻿using Avalonia.Media;
+﻿using Avalonia;
+using Avalonia.Media;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json;
@@ -44,7 +45,7 @@ namespace Dynaframe3
                         .SetBasePath(Directory.GetCurrentDirectory())
                         .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-                    _jsonSource = $"{Directory.GetCurrentDirectory()}{Path.DirectorySeparatorChar}appsettings.json";
+                    _jsonSource = $"{AppDomain.CurrentDomain.BaseDirectory}{Path.DirectorySeparatorChar}appsettings.json";
 
 
 
