@@ -94,6 +94,7 @@ class SimpleHTTPServer
     private string _rootDirectory;
     private HttpListener _listener;
     private int _port;
+    private CancellationTokenSource cts;
 
     public int Port
     {
@@ -108,6 +109,7 @@ class SimpleHTTPServer
     /// <param name="port">Port of the server.</param>
     public SimpleHTTPServer(string path, int port)
     {
+        cts = new CancellationTokenSource();
         this.Initialize(path, port);
     }
 
@@ -122,29 +124,38 @@ class SimpleHTTPServer
         l.Start();
         int port = ((IPEndPoint)l.LocalEndpoint).Port;
         l.Stop();
+        cts = new CancellationTokenSource();
         this.Initialize(path, port);
     }
 
     /// <summary>
     /// Stop server and dispose all functions.
+    /// Note: This currently doesn't kill the listener thread
+    /// despite the cancellation token. This means that the app doesn't
+    /// exit gracefully. I call thread.abort forcing an exception to terminate it.
     /// </summary>
     public void Stop()
     {
-        _serverThread.Abort();
-        _listener.Stop();
+         cts.Cancel();
+         _listener.Abort(); // try to forcefully shut down the listener
+         cts.Dispose();
+        _serverThread.Abort(); // PNE fires!
     }
 
-    private void Listen()
+    private void Listen(object obj)
     {
+        CancellationToken ct = (CancellationToken)obj;
         _listener = new HttpListener();
         _listener.Prefixes.Add("http://*:" + _port.ToString() + "/");
         _listener.Start();
-        while (true)
+
+        while (!ct.IsCancellationRequested)
         {
             try
             {
                 HttpListenerContext context = _listener.GetContext();
                 Process(context);
+                int i = 0;
             }
             catch (Exception ex)
             {
@@ -297,10 +308,12 @@ class SimpleHTTPServer
 
     private void Initialize(string path, int port)
     {
+
+
         this._rootDirectory = path;
         this._port = port;
-        _serverThread = new Thread(this.Listen);
-        _serverThread.Start();
+        _serverThread = new Thread(new ParameterizedThreadStart(this.Listen));
+        _serverThread.Start(cts.Token);
     }
 
     public string GetDefaultPage()

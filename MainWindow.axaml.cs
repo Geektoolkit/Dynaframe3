@@ -145,7 +145,7 @@ namespace Dynaframe3
 
         private void MainWindow_Closed(object sender, EventArgs e)
         {
-            ((IClassicDesktopStyleApplicationLifetime)Avalonia.Application.Current.ApplicationLifetime).Shutdown(0);
+            ((ClassicDesktopStyleApplicationLifetime)Avalonia.Application.Current.ApplicationLifetime).Shutdown(0);
         }
 
         private void MainWindow_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
@@ -156,7 +156,7 @@ namespace Dynaframe3
                 clock.Stop();
                 this.Close();
                 server.Stop();
-
+                (Application.Current as IControlledApplicationLifetime).Shutdown();
 
             }
             if (e.Key == Avalonia.Input.Key.F)

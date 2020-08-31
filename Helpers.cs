@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 
 namespace Dynaframe3
@@ -37,22 +38,38 @@ namespace Dynaframe3
                           .Where(f => allowedExtensions.Contains(f.Extension)).Select(s => s.FullName);
         }
 
-
+        /// <summary>
+        /// Gets the ip address of the system. Dynaframe uses this to help the user locate thier device
+        /// on the network
+        /// </summary>
+        /// <returns></returns>
         public static string GetIPString()
         {
-            string host = System.Net.Dns.GetHostName();
-            string ip = "";
-            foreach (IPAddress address in Dns.GetHostByName(host).AddressList)
+            string returnval = "";
+            NetworkInterface[] nets = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
+            if (nets.Length > 0)
             {
-                ip = address.ToString();
-                Console.WriteLine("IP found: " + ip);
-                if ((address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork) && (!ip.StartsWith("127.")))
-                    break;
-
+                foreach (NetworkInterface net in nets)
+                {
+                    try
+                    {
+                        var addresses = net.GetIPProperties().UnicastAddresses;
+                        for (int i = 0; i < addresses.Count; i++)
+                        {
+                            string ip = addresses[i].Address.ToString();
+                            // Filter out IPV6, local, loopback, etc.
+                            if((!ip.StartsWith("169.")) && (!ip.StartsWith("127.")) && (!ip.Contains("::")))
+                                returnval += "Detected IP Address: " + ip + Environment.NewLine;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // ignore
+                    }
+                }
             }
-            return "Host: " + host + "   IP: " + ip;
+            return returnval;
 
         }
-
     }
 }
