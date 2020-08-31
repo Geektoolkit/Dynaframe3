@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -59,7 +60,7 @@ namespace Dynaframe3
                             string ip = addresses[i].Address.ToString();
                             // Filter out IPV6, local, loopback, etc.
                             if((!ip.StartsWith("169.")) && (!ip.StartsWith("127.")) && (!ip.Contains("::")))
-                                returnval += "Detected IP Address: " + ip + Environment.NewLine;
+                                returnval += "Setup at http://" + ip + ":8000 "+ Environment.NewLine;
                         }
                     }
                     catch (Exception)
@@ -71,5 +72,32 @@ namespace Dynaframe3
             return returnval;
 
         }
-    }
+
+        /// <summary>
+        /// Runs a process and exits. If there is a failure or exception, returns false
+        /// </summary>
+        /// <param name="process">Process path and name</param>
+        /// <param name="args">any arguments to pass</param>
+        /// <returns>Process ID if it runs, else -1 if something fails</returns>
+
+        public static int RunProcess(string patoToProcess, string args)
+        {
+            try
+            {
+                ProcessStartInfo info = new ProcessStartInfo(patoToProcess);
+                if (!String.IsNullOrEmpty(args))
+                {
+                    info.Arguments = args;
+                }
+                Process process = new Process();
+                process.StartInfo = info;
+                process.Start();
+                return process.Id;
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+        }
+    }   
 }

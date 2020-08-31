@@ -33,10 +33,15 @@ namespace Dynaframe3
         Image image1;
         Image image2;
         TextBlock tb;
-        Bitmap bitmap;
         Bitmap bitmapNew;
         Window mainWindow;
         Panel mainPanel;
+
+
+        // Transitions used for animating the fades
+        DoubleTransition fadeTransition;
+
+
 
         string PlayingDirectory = "";
         SimpleHTTPServer server;
@@ -47,7 +52,16 @@ namespace Dynaframe3
         string MediaDirectory = "";
         int numberOfTimes = 0;
 
-        System.Timers.Timer timer = new System.Timers.Timer(6000);
+        /// <summary>
+        /// This controls the time between 'slides'
+        /// </summary>
+        // Timer which controls 'slides'
+        System.Timers.Timer slideTimer = new System.Timers.Timer(500);
+
+        /// <summary>
+        /// This fires every second to update the clock.  
+        /// // TODO: Investigate using synchronizedobject here to sync to UI thread
+        /// </summary>
         System.Timers.Timer clock = new System.Timers.Timer(1000);
 
         // settings to keep in mind
@@ -65,16 +79,21 @@ namespace Dynaframe3
             this.KeyDown += MainWindow_KeyDown;
             this.Closed += MainWindow_Closed;
 
+            // setup transitions and animations
             DoubleTransition windowTransition = new DoubleTransition();
             windowTransition.Duration = TimeSpan.FromMilliseconds(1000);
             windowTransition.Property = Window.OpacityProperty;
+           
+            fadeTransition = new DoubleTransition();
+            fadeTransition.Easing = new QuadraticEaseIn();
+            fadeTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
+            fadeTransition.Property = Image.OpacityProperty;
 
             mainWindow = this.FindControl<Window>("mainWindow");
             mainWindow.Transitions = new Transitions();
             mainWindow.Transitions.Add(windowTransition);
-            mainWindow.Closing += MainWindow_Closing;
-            mainWindow.Width = AppSettings.Default.Width;
-            mainWindow.Height = AppSettings.Default.Height;
+            mainWindow.SystemDecorations = SystemDecorations.None;
+            mainWindow.WindowState = WindowState.Maximized;
             mainWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             mainPanel = this.FindControl<Panel>("mainPanel");
@@ -85,15 +104,11 @@ namespace Dynaframe3
             tb.FontFamily = new FontFamily("Terminal");
             tb.FontWeight = FontWeight.Bold;
             tb.FontSize = AppSettings.Default.InfoBarFontSize;
+            tb.Transitions = new Transitions();
+            tb.Transitions.Add(fadeTransition);
 
             image1 = this.FindControl<Image>("Front");
             image2 = this.FindControl<Image>("Back");
-
-            DoubleTransition transition = new DoubleTransition();
-            transition.Easing = new QuadraticEaseIn();
-            transition.Duration = TimeSpan.FromMilliseconds(1600);
-            transition.Property = Image.OpacityProperty;
-
 
             DoubleTransition transition2 = new DoubleTransition();
             transition2.Easing = new QuadraticEaseIn();
@@ -101,17 +116,17 @@ namespace Dynaframe3
             transition2.Property = Image.OpacityProperty;
 
             image1.Transitions = new Transitions();
-            image1.Transitions.Add(transition);
+            image1.Transitions.Add(fadeTransition);
             image2.Transitions = new Transitions();
             image2.Transitions.Add(transition2);
 
-            timer.Elapsed += Timer_Tick;
+            slideTimer.Elapsed += Timer_Tick;
             clock.Elapsed += Clock_Elapsed;
 
             RefreshSettings();
             GetFiles();
 
-            timer.Start();
+            slideTimer.Start();
             clock.Start();
 
             RaspberryPiPrep();
@@ -138,11 +153,6 @@ namespace Dynaframe3
             
         }
 
-        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-
-        }
-
         private void MainWindow_Closed(object sender, EventArgs e)
         {
             ((ClassicDesktopStyleApplicationLifetime)Avalonia.Application.Current.ApplicationLifetime).Shutdown(0);
@@ -152,41 +162,20 @@ namespace Dynaframe3
         {
             if (e.Key == Avalonia.Input.Key.Escape)
             {
-                timer.Stop();
+                slideTimer.Stop();
                 clock.Stop();
                 this.Close();
                 server.Stop();
                 (Application.Current as IControlledApplicationLifetime).Shutdown();
 
             }
-            if (e.Key == Avalonia.Input.Key.F)
-            {
-                this.WindowState = WindowState.FullScreen;
-            }
-            if (e.Key == Avalonia.Input.Key.M)
-            {
-                this.WindowState = WindowState.Maximized;
-            }
-            if (e.Key == Avalonia.Input.Key.T)
-            {
-                if (this.Topmost)
-                {
-                    this.Topmost = false;
-                }
-                else
-                {
-                    this.Topmost = true;
-                }
-            }
-
-            if (e.Key == Avalonia.Input.Key.V)
-            {
-                mainWindow.Width++;
-                mainWindow.Height++;
-            }
-
         }
 
+        /// <summary>
+        /// The main processing loop. Will have to break this down at some point.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Timer_Tick(object sender, EventArgs e)
         {
             // Case where files don't match
@@ -211,6 +200,21 @@ namespace Dynaframe3
                 return;
             }
 
+            // Get drives that are available
+            // TODO: Initial Work to support inserted USB drives for loading pictures
+            // Need to maintain a list of locations media can be found
+            // and gracefully handle when it disappears
+            DriveInfo[] driveInfo = System.IO.DriveInfo.GetDrives();
+            foreach (DriveInfo info in driveInfo)
+            {
+                if (info.DriveType == DriveType.Removable)
+                {
+                    //Console.WriteLine("info: " + info.Name);
+                    //Console.WriteLine("type: " + info.DriveType);
+                }
+            }
+
+
             if (index == fileList.Length)
             {
                 index = 0;
@@ -229,7 +233,7 @@ namespace Dynaframe3
                 || (fileList[index].ToUpper().EndsWith(".MPEG"))
                 )
             {
-                this.timer.Stop(); // stop processing images...
+                this.slideTimer.Stop(); // stop processing images...
                 ProcessStartInfo pInfo = new ProcessStartInfo();
                 pInfo.WindowStyle = ProcessWindowStyle.Maximized;
 
@@ -263,6 +267,7 @@ namespace Dynaframe3
                     if (timer > 400)
                     {
                         // timeout to not 'hang'
+                        // TODO: Add a setting for this
                         break;
                     }
                     Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
@@ -277,19 +282,30 @@ namespace Dynaframe3
                 p.Close();
                 p.Dispose();
                 System.Threading.Thread.Sleep(500);
-                this.timer.Start(); // resume
+                this.slideTimer.Start(); // resume
+                Timer_Tick(null, null); // force next tick
             }
             else
             {
+                ///
+                ///    Photo swap code
+                ///
+
+                // Step 1: Set the background image to the new one
+                // fade the top out, revealing the bottom
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     try
                     {
                         RefreshSettings();
+                        // TODO: check that the file exists here!
+
+                        
                         bitmapNew = new Bitmap(fileList[index]);
                         image2.Source = bitmapNew;
                         image2.Opacity = 1;
                         image1.Opacity = 0;
+                        mainWindow.WindowState = WindowState.FullScreen;
                     }
                     catch (Exception exc)
                     {
@@ -297,21 +313,29 @@ namespace Dynaframe3
                     }
                 });
 
-                System.Threading.Thread.Sleep(1600);
+                // We sleep on this thread to let the transition occur fully
+                System.Threading.Thread.Sleep(AppSettings.Default.FadeTransitionTime);
 
+
+                // At this point the 'bottom' image is opaque showing the new image
+                // We set the top to that image, and fade it in
+                // we temporarily clear the transiton out so it's instant
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     try
                     {
+                        image1.Transitions.Clear();
                         image1.Source = image2.Source;
                         image1.Opacity = 1;
+                        image1.Transitions.Add(fadeTransition);
                     }
                     catch (Exception exc)
                     {
-                        tb.Text = "broken " + exc.Message;
+                        tb.Text = "Error: " + exc.Message;
                     }
                 });
-                System.Threading.Thread.Sleep(1600);
+
+                // We then fade the background back out to keep it out of the way (in case we 
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     image2.Opacity = 0;
@@ -319,6 +343,11 @@ namespace Dynaframe3
             }
         }
 
+        /// <summary>
+        /// Secondary 'clock' loop. Mainly controls the secondary UI for now.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Clock_Elapsed(object sender, ElapsedEventArgs e)
         {
 
@@ -362,6 +391,15 @@ namespace Dynaframe3
                 }
 
             });
+
+            // NOTE: We update this here in case a bad value gets put into the app settings
+            // We only try to update it if it's changed. Setting that to a bad value can be catastrophic.
+            // May consider limiting the values in the future.
+            if (slideTimer.Interval != AppSettings.Default.SlideshowTransitionTime)
+            {
+                slideTimer.Interval = AppSettings.Default.SlideshowTransitionTime;
+                Timer_Tick(null, null);
+            }
 
         }
 
@@ -415,9 +453,9 @@ namespace Dynaframe3
             // Infobar is the text at the bottom (default 100)
             tb.FontSize = AppSettings.Default.InfoBarFontSize;
 
+            // Fix up rotations. When rotating, we must redo the layout
+            // to get everything to resize correctly
             int degrees = AppSettings.Default.Rotation;
-            mainWindow.Width = AppSettings.Default.Width;
-            mainWindow.Height = AppSettings.Default.Height;
             mainWindow.InvalidateVisual();
 
             Transform t = new RotateTransform(degrees);
@@ -435,6 +473,9 @@ namespace Dynaframe3
                 mainPanel.Height = h;
             }
             mainPanel.RenderTransform = t;
+
+            // update any fade settings
+            fadeTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
 
             AppSettings.Default.OXMOrientnation = "--orientation " + degrees.ToString();
         }

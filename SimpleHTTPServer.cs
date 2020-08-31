@@ -12,6 +12,7 @@ using System.Threading;
 using System.Diagnostics;
 using Microsoft.VisualBasic.FileIO;
 using Dynaframe3;
+using System.Runtime.InteropServices;
 
 class SimpleHTTPServer
 {
@@ -155,7 +156,6 @@ class SimpleHTTPServer
             {
                 HttpListenerContext context = _listener.GetContext();
                 Process(context);
-                int i = 0;
             }
             catch (Exception ex)
             {
@@ -166,8 +166,30 @@ class SimpleHTTPServer
 
     private void Process(HttpListenerContext context)
     {
+        // TODO: Clean this up. Need a consistent way to read in values
+        // and cleanly set settings. For now having this ugly is a good
+        // tradeoff to let me learn how to do it better in the future
+
         if (context.Request.QueryString.Count > 0)
         {
+            // Shutdown command. This helps raspberry pis shutdown gracefully
+            // but is likely useful for all platforms since the mirror may not
+            // have a keyboard.  In the future may hook this up to an IR remote
+            if (context.Request.QueryString.Get("shutdown") == "oneminute")
+            {
+                // shutdown requested!
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Helpers.RunProcess("shutdown", "");
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Helpers.RunProcess("shutdown", "/t /60");
+                }
+
+            }
+
             string? shuffle = context.Request.QueryString.Get("Shuffle");
             if (shuffle != null)
             {
@@ -208,26 +230,6 @@ class SimpleHTTPServer
                 AppSettings.Default.CurrentDirectory = pictureDir; 
             }
 
-            string? heightval = context.Request.QueryString.Get("height");
-            if (heightval != null)
-            {
-                int height = 1080;
-                if (int.TryParse(context.Request.QueryString.Get("height"),out height))
-                {
-                    AppSettings.Default.Height = height;
-                }
-            }
-            
-            string? widthval = context.Request.QueryString.Get("width");
-            if (widthval != null)
-            {
-                int width = 1920;
-                if (int.TryParse(context.Request.QueryString.Get("width"), out width))
-                {
-                    AppSettings.Default.Width = width;
-                }
-            }
-
             string? infobarfontsizeval = context.Request.QueryString.Get("infobarfontsize");
             if (infobarfontsizeval != null)
             {
@@ -237,6 +239,27 @@ class SimpleHTTPServer
                     AppSettings.Default.InfoBarFontSize = fontsize;
                 }
             }
+
+            string? slideshowdurationVal = context.Request.QueryString.Get("slideshowduration");
+            if (slideshowdurationVal != null)
+            {
+                int slideshowduration = 0;
+                if (int.TryParse(context.Request.QueryString.Get("slideshowduration"), out slideshowduration))
+                {
+                    AppSettings.Default.SlideshowTransitionTime = slideshowduration;
+                }
+            }
+
+            string? transitiontimeVal = context.Request.QueryString.Get("transitiontime");
+            if (transitiontimeVal != null)
+            {
+                int transitiontime = 0;
+                if (int.TryParse(context.Request.QueryString.Get("transitiontime"), out transitiontime))
+                {
+                    AppSettings.Default.FadeTransitionTime = transitiontime;
+                }
+            }
+
 
             AppSettings.Default.Save();
         }
@@ -337,9 +360,10 @@ class SimpleHTTPServer
         page = page.Replace("<!-- DIRECTORIES -->", dirChoices);
 
         // Generate custom settings here
-        page = page.Replace("<!--DEFAULTHEIGHT-->", "value=" + AppSettings.Default.Height.ToString() + ">");
-        page = page.Replace("<!--DEFAULTWIDTH-->", "value=" + AppSettings.Default.Width.ToString() + ">");
         page = page.Replace("<!--INFOBARFONTSIZE-->", "value=" + AppSettings.Default.InfoBarFontSize.ToString() + ">");
+        page = page.Replace("<!--SLIDESHOWDURATION-->", "value=" + AppSettings.Default.SlideshowTransitionTime.ToString() + ">");
+        page = page.Replace("<!--TRANSITIONTIME-->", "value=" + AppSettings.Default.FadeTransitionTime.ToString() + ">");
+
         return page;
 
     }

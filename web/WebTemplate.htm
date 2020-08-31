@@ -22,16 +22,10 @@
 	<h3>Settings:</h3>
 	<!-- DIRECTORIES -->
 	<form action="default.htm">
-		Width (X Resolution): <input type="text" name="width"  <!--DEFAULTWIDTH--><br>
-		Height (Y Resolution): <input type="text" name="height" <!--DEFAULTHEIGHT--><br>
 		Infobar (clock) font size: <input type="text" name="infobarfontsize" <!--INFOBARFONTSIZE--><br>
+		Slideshow duration between slides (milliseconds) font size: <input type="text" name="slideshowduration" <!--SLIDESHOWDURATION--><br>
+		Transition duration during fades (milliseconds) font size: <input type="text" name="transitiontime" <!--TRANSITIONTIME--><br>
 		<br />
-		<b></b>Common Resolutions:</b> <br />
-		<ul>
-			<li>4k (100%) 3840(width) 2160 (Height)</li>
-			<li>1440p (or 4k@150% scaling) 2560x1440</li>
-			<li>1080p 1920x1080</li>
-		</ul>
 		<br />
 		Shuffle: <input type="radio" name="shuffle" id="shuffle" value="on"><label for="shuffle">On</label><input type="radio" name="shuffle" value="off"><label for="off">Off</label><br>
 		Show Time: <input type="radio" name="clock" id="clock" value="on"><label for="clock">On</label><input type="radio" name="clock" value="off"><label for="clock">Off</label><br>
@@ -44,6 +38,8 @@
 		<label>180</label>
 		<input type="radio" name="rotation" value="270">
 		<label>270</label><br /><br />
+		<br /><br />
+		<button name="shutdown" value="oneminute">Shutdown system in one minute</button><br /><br />
 		<input type="submit" value="Submit">
 	</form>
 </body>

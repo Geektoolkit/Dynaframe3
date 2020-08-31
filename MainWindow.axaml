@@ -6,11 +6,8 @@
         x:Class="Dynaframe3.MainWindow"
         TransparencyLevelHint="Transparent"
         Background="Black"
-        Title="Dynaframe3" 
-        VerticalContentAlignment="Stretch"
-        HorizontalContentAlignment="Stretch"
         Name="mainWindow"
-        SystemDecorations="None">
+        >
   <Panel Name="mainPanel">
     <Image Name="Back"  Stretch="UniformToFill" Opacity="0"/>
     <Image Name="Front" Stretch="UniformToFill" />

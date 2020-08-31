@@ -25,10 +25,10 @@ namespace Dynaframe3
             CurrentDirectory = SpecialDirectories.MyPictures;
             //TimeFormat = "dd MMMM yyyy H:mm tt";
             TimeFormat = "H:mm tt";
-            Width = 1920;
-            Height = 1080;
             Clock = false;
             InfoBarFontSize = 50;
+            SlideshowTransitionTime = 30000; // milliseconds between slides
+            FadeTransitionTime = 1600;       // milliseconds for fades
 
         }
 
@@ -93,18 +93,19 @@ namespace Dynaframe3
         public string TimeFormat { get; set; }
 
         /// <summary>
-        /// How many pixels wide should the window be?
-        /// </summary>
-        public int Width { get; set; }
-
-        /// <summary>
-        /// How many pixels High should the window be?
-        /// </summary>
-        public int Height { get; set; }
-
-        /// <summary>
         /// The size of the font for the info bar
         /// </summary>
         public int InfoBarFontSize { get; set; }
+
+        /// <summary>
+        /// Time to crossfade between images
+        /// </summary>
+        public int FadeTransitionTime { get; set; }
+
+        /// <summary>
+        /// Time to show each slide
+        /// </summary>
+        public int SlideshowTransitionTime { get; set; }
+
     }
 }
