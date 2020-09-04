@@ -10,9 +10,13 @@
     <Description>Dynaframe is a dynamic photo application which can show images and videos as slideshows. It features a web frontend, home automation integration, and more.</Description>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="run.sh" />
     <None Remove="web\WebTemplate.htm" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="run.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="web\WebTemplate.htm">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -20,6 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.10.999-cibuild0010094-beta" />
     <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0010094-beta" />
+    <PackageReference Include="MetadataExtractor" Version="2.4.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.7" />

@@ -99,5 +99,15 @@ namespace Dynaframe3
                 return -1;
             }
         }
+
+        /// <summary>
+        /// NYI - Future work to get the temp and give warnings, or to build a 'pi dashboard'
+        /// </summary>
+        public static void GetTemp()
+        {
+            // to get temp in C
+            // vcgencmd measure_temp | egrep -o '[0-9]*\.[0-9]*'
+            // 9/5 * C +32 = Farenheight
+        }
     }   
 }

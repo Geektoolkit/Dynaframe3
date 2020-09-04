@@ -148,8 +148,8 @@ namespace Dynaframe3
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     ProcessStartInfo pInfo = new ProcessStartInfo();
-                    pInfo.FileName = "setterm -blank 0 -powerdown 0";
-                    pInfo.Arguments = AppSettings.Default.OXMOrientnation + " " + fileList[index];
+                    pInfo.FileName = "setterm";
+                    pInfo.Arguments = "-blank 0 -powerdown 0";
                     Process p = new Process();
                     p.StartInfo = pInfo;
                     p.Start();
@@ -231,8 +231,15 @@ namespace Dynaframe3
                 return;
 
             }
+
+            IReadOnlyList<MetadataExtractor.Directory> data = MetadataExtractor.ImageMetadataReader.ReadMetadata(fileList[index]);
+            foreach (var directory in data)
+                foreach (var tag in directory.Tags)
+                    Debug.WriteLine($"{directory.Name} - {tag.Name} = {tag.Description}");
+
+
             // TODO: Try to 'peek' at next file, if video, then slow down more
-                if ((fileList[index].ToUpper().EndsWith(".MOV")) 
+            if ((fileList[index].ToUpper().EndsWith(".MOV")) 
                 || (fileList[index].ToUpper().EndsWith(".MP4"))
                 || (fileList[index].ToUpper().EndsWith(".AVI"))
                 || (fileList[index].ToUpper().EndsWith(".MKV"))
@@ -243,11 +250,11 @@ namespace Dynaframe3
                 ProcessStartInfo pInfo = new ProcessStartInfo();
                 pInfo.WindowStyle = ProcessWindowStyle.Maximized;
 
-
+                // TODO: Parameterize omxplayer settings
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     pInfo.FileName = "omxplayer";
-                    pInfo.Arguments = AppSettings.Default.OXMOrientnation + " " + fileList[index];
+                    pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode stretch " + fileList[index];
                     Console.WriteLine("DF Playing: " + fileList[index]);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
