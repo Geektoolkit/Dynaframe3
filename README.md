@@ -1,6 +1,9 @@
 # Dynaframe3
 Dynamic Photo and Video Slideshow system for SBC (such as Raspberry pi)
 
+Video Demo, how to install, and intro here: https://youtu.be/XEaUsaNEzjY
+
+
 Welcome to Dynaframe!  Dynaframe was designed to be a simple photo and video slideshow viewer.  I wanted to have something that could do slideshows but also show 'plotagraphs', which are essentially animated images.  I use an app on iOS called 'Werble' which made some really cool ones, but there wasn't a good way to show them off.
 
 The first version of Dynaframe was simply a python script that went through a folder list and then executed feh or omxplayer base don the file extension.  This was buggy, unstable, ugly, and in the end I abandoned it, however I had a ton of requests for updates and features. I decided to rewrite it in Avalonia, and that has proven to make things MUCH better.  The feature set increased dramatically, and every time I get a few hours to work on it I add a few more.  currently there are:
