@@ -5,5 +5,6 @@
 # to also shim in other fixes without affecting the main codebase which are linux specific before execution, such as turning off
 # sleep, or possibly syncing files.
 cd /home/pi/Dynaframe
+mkdir -p  /home/pi/Dynaframe/logs
 echo "starting Dynaframe" >> /home/pi/Dynaframe/logs/run.sh.log
 ./Dynaframe > /home/pi/Dynaframe/logs/dynaframe.log 2>&1

@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=Dynaframe
+Exec=/home/pi/Dynaframe/run.sh
