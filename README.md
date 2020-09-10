@@ -3,11 +3,15 @@ Dynamic Photo and Video Slideshow system for SBC (such as Raspberry pi)
 
 Video Demo, how to install, and intro here: https://youtu.be/XEaUsaNEzjY
 
+
 Quickstart: On a raspberry pi based system you'll want to connect to a network, put a few images in the Pictures folder to get started, and then run:
 
     sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.03/install.sh && bash install.sh; rm -f install.sh ; sudo reboot
     
 On reboot it should startup, and it'll show you the URL of the configuration page.
+
+To exit, please hit the 'esc' button.  
+To restart on a raspberry pi, you can launch it again using ./Dynaframe 
     
 On Windows you can find a release specific to Windows, and then run Dynaframe.exe.
 
