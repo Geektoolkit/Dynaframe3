@@ -60,7 +60,7 @@ namespace Dynaframe3
                             string ip = addresses[i].Address.ToString();
                             // Filter out IPV6, local, loopback, etc.
                             if((!ip.StartsWith("169.")) && (!ip.StartsWith("127.")) && (!ip.Contains("::")))
-                                returnval += "Setup at http://" + ip + ":8000 "+ Environment.NewLine;
+                                returnval += "(2.04 Pre) Setup at http://" + ip + ":8000 "+ Environment.NewLine;
                         }
                     }
                     catch (Exception)
