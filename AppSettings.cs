@@ -18,14 +18,15 @@ namespace Dynaframe3
     {
         private AppSettings()
         {
+            ReloadSettings = false;
             // marked as private to prevent outside classes from creating new.
-            Paths = "";
             Shuffle = false;
             Rotation = 0;
             OXMOrientnation = "--orientation 0";
+            SearchDirectories = new List<string>() { SpecialDirectories.MyPictures};
             CurrentDirectory = SpecialDirectories.MyPictures;
-            //TimeFormat = "dd MMMM yyyy H:mm tt";
-            TimeFormat = "H:mm tt";
+            DateTimeFormat = "H:mm tt";
+
             Clock = false;
             InfoBarFontSize = 50;
             SlideshowTransitionTime = 30000; // milliseconds between slides
@@ -67,7 +68,6 @@ namespace Dynaframe3
             System.IO.File.WriteAllText(_jsonSource, json);
         }
 
-        public string Paths { get; set; }
         /// <summary>
         /// Should the pictures in the folder shuffle?
         /// </summary>
@@ -86,12 +86,12 @@ namespace Dynaframe3
         /// </summary>
         public string OXMOrientnation { get; set; }
 
-        /// <summary>
-        /// Keeps track of the current directory that is being used
-        /// </summary>
-        public string CurrentDirectory { get; set; }
 
-        public string TimeFormat { get; set; }
+        /// <summary>
+        /// List of directories which should be scanned for pictures
+        /// </summary>
+        public List<String> SearchDirectories { get; set; }
+        
 
         /// <summary>
         /// The size of the font for the info bar
@@ -107,6 +107,15 @@ namespace Dynaframe3
         /// Time to show each slide
         /// </summary>
         public int SlideshowTransitionTime { get; set; }
+
+        public string DateTimeFormat { get; set; }
+
+        public bool ReloadSettings { get; set; }
+
+        // This is the currently selected 'playlist'.  
+        // This will need to be expanded to an array in the future to support
+        // multiple folders being selected at once
+        public string CurrentDirectory { get; set; }
 
     }
 }

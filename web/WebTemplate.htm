@@ -1,45 +1,105 @@
-﻿<body bgcolor="lightblue">
-	<head>
-		<style>
-			a.button {
-				-webkit-appearance: button;
-				-moz-appearance: button;
-				appearance: button;
-				text-decoration: none;
-				color: #003;
-				font-size: 30px;
-				background-color: #63B8EE;
-				border: none;
-				padding: 10px 20px;
-				text-align: left font-family: 'Open Sans';
-				border-radius: 8px;
-				border: 3px solid #3866A3;
-			}
-		</style>
-	</head>
+﻿<head>
+	<!-- used colors from: https://coolors.co/2452f9-033860-004385-93b7be-d4f5f5-->
+	<style>
+		a.button {
+			-webkit-appearance: button;
+			-moz-appearance: button;
+			appearance: button;
+			text-decoration: none;
+			color: d4f5f5;
+			font-size: 20px;
+			height: 80px;
+			background-color: #2452f9;
+			border: none;
+			padding: 5px 10px;
+			text-align: left font-family: 'Open Sans';
+			border-radius: 8px;
+			border: 3px solid #D4F5F5;
+		}
+
+		.grid-container {
+			display: grid;
+			height: Auto;
+			align-content: Top;
+			grid-template-columns: auto auto auto auto auto;
+			grid-gap: 5px;
+			padding: 5px;
+			justify-content: start;
+		}
+
+		.settings {
+			color: #d4f5f5;
+			text-align: left;
+			font-family: 'Open Sans';
+			font-size: 20px;
+		}
+
+		.warningbutton {
+			-webkit-appearance: button;
+			-moz-appearance: button;
+			appearance: button;
+			text-decoration: none;
+			color: d4f5f5;
+			font-size: 20px;
+			height: 45px;
+			background-color: red;
+			border: none;
+			padding: 5px 10px;
+			text-align: left font-family: 'Open Sans';
+			border-radius: 8px;
+			border: 3px solid Black;
+		}
+
+		.submitbutton {
+			-webkit-appearance: button;
+			-moz-appearance: button;
+			appearance: button;
+			text-decoration: none;
+			color: d4f5f5;
+			font-size: 20px;
+			height: 80px;
+			width: 220px;
+			background-color: #2452f9;
+			border: none;
+			padding: 5px 10px;
+			text-align: left font-family: 'Open Sans';
+		}
+
+		h1 {
+			color: #d4f5f5;
+			text-align: left;
+			font-family: 'Open Sans';
+		}
+	</style>
+</head>
+<body bgcolor="#033860">
 	<h1>Welcome to DynaFrame!</h1>
-	<hr />
-	<h3>Settings:</h3>
-	<!-- DIRECTORIES -->
+	<hr color="#D4F5F5" />
+	<div class="grid-container">
+		<!-- DIRECTORIES -->
+	</div>
 	<form action="default.htm">
-		Infobar (clock) font size: <input type="text" name="infobarfontsize" <!--INFOBARFONTSIZE--><br>
-		Slideshow duration between slides (milliseconds) font size: <input type="text" name="slideshowduration" <!--SLIDESHOWDURATION--><br>
-		Transition duration during fades (milliseconds) font size: <input type="text" name="transitiontime" <!--TRANSITIONTIME--><br>
-		<br />
-		<br />
-		Shuffle: <input type="radio" name="shuffle" id="shuffle" value="on"><label for="shuffle">On</label><input type="radio" name="shuffle" value="off"><label for="off">Off</label><br>
-		Show Time: <input type="radio" name="clock" id="clock" value="on"><label for="clock">On</label><input type="radio" name="clock" value="off"><label for="clock">Off</label><br>
-		Rotate:
-		<input type="radio" name="rotation" value="0">
-		<label>0</label>
-		<input type="radio" name="rotation" value="90">
-		<label>90</label>
-		<input type="radio" name="rotation" value="180">
-		<label>180</label>
-		<input type="radio" name="rotation" value="270">
-		<label>270</label><br /><br />
-		<br /><br />
-		<button name="shutdown" value="oneminute">Shutdown system in one minute</button><br /><br />
-		<input type="submit" value="Submit">
-	</form>
+		<div class="settings">
+			Infobar (clock) font size: <input type="text" name="infobarfontsize" <!--INFOBARFONTSIZE--><br>
+			Slideshow duration between slides (milliseconds) font size: <input type="text" name="slideshowduration" <!--SLIDESHOWDURATION--><br>
+			Transition duration during fades (milliseconds) font size: <input type="text" name="transitiontime" <!--TRANSITIONTIME--><br>
+			<br />
+			Directory to Add: <input type="text" name="directoryAdd" width="300"/><br>
+			<br />
+			Shuffle:   <input type="radio" name="shuffle" id="shuffle" value="on"><label for="shuffle">On</label><input type="radio" name="shuffle" value="off"><label for="off">Off</label><br>
+			Show Time: <input type="radio" name="clock" id="clock" value="on"><label for="clock">On</label><input type="radio" name="clock" value="off"><label for="clock">Off</label><br>
+			Rotate:
+			<input type="radio" name="rotation" value="0">
+			<label>0</label>
+			<input type="radio" name="rotation" value="90">
+			<label>90</label>
+			<input type="radio" name="rotation" value="180">
+			<label>180</label>
+			<input type="radio" name="rotation" value="270">
+			<label>270</label><br /><br />
+			<br /><br />
+			<button name="shutdown" value="oneminute" class="warningbutton">Shutdown system in one minute</button><button name="shutdown" value="tenseconds" class="warningbutton">Shutdown system in ten seconds</button><br /><br />
+			<input type="submit" value="Submit" class="submitbutton">
+</form>
+	</div>
 </body>

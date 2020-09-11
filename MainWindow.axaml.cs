@@ -28,10 +28,10 @@ namespace Dynaframe3
     public class MainWindow : Window
     {
 
-        static private string[] fileList;
+        static private List<string> fileList;
         int index;
-        Image image1;
-        Image image2;
+        Image frontImage;
+        Image backImage;
         TextBlock tb;
         Bitmap bitmapNew;
         Window mainWindow;
@@ -46,9 +46,6 @@ namespace Dynaframe3
 
         enum InfoBar { Clock, FileInfo, DateTime, Error, IP}
         InfoBar infoBar = InfoBar.IP;
-
-        // Directories of interest
-        string MediaDirectory = "";
 
         /// <summary>
         /// Tracks number of times the system has gone through a loop. useful for
@@ -69,8 +66,6 @@ namespace Dynaframe3
         /// // TODO: Investigate using synchronizedobject here to sync to UI thread
         /// </summary>
         System.Timers.Timer clock = new System.Timers.Timer(1000);
-
-        // settings to keep in mind
 
 
         public MainWindow()
@@ -113,18 +108,18 @@ namespace Dynaframe3
             tb.Transitions = new Transitions();
             tb.Transitions.Add(fadeTransition);
 
-            image1 = this.FindControl<Image>("Front");
-            image2 = this.FindControl<Image>("Back");
+            frontImage = this.FindControl<Image>("Front");
+            backImage = this.FindControl<Image>("Back");
 
             DoubleTransition transition2 = new DoubleTransition();
             transition2.Easing = new QuadraticEaseIn();
             transition2.Duration = TimeSpan.FromMilliseconds(1600);
             transition2.Property = Image.OpacityProperty;
 
-            image1.Transitions = new Transitions();
-            image1.Transitions.Add(fadeTransition);
-            image2.Transitions = new Transitions();
-            image2.Transitions.Add(transition2);
+            frontImage.Transitions = new Transitions();
+            frontImage.Transitions.Add(fadeTransition);
+            backImage.Transitions = new Transitions();
+            backImage.Transitions.Add(transition2);
 
             slideTimer.Elapsed += Timer_Tick;
             clock.Elapsed += Clock_Elapsed;
@@ -166,14 +161,13 @@ namespace Dynaframe3
 
         private void MainWindow_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
         {
-            if (e.Key == Avalonia.Input.Key.Escape)
+            // Exit on Escape or Control X (Windows and Linux Friendly)
+            if ((e.Key == Avalonia.Input.Key.Escape) || ((e.KeyModifiers == Avalonia.Input.KeyModifiers.Control) && (e.Key == Avalonia.Input.Key.X)))
             {
                 slideTimer.Stop();
                 clock.Stop();
                 this.Close();
                 server.Stop();
-                (Application.Current as IControlledApplicationLifetime).Shutdown();
-
             }
         }
 
@@ -184,22 +178,12 @@ namespace Dynaframe3
         /// <param name="e"></param>
         private void Timer_Tick(object sender, EventArgs e)
         {
-            // Case where files don't match
-            if (PlayingDirectory != AppSettings.Default.CurrentDirectory)
-            {
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    PlayingDirectory = AppSettings.Default.CurrentDirectory;
-                    GetFiles();
-                });
-            }
-
             index++;
-            if ((fileList == null) || (fileList.Length == 0))
+            if ((fileList == null) || (fileList.Count == 0))
             {
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    tb.Text = "Error! No files found! Path is: " + AppSettings.Default.CurrentDirectory;
+                    tb.Text = "Error! No files found! Path is: " + AppSettings.Default.SearchDirectories.ToString();
                     infoBar = InfoBar.Error;
                 });
                 
@@ -221,12 +205,12 @@ namespace Dynaframe3
             }
 
 
-            if (index == fileList.Length)
+            if (index == fileList.Count)
             {
                 index = 0;
             }
 
-            if ((fileList == null) || (fileList.Length == 0))
+            if ((fileList == null) || (fileList.Count == 0))
             {
                 return;
 
@@ -236,124 +220,142 @@ namespace Dynaframe3
             foreach (var directory in data)
                 foreach (var tag in directory.Tags)
                     Debug.WriteLine($"{directory.Name} - {tag.Name} = {tag.Description}");
-
-
-            // TODO: Try to 'peek' at next file, if video, then slow down more
-            if ((fileList[index].ToUpper().EndsWith(".MOV")) 
-                || (fileList[index].ToUpper().EndsWith(".MP4"))
-                || (fileList[index].ToUpper().EndsWith(".AVI"))
-                || (fileList[index].ToUpper().EndsWith(".MKV"))
-                || (fileList[index].ToUpper().EndsWith(".MPEG"))
-                )
+            try
             {
-                this.slideTimer.Stop(); // stop processing images...
-                ProcessStartInfo pInfo = new ProcessStartInfo();
-                pInfo.WindowStyle = ProcessWindowStyle.Maximized;
-
-                // TODO: Parameterize omxplayer settings
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                // ensure the file is there
+                if (!File.Exists(fileList[index]))
                 {
-                    pInfo.FileName = "omxplayer";
-                    pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode stretch " + fileList[index];
-                    Console.WriteLine("DF Playing: " + fileList[index]);
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    pInfo.UseShellExecute = true;
-                    pInfo.FileName = "wmplayer.exe";
-                    pInfo.Arguments = fileList[index];
-                    pInfo.Arguments += " /fullscreen";
-                    Console.WriteLine("Looking for media in: " + pInfo.Arguments);
+                    this.Timer_Tick(null, null); // Move on to next file in the list
                 }
 
 
-                Process p = new Process();
-                p.StartInfo = pInfo;
-                p.Start();
-                System.Threading.Thread.Sleep(500);
-
-                int timer = 0;
-                while (!p.HasExited)
+                // TODO: Try to 'peek' at next file, if video, then slow down more
+                if ((fileList[index].ToUpper().EndsWith(".MOV"))
+                    || (fileList[index].ToUpper().EndsWith(".MP4"))
+                    || (fileList[index].ToUpper().EndsWith(".AVI"))
+                    || (fileList[index].ToUpper().EndsWith(".MKV"))
+                    || (fileList[index].ToUpper().EndsWith(".MPEG"))
+                    )
                 {
-                    timer += 1;
-                    System.Threading.Thread.Sleep(100);
-                    if (timer > 400)
-                    {
-                        // timeout to not 'hang'
-                        // TODO: Add a setting for this
-                        break;
-                    }
+                    PlayVideoFile();
+                }
+                else
+                {
+                    ///
+                    ///    Photo swap code
+                    ///
+
+                    // Step 1: Set the background image to the new one
+                    // fade the top out, revealing the bottom
                     Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                     {
-                        mainWindow.Opacity = .1;
+                        try
+                        {
+                            RefreshSettings();
+                        // TODO: check that the file exists here!
+
+
+                        bitmapNew = new Bitmap(fileList[index]);
+                            backImage.Source = bitmapNew;
+                            backImage.Opacity = 1;
+                            frontImage.Opacity = 0;
+                            mainWindow.WindowState = WindowState.FullScreen;
+                        }
+                        catch (Exception exc)
+                        {
+                            tb.Text = "broken " + exc.Message;
+                        }
                     });
+
+                    // We sleep on this thread to let the transition occur fully
+                    System.Threading.Thread.Sleep(AppSettings.Default.FadeTransitionTime);
+
+
+                    // At this point the 'bottom' image is opaque showing the new image
+                    // We set the top to that image, and fade it in
+                    // we temporarily clear the transiton out so it's instant
+                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        try
+                        {
+                            frontImage.Transitions.Clear();
+                            frontImage.Source = backImage.Source;
+                            frontImage.Opacity = 1;
+                            frontImage.Transitions.Add(fadeTransition);
+                        }
+                        catch (Exception exc)
+                        {
+                            tb.Text = "Error: " + exc.Message;
+                        }
+                    });
+
+                    // We then fade the background back out to keep it out of the way (in case we 
+                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        backImage.Opacity = 0;
+                    });
+                }
+            }
+            catch (Exception)
+            {
+                // Another thread messed with the filelist...ignore for now
+                // I'll refactor this later.
+            }
+        }
+
+        private void PlayVideoFile()
+        {
+            this.slideTimer.Stop(); // stop processing images...
+            ProcessStartInfo pInfo = new ProcessStartInfo();
+            pInfo.WindowStyle = ProcessWindowStyle.Maximized;
+
+            // TODO: Parameterize omxplayer settings
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                pInfo.FileName = "omxplayer";
+                pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode stretch " + fileList[index];
+                Console.WriteLine("DF Playing: " + fileList[index]);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                pInfo.UseShellExecute = true;
+                pInfo.FileName = "wmplayer.exe";
+                pInfo.Arguments = fileList[index];
+                pInfo.Arguments += " /fullscreen";
+                Console.WriteLine("Looking for media in: " + pInfo.Arguments);
+            }
+
+
+            Process p = new Process();
+            p.StartInfo = pInfo;
+            p.Start();
+            System.Threading.Thread.Sleep(500);
+
+            int timer = 0;
+            while (!p.HasExited)
+            {
+                timer += 1;
+                System.Threading.Thread.Sleep(100);
+                if (timer > 400)
+                {
+                    // timeout to not 'hang'
+                    // TODO: Add a setting for this
+                    break;
                 }
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    mainWindow.Opacity = 1;
+                    mainWindow.Opacity = .1;
                 });
-                p.Close();
-                p.Dispose();
-                System.Threading.Thread.Sleep(500);
-                this.slideTimer.Start(); // resume
-                Timer_Tick(null, null); // force next tick
             }
-            else
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                ///
-                ///    Photo swap code
-                ///
-
-                // Step 1: Set the background image to the new one
-                // fade the top out, revealing the bottom
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    try
-                    {
-                        RefreshSettings();
-                        // TODO: check that the file exists here!
-
-                        
-                        bitmapNew = new Bitmap(fileList[index]);
-                        image2.Source = bitmapNew;
-                        image2.Opacity = 1;
-                        image1.Opacity = 0;
-                        mainWindow.WindowState = WindowState.FullScreen;
-                    }
-                    catch (Exception exc)
-                    {
-                        tb.Text = "broken " + exc.Message;
-                    }
-                });
-
-                // We sleep on this thread to let the transition occur fully
-                System.Threading.Thread.Sleep(AppSettings.Default.FadeTransitionTime);
-
-
-                // At this point the 'bottom' image is opaque showing the new image
-                // We set the top to that image, and fade it in
-                // we temporarily clear the transiton out so it's instant
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    try
-                    {
-                        image1.Transitions.Clear();
-                        image1.Source = image2.Source;
-                        image1.Opacity = 1;
-                        image1.Transitions.Add(fadeTransition);
-                    }
-                    catch (Exception exc)
-                    {
-                        tb.Text = "Error: " + exc.Message;
-                    }
-                });
-
-                // We then fade the background back out to keep it out of the way (in case we 
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    image2.Opacity = 0;
-                });
-            }
+                mainWindow.Opacity = 1;
+            });
+            p.Close();
+            p.Dispose();
+            System.Threading.Thread.Sleep(500);
+            this.slideTimer.Start(); // resume
+            Timer_Tick(null, null); // force next tick
         }
 
         /// <summary>
@@ -363,6 +365,16 @@ namespace Dynaframe3
         /// <param name="e"></param>
         private void Clock_Elapsed(object sender, ElapsedEventArgs e)
         {
+            // Case where files don't match
+            if (AppSettings.Default.ReloadSettings)
+            {
+                AppSettings.Default.ReloadSettings = false;
+                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    GetFiles();
+                    this.Timer_Tick(null, null);
+                });
+            }
 
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -370,7 +382,7 @@ namespace Dynaframe3
                 {
                     case (InfoBar.Clock):
                         {
-                            tb.Text = DateTime.Now.ToString(AppSettings.Default.TimeFormat);
+                            tb.Text = DateTime.Now.ToString(AppSettings.Default.DateTimeFormat);
                             break;
                         }
                     case (InfoBar.Error):
@@ -418,30 +430,46 @@ namespace Dynaframe3
 
         private bool GetFiles()
         {
-            string MediaDirectory = AppSettings.Default.CurrentDirectory;
             index = 0;
-            if (Directory.Exists(MediaDirectory))
+            fileList = new List<string>(); // get a list of files to go through
+            slideTimer.Stop();
+            string directory = AppSettings.Default.CurrentDirectory;
+            try
             {
-                DirectoryInfo dirInfo = new DirectoryInfo(MediaDirectory);
 
-                fileList = Helpers.GetFilesByExtensions(dirInfo, ".jpg", ".jpeg", ".png", 
-                    ".bmp", ".mov", ".mpg", ".avi", ".mkv", ".mpeg", ".mp4").ToArray();
+                if (Directory.Exists(directory))
+                {
+                    DirectoryInfo dirInfo = new DirectoryInfo(directory);
+
+                    var mediafiles = Helpers.GetFilesByExtensions(dirInfo, ".jpg", ".jpeg", ".png",
+                        ".bmp", ".mov", ".mpg", ".avi", ".mkv", ".mpeg", ".mp4");
+
+                    if (mediafiles != null)
+                        fileList.AddRange(mediafiles.ToList());
 
                     if (AppSettings.Default.Shuffle)
-                {
-                    Random r = new Random((int)DateTime.Now.Ticks);
-                    fileList = Helpers.Shuffle<string>(fileList.ToList(), r).ToArray();
+                    {
+                        Random r = new Random((int)DateTime.Now.Ticks);
+                        fileList = Helpers.Shuffle<string>(fileList.ToList(), r).ToList();
+                    }
                 }
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine("Exception when reading directory: " + directory + " Exception: " + exc.ToString());
+            }
+            slideTimer.Start();
+
+            if (fileList.Count > 0)
+            {
                 return true;
             }
             else
             {
-                tb.Text = "No images found! current directory is: " + MediaDirectory;
-                Console.WriteLine("Error! No images found!");
-                infoBar = InfoBar.Error;
+                // 0 files found in all given directories
                 return false;
             }
-        }
+        }   
 
         public void SetupWebServer()
         {
@@ -449,6 +477,9 @@ namespace Dynaframe3
             server = new SimpleHTTPServer(current + "//web", 8000);
         }
 
+        /// <summary>
+        /// This gets called each clock cycle, and is responsible for 'refreshing' settings, fixing up rotation rendering, etc.
+        /// </summary>
         private void RefreshSettings()
         {
             if (AppSettings.Default.Clock)

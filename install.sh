@@ -7,7 +7,7 @@ echo "Cleaning up before we begin..."
 rm -rf /home/pi/Dynaframe
 rm -rf /home/pi/.config/autostart/dynaframe.desktop
 sudo apt-get install unzip
-
+sudo apt-get install unclutter
 mkdir -p  /home/pi/Dynaframe
 cd Dynaframe
 sudo chmod 777 .

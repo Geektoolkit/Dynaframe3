@@ -189,6 +189,22 @@ class SimpleHTTPServer
                 }
 
             }
+            if (context.Request.QueryString.Get("shutdown") == "            tenseconds")
+            {
+                // shutdown requested!
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    System.Threading.Thread.Sleep(10000);
+                    Helpers.RunProcess("shutdown", "now");
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Helpers.RunProcess("shutdown", "/t /10");
+                }
+
+            }
+
 
             string? shuffle = context.Request.QueryString.Get("Shuffle");
             if (shuffle != null)
@@ -227,7 +243,8 @@ class SimpleHTTPServer
             if(dir != null)
             {
                 string pictureDir = dir.Replace("'","");
-                AppSettings.Default.CurrentDirectory = pictureDir; 
+                AppSettings.Default.CurrentDirectory = pictureDir;
+                AppSettings.Default.ReloadSettings = true;
             }
 
             string? infobarfontsizeval = context.Request.QueryString.Get("infobarfontsize");
@@ -260,6 +277,18 @@ class SimpleHTTPServer
                 }
             }
 
+            string? directoryToAdd = context.Request.QueryString.Get("directoryAdd");
+            if (directoryToAdd != null)
+            {
+                // We use search directories to add things like NAS drives and usb drives to the system.
+                // This checks to make sure it exists when they're adding it, and that it isn't already in the list..
+                if (Directory.Exists(directoryToAdd) && (!AppSettings.Default.SearchDirectories.Contains(directoryToAdd)))
+                {
+                    AppSettings.Default.SearchDirectories.Add(directoryToAdd);
+                    // Cleanup. Somewhere this is getting doubled up sometimes still. It's a small list so this should be fast.
+                    AppSettings.Default.SearchDirectories = AppSettings.Default.SearchDirectories.Distinct().ToList(); 
+                }
+            }
 
             AppSettings.Default.Save();
         }
@@ -343,20 +372,36 @@ class SimpleHTTPServer
     {
         TextReader reader = File.OpenText("./web/WebTemplate.htm");
         string page = reader.ReadToEnd();
-        string baseDir = SpecialDirectories.MyPictures;
-        Debug.WriteLine("Special directory: " + baseDir);
-        string[] dirs = Directory.GetDirectories(baseDir);
+
+        // TODO: Break this out into a File/Folder management class
+        // to handle this both in Dynaframe core and this engine
+        // This goes through all folders in the settings, and gets
+        // the first level directory folders to act as playlists
+
+        List<string> dirs = Helpers.GetDirectories();
         string dirChoices = "<br>";
         foreach (string directory in dirs)
         {
             string dir = Path.GetFileName(directory);
             string encdirectory = System.Web.HttpUtility.UrlEncode(directory);
-            dirChoices += "<a href=?dir=" + encdirectory + " class='button'>" + dir + "</a><br>";
+            dirChoices += "<a href=?dir=" + encdirectory + " class='button'>" + dir + "</a>";
         }
-        // TODO: Add 'all' here
-        dirChoices += "<a href=?dir=" + baseDir + " class='button'>" + "All in: " + baseDir + "</a><br>";
 
-        dirChoices += "<br>Special directory was: <b>" + baseDir + "</b><br>";
+        // Add the 'top level' so that we get the 'all' functionality
+        foreach (string rootDirectory in AppSettings.Default.SearchDirectories)
+        {
+            string dir = Path.GetFileName(rootDirectory);
+            dirChoices += "<a href=?dir=" + rootDirectory + " class='button'>" + dir + "</a><br>";
+
+        }
+
+        dirChoices += "<br><div class ='settings'>Search Directories: <br>";
+        foreach (string directory in AppSettings.Default.SearchDirectories)
+        {
+            dirChoices += directory + "<br>";
+        }
+        dirChoices += "</div><br>";
+
         page = page.Replace("<!-- DIRECTORIES -->", dirChoices);
 
         // Generate custom settings here

@@ -109,5 +109,21 @@ namespace Dynaframe3
             // vcgencmd measure_temp | egrep -o '[0-9]*\.[0-9]*'
             // 9/5 * C +32 = Farenheight
         }
+
+        /// <summary>
+        /// This gets a list of directories using the multiple directories
+        /// in Appsettings
+        /// </summary>
+        /// <returns></returns>
+        public static List<string> GetDirectories()
+        {
+            List<string> directories = new List<string>();
+            foreach (string dir in AppSettings.Default.SearchDirectories)
+            {
+                string[] dirs = Directory.GetDirectories(dir);
+                directories.AddRange(dirs);
+            }
+            return directories;
+        }
     }   
 }
