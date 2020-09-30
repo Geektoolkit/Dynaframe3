@@ -189,7 +189,7 @@ class SimpleHTTPServer
                 }
 
             }
-            if (context.Request.QueryString.Get("shutdown") == "            tenseconds")
+            if (context.Request.QueryString.Get("shutdown") == "tenseconds")
             {
                 // shutdown requested!
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -244,6 +244,15 @@ class SimpleHTTPServer
             {
                 string pictureDir = dir.Replace("'","");
                 AppSettings.Default.CurrentDirectory = pictureDir;
+                AppSettings.Default.ReloadSettings = true;
+            }
+
+            // see if 'rem' (remove) was passed
+            string? rem = context.Request.QueryString.Get("rem");
+            if (rem != null)
+            {
+                string removeDir = rem.Replace("'", "");
+                AppSettings.Default.SearchDirectories.Remove(rem);
                 AppSettings.Default.ReloadSettings = true;
             }
 
@@ -370,46 +379,56 @@ class SimpleHTTPServer
 
     public string GetDefaultPage()
     {
-        TextReader reader = File.OpenText("./web/WebTemplate.htm");
-        string page = reader.ReadToEnd();
-
-        // TODO: Break this out into a File/Folder management class
-        // to handle this both in Dynaframe core and this engine
-        // This goes through all folders in the settings, and gets
-        // the first level directory folders to act as playlists
-
-        List<string> dirs = Helpers.GetDirectories();
-        string dirChoices = "<br>";
-        foreach (string directory in dirs)
+        try
         {
-            string dir = Path.GetFileName(directory);
-            string encdirectory = System.Web.HttpUtility.UrlEncode(directory);
-            dirChoices += "<a href=?dir=" + encdirectory + " class='button'>" + dir + "</a>";
+            TextReader reader = File.OpenText("./web/WebTemplate.htm");
+            string page = reader.ReadToEnd();
+
+            // TODO: Break this out into a File/Folder management class
+            // to handle this both in Dynaframe core and this engine
+            // This goes through all folders in the settings, and gets
+            // the first level directory folders to act as playlists
+
+            List<string> dirs = Helpers.GetDirectories();
+            string dirChoices = "<br>";
+            foreach (string directory in dirs)
+            {
+                string dir = Path.GetFileName(directory);
+                string encdirectory = System.Web.HttpUtility.UrlEncode(directory);
+                dirChoices += "<a href=?dir=" + encdirectory + " class='button'>" + dir + "</a>";
+            }
+
+            
+            AppSettings.Default.SearchDirectories = AppSettings.Default.SearchDirectories.Distinct().ToList();
+            AppSettings.Default.Save();
+            // Add the 'top level' so that we get the 'all' functionality
+            foreach (string rootDirectory in AppSettings.Default.SearchDirectories)
+            {
+                string dir = Path.GetFileName(rootDirectory);
+                dirChoices += "<a href=?dir=" + rootDirectory + " class='button'>" + dir + "</a><br>";
+            }
+
+            dirChoices += "<br><br><br><div class ='settings'><h2>Search Directories: </h2>";
+            foreach (string directory in AppSettings.Default.SearchDirectories)
+            {
+                dirChoices += directory + "&nbsp&nbsp&nbsp<a href=?rem=" + directory + " class='remove'>Remove</a><br>";
+            }
+            dirChoices += "</div><br>";
+
+            page = page.Replace("<!-- DIRECTORIES -->", dirChoices);
+
+            // Generate custom settings here
+            page = page.Replace("<!--INFOBARFONTSIZE-->", "value=" + AppSettings.Default.InfoBarFontSize.ToString() + ">");
+            page = page.Replace("<!--SLIDESHOWDURATION-->", "value=" + AppSettings.Default.SlideshowTransitionTime.ToString() + ">");
+            page = page.Replace("<!--TRANSITIONTIME-->", "value=" + AppSettings.Default.FadeTransitionTime.ToString() + ">");
+
+            return page;
         }
-
-        // Add the 'top level' so that we get the 'all' functionality
-        foreach (string rootDirectory in AppSettings.Default.SearchDirectories)
-        {
-            string dir = Path.GetFileName(rootDirectory);
-            dirChoices += "<a href=?dir=" + rootDirectory + " class='button'>" + dir + "</a><br>";
-
+        catch (Exception exc)
+        { 
+            // If anything happens, we have to return some data so the user knows what is going on)
+            return "Fatal Error! Excpetion occurred.  Info: " + exc.ToString();
         }
-
-        dirChoices += "<br><div class ='settings'>Search Directories: <br>";
-        foreach (string directory in AppSettings.Default.SearchDirectories)
-        {
-            dirChoices += directory + "<br>";
-        }
-        dirChoices += "</div><br>";
-
-        page = page.Replace("<!-- DIRECTORIES -->", dirChoices);
-
-        // Generate custom settings here
-        page = page.Replace("<!--INFOBARFONTSIZE-->", "value=" + AppSettings.Default.InfoBarFontSize.ToString() + ">");
-        page = page.Replace("<!--SLIDESHOWDURATION-->", "value=" + AppSettings.Default.SlideshowTransitionTime.ToString() + ">");
-        page = page.Replace("<!--TRANSITIONTIME-->", "value=" + AppSettings.Default.FadeTransitionTime.ToString() + ">");
-
-        return page;
 
     }
 }

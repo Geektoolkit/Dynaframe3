@@ -22,6 +22,7 @@ using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic.FileIO;
 using System.Collections.Generic;
+using SkiaSharp;
 
 namespace Dynaframe3
 {
@@ -252,10 +253,8 @@ namespace Dynaframe3
                         try
                         {
                             RefreshSettings();
-                        // TODO: check that the file exists here!
-
-
-                        bitmapNew = new Bitmap(fileList[index]);
+                            bitmapNew = new Bitmap(fileList[index]);
+                            
                             backImage.Source = bitmapNew;
                             backImage.Opacity = 1;
                             frontImage.Opacity = 0;
@@ -502,9 +501,13 @@ namespace Dynaframe3
             int degrees = AppSettings.Default.Rotation;
             mainWindow.InvalidateVisual();
 
+          
+
             Transform t = new RotateTransform(degrees);
             double w = mainWindow.Width;
             double h = mainWindow.Height;
+
+            
 
             if ((degrees == 90) || (degrees == 270))
             {
