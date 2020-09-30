@@ -12,9 +12,9 @@ mkdir -p  /home/pi/Dynaframe
 cd Dynaframe
 sudo chmod 777 .
 echo -e "${GREEN}Grabbing the files from github...hold please..${NC}"
-wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.03/Dynaframe203.zip
+wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.05/Dynaframe205.zip
 echo "Unzipping them!"
-unzip Dynaframe203.zip
+unzip Dynaframe205.zip
 echo -e "${GREEN}Adding Execution Permissions to Dynaframe ${NC}"
 sudo chmod +x Dynaframe
 sudo chmod +x run.sh
@@ -22,7 +22,7 @@ echo -e "${GREEN}Setting it up to autostart ${NC}"
 mkdir -p /home/pi/.config/autostart
 sudo cp dynaframe.desktop  /home/pi/.config/autostart
 echo -e "${GREEN}cleaning up zip file ${NC}"
-rm Dynaframe203.zip
+rm Dynaframe205.zip
 
 
 
