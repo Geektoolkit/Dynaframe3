@@ -1,6 +1,7 @@
 ﻿<head>
 	<!-- used colors from: https://coolors.co/2452f9-033860-004385-93b7be-d4f5f5-->
 	<!-- used colors from: https://coolors.co/2452f9-033860-004385-93b7be-d4f5f5-->
+	<link rel="stylesheet" href="jsLists.css" />
 	<style>
 		a.button {
 			-webkit-appearance: button;
@@ -126,6 +127,39 @@
 			background: rgb(124,165,200);
 			background: linear-gradient(0deg, rgba(124,165,200,1) 0%, rgba(231,231,231,1) 100%);
 		}
+
+		header {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 90px;
+			background-color: rgb(156, 158, 160);
+			padding-left: 18px;
+		}
+
+			header > div {
+				position: relative;
+				display: inline-block;
+				top: 50%;
+				transform: translateY(-50%);
+				font-size: 3.4rem;
+				font-weight: 900;
+			}
+
+		main {
+			position: absolute;
+			top: 90px;
+			height: calc(100vh - 90px);
+		}
+
+			main > div:nth-child(1) {
+				padding: 16px;
+			}
+
+			main > div:nth-child(2) {
+				padding: 18px;
+			}
 	</style>
 </head>
 <body>
@@ -198,5 +232,12 @@
 
 			</div>
 		</div>
+		<script src="jsLists.js"></script>
+		<script>
+			// JSLists.createTree("simple_list");
+			// JSLists.createTree("f1teams");
+			// JSLists.createTree("f1drivers");
+			// JSLists.createTree("f1combined");
+		</script>
 	</form>
 </body>

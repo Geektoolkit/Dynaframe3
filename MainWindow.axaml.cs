@@ -143,12 +143,13 @@ namespace Dynaframe3
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    ProcessStartInfo pInfo = new ProcessStartInfo();
-                    pInfo.FileName = "setterm";
-                    pInfo.Arguments = "-blank 0 -powerdown 0";
-                    Process p = new Process();
-                    p.StartInfo = pInfo;
-                    p.Start();
+                    //ProcessStartInfo pInfo = new ProcessStartInfo();
+                    //pInfo.FileName = "setterm";
+                    //pInfo.Arguments = "-blank 0 -powerdown 0";
+                    //Process p = new Process();
+                    //p.StartInfo = pInfo;
+                    // p.Start();
+                    // TODO: Terminal doesn't support this, so this is failing
                 }
             }
             catch (Exception) { }
