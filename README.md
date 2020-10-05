@@ -3,6 +3,7 @@ Dynamic Photo and Video Slideshow system for SBC (such as Raspberry pi)
 
 Video Demo, how to install, and intro here: https://youtu.be/XEaUsaNEzjY
 
+Note: Please see the releases section for the latest release. The below command will install 2.03 which I consider stable, but there are more features in later releases if you'd like to try them. To remove a release just delete the folder and rerun the install script.
 
 Quickstart: On a raspberry pi based system you'll want to connect to a network, put a few images in the Pictures folder to get started, and then run:
 
