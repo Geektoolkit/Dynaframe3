@@ -37,7 +37,7 @@ namespace Dynaframe3
         Bitmap bitmapNew;
         Window mainWindow;
         Panel mainPanel;
-
+        Process videoProcess; // handle to the video Player
 
         // Transitions used for animating the fades
         DoubleTransition fadeTransition;
@@ -53,7 +53,7 @@ namespace Dynaframe3
         /// settings such as the IP address 
         /// </summary>
         int numberOfTimes = 0;
-        const int NumberOfSecondsToShowIP = 15;
+        int NumberOfSecondsToShowIP = AppSettings.Default.NumberOfSecondsToShowIP;
 
         /// <summary>
         /// This controls the time between 'slides'
@@ -111,6 +111,11 @@ namespace Dynaframe3
 
             frontImage = this.FindControl<Image>("Front");
             backImage = this.FindControl<Image>("Back");
+
+            frontImage.Stretch = AppSettings.Default.ImageStretch;
+            backImage.Stretch = AppSettings.Default.ImageStretch;
+
+
 
             DoubleTransition transition2 = new DoubleTransition();
             transition2.Easing = new QuadraticEaseIn();
@@ -218,10 +223,10 @@ namespace Dynaframe3
 
             }
 
-            IReadOnlyList<MetadataExtractor.Directory> data = MetadataExtractor.ImageMetadataReader.ReadMetadata(fileList[index]);
-            foreach (var directory in data)
-                foreach (var tag in directory.Tags)
-                    Debug.WriteLine($"{directory.Name} - {tag.Name} = {tag.Description}");
+            //IReadOnlyList<MetadataExtractor.Directory> data = MetadataExtractor.ImageMetadataReader.ReadMetadata(fileList[index]);
+           // foreach (var directory in data)
+                //foreach (var tag in directory.Tags)
+                    //Debug.WriteLine($"{directory.Name} - {tag.Name} = {tag.Description}");
             try
             {
                 // ensure the file is there
@@ -326,13 +331,13 @@ namespace Dynaframe3
             }
 
 
-            Process p = new Process();
-            p.StartInfo = pInfo;
-            p.Start();
+            videoProcess = new Process();
+            videoProcess.StartInfo = pInfo;
+            videoProcess.Start();
             System.Threading.Thread.Sleep(500);
 
             int timer = 0;
-            while (!p.HasExited)
+            while (!videoProcess.HasExited)
             {
                 timer += 1;
                 System.Threading.Thread.Sleep(100);
@@ -351,8 +356,8 @@ namespace Dynaframe3
             {
                 mainWindow.Opacity = 1;
             });
-            p.Close();
-            p.Dispose();
+            videoProcess.Close();
+            videoProcess.Dispose();
             System.Threading.Thread.Sleep(500);
             this.slideTimer.Start(); // resume
             Timer_Tick(null, null); // force next tick
@@ -372,6 +377,17 @@ namespace Dynaframe3
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     GetFiles();
+                    if (videoProcess != null)
+                    {
+                        try
+                        {
+                            videoProcess.CloseMainWindow();
+                        }
+                        catch(Exception exc)
+                        {
+                            Debug.WriteLine("Tried and failed to kill video process..." + exc.ToString());
+                        }
+                    }
                     this.Timer_Tick(null, null);
                 });
             }
@@ -433,31 +449,35 @@ namespace Dynaframe3
             index = 0;
             fileList = new List<string>(); // get a list of files to go through
             slideTimer.Stop();
-            string directory = AppSettings.Default.CurrentDirectory;
-            try
+
+            foreach (string directory in AppSettings.Default.CurrentPlayList)
             {
-
-                if (Directory.Exists(directory))
+                try
                 {
-                    DirectoryInfo dirInfo = new DirectoryInfo(directory);
 
-                    var mediafiles = Helpers.GetFilesByExtensions(dirInfo, ".jpg", ".jpeg", ".png",
-                        ".bmp", ".mov", ".mpg", ".avi", ".mkv", ".mpeg", ".mp4");
-
-                    if (mediafiles != null)
-                        fileList.AddRange(mediafiles.ToList());
-
-                    if (AppSettings.Default.Shuffle)
+                    if (Directory.Exists(directory))
                     {
-                        Random r = new Random((int)DateTime.Now.Ticks);
-                        fileList = Helpers.Shuffle<string>(fileList.ToList(), r).ToList();
+                        DirectoryInfo dirInfo = new DirectoryInfo(directory);
+
+                        var mediafiles = Helpers.GetFilesByExtensions(dirInfo, ".jpg", ".jpeg", ".png",
+                            ".bmp", ".mov", ".mpg", ".avi", ".mkv", ".mpeg", ".mp4");
+
+                        if (mediafiles != null)
+                            fileList.AddRange(mediafiles.ToList());
                     }
                 }
+                catch (Exception exc)
+                {
+                    Console.WriteLine("Exception when reading directory: " + directory + " Exception: " + exc.ToString());
+                }
             }
-            catch (Exception exc)
+
+            if (AppSettings.Default.Shuffle)
             {
-                Console.WriteLine("Exception when reading directory: " + directory + " Exception: " + exc.ToString());
+                Random r = new Random((int)DateTime.Now.Ticks);
+                fileList = Helpers.Shuffle<string>(fileList.ToList(), r).ToList();
             }
+
             slideTimer.Start();
 
             if (fileList.Count > 0)
@@ -496,6 +516,10 @@ namespace Dynaframe3
 
             // Infobar is the text at the bottom (default 100)
             tb.FontSize = AppSettings.Default.InfoBarFontSize;
+
+            // update stretch if changed
+            frontImage.Stretch = AppSettings.Default.ImageStretch;
+            backImage.Stretch = AppSettings.Default.ImageStretch;
 
             // Fix up rotations. When rotating, we must redo the layout
             // to get everything to resize correctly

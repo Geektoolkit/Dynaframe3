@@ -18,9 +18,43 @@
 			border-radius: 8px;
 			border: 3px solid #D4F5F5;
 		}
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+        }
+
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 17px;
+        }
+
+        /* Change background color of buttons on hover */
+        .tab button:hover {
+            background-color: #ddd;
+        }
+
+        /* Create an active/current tablink class */
+        .tab button.active {
+            background-color: #ccc;
+        }
+
+        /* Style the tab content */
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
 
 		.grid-container {
-			display: grid;
 			height: Auto;
 			align-content: Top;
 			grid-template-columns: auto auto auto auto auto;
@@ -108,9 +142,16 @@
 			width: 60%;
 		}
 
-		.dynoframe {
+		.dynaframe {
 			font-family: monospace;
 		}
+
+        input.directorycb {
+            width: 20px;
+            height: 20px;
+			font-size: 20px;
+        }
+
 
 		input[type="text"] {
 			border-radius: 5px;
@@ -119,14 +160,16 @@
 			width: 100%;
 		}
 
-			input[type="text"]:focus {
-				border-color: rgb(124,165,200);
-			}
 
-		body {
-			background: rgb(124,165,200);
-			background: linear-gradient(0deg, rgba(124,165,200,1) 0%, rgba(231,231,231,1) 100%);
+		input[type="text"]:focus {
+			border-color: rgb(124,165,200);
 		}
+
+        body {
+            background: rgb(124,165,200);
+            background: linear-gradient(0deg, rgba(124,165,200,1) 0%, rgba(231,231,231,1) 100%);
+            font-family: Helvetica, Arial, sans-serif;
+        }
 
 		header {
 			position: absolute;
@@ -163,81 +206,150 @@
 	</style>
 </head>
 <body>
-	<form action="default.htm">
-		<div class="settings">
-			<div class="form">
-				<h1>Welcome to <span class="dynoframe">DynaFrame!</span></h1>
+		<h1>Welcome to <span class="dynaframe">DynaFrame!</span></h1>
 
-				<div class="grid-container">
-					<!-- DIRECTORIES -->
-				</div>
+		<div class="tab">
+			<button class="tablinks" onclick="openTab(event, 'Control')">Control</button>
+			<button class="tablinks" onclick="openTab(event, 'Playlists')">Playlists</button>
+			<button class="tablinks" onclick="openTab(event, 'Settings')">Settings</button>
+		</div>
 
-				<div class="form-row">
-					<div class="form-label"><span>Infobar (clock) font size:</span></div>
-					<div class="form-input"><input type="text" name="infobarfontsize" placeholder="50" <!--INFOBARFONTSIZE--></div>
-				</div>
+		<div id="Control" class="tabcontent">
+			<h3>Coming soon!</h3>
+			<p>This will provide controls such as Go forward a slide, back a slide, pause, etc..</p>
+		</div>
 
-				<div class="form-row">
-					<div class="form-label"><span>Slideshow duration between slides (milliseconds) font size:</span></div>
-					<div class="form-input"><input type="text" name="slideshowduration" placeholder="30000" <!--SLIDESHOWDURATION--></div>
-				</div>
-
-				<div class="form-row">
-					<div class="form-label"><span>Transition duration during fades (milliseconds) font size:</span></div>
-					<div class="form-input"><input type="text" name="transitiontime" placeholder="1600" <!--TRANSITIONTIME--></div>
-				</div>
-
-				<!--DIRECTORYTOADD-->
-				<div class="form-row">
-					<div class="form-label"><span>Directory to Add:</span></div>
-					<div class="form-input"><input type="text" name="directoryAdd" width="300" placeholder="/home/pi/pics" /></div>
-				</div>
-
-				<!--SHUFFLE-->
-				<div class="form-row">
-					<div class="form-label"><span>Shuffle:</span></div>
-					<div class="form-input"><input type="radio" name="shuffle" id="shuffle" value="on" /><label for="shuffle">On</label><input id="shuffle-off" type="radio" name="shuffle" value="off" /><label for="shuffle-off">Off</label></div>
-				</div>
-
-				<!--SHOWTIME-->
-				<div class="form-row">
-					<div class="form-label"><span>Show Time:</span></div>
-					<div class="form-input"><input type="radio" name="clock" id="clock" value="on" /><label for="clock">On</label><input type="radio" name="clock" value="off" id="clock-off" /><label for="clock-off">Off</label></div>
-				</div>
-
-				<!--ROTATE-->
-				<div class="form-row">
-					<div class="form-label"><span>Rotate:</span></div>
-					<div class="form-input">
-						<input type="radio" name="rotation" value="0" id="radio-0">
-						<label for="radio-0">0</label>
-						<input type="radio" name="rotation" value="90" id="radio-90">
-						<label for="radio-90">90</label>
-						<input type="radio" name="rotation" value="180" id="radio-180">
-						<label for="radio-180">180</label>
-						<input type="radio" name="rotation" value="270" id="radio-270">
-						<label for="radio-270">270</label>
+		<div id="Playlists" class="tabcontent">
+			<form action="default.htm">
+				<div class="settings">
+					<div class="form">
+						<h3>Playlists</h3>
+						<div class="grid-container">
+							<!-- DIRECTORIES -->
+						</div>
+						<div class="form-row">
+							<div><input type="hidden" name="tab" value="Playlists" /></div>
+							<input type="submit" value="Save" class="submitbutton" />
+						</div>
 					</div>
 				</div>
-
-				<div class="form-row">
-					<input type="submit" value="Submit" class="submitbutton" />
-				</div>
-
-				<!--SHUTDOWN-->
-				<div class="form-row">
-					<button name="shutdown" value="oneminute" class="warningbutton">Shutdown system in one minute</button>
-					<button name="shutdown" value="tenseconds" class="warningbutton">Shutdown system in ten seconds</button>
-				</div>
-
-			</div>
+			</form>
 		</div>
-		<script src="jsLists.js"></script>
-		<script>
-			// JSLists.createTree("simple_list");
-			// JSLists.createTree("f1teams");
-			// JSLists.createTree("f1drivers");
-			// JSLists.createTree("f1combined");
-		</script>
-	</form>
+
+
+		<div id="Settings" class="tabcontent">		
+				<div class="settings">
+								<div class="form">
+									<h3>Settings</h3>
+									<form action="default.htm">
+										<div class="form-row">
+											<div class="form-label"><span>Directory to Add:</span></div>
+											<div class="form-input"><input type="text" name="directoryAdd" width="300" placeholder="/home/pi/pics" /></div>
+										</div>
+
+										<div class="form-row">
+											<div class="form-label"><span>Infobar (clock) font size:</span></div>
+											<div class="form-input"><input type="text" name="infobarfontsize" placeholder="50" <!--INFOBARFONTSIZE--></div>
+										</div>
+
+										<div class="form-row">
+											<div class="form-label"><span>Slideshow duration between slides (milliseconds) font size:</span></div>
+											<div class="form-input"><input type="text" name="slideshowduration" placeholder="30000" <!--SLIDESHOWDURATION--></div>
+										</div>
+
+										<div class="form-row">
+											<div class="form-label"><span>Transition duration during fades (milliseconds) font size:</span></div>
+											<div class="form-input"><input type="text" name="transitiontime" placeholder="1600" <!--TRANSITIONTIME--></div>
+										</div>
+										<!-- Number of seconds to show ip-->
+										<div class="form-row">
+											<div class="form-label"><span>Number of seconds to show IP Address on start (0 to disable):</span></div>
+											<div class="form-input"><input type="text" name="ipaddresstime" placeholder="15" <!--IPADDRESSTIME--></div>
+										</div>
+
+										<!--SHUFFLE-->
+										<div class="form-row">
+											<div class="form-label"><span>Shuffle:</span></div>
+											<div class="form-input"><input type="radio" name="shuffle" id="shuffle" value="on" /><label for="shuffle">On</label><input id="shuffle-off" type="radio" name="shuffle" value="off" /><label for="shuffle-off">Off</label></div>
+										</div>
+
+										<!--SHOWTIME-->
+										<div class="form-row">
+											<div class="form-label"><span>Show Time:</span></div>
+											<div class="form-input"><input type="radio" name="clock" id="clock" value="on" /><label for="clock">On</label><input type="radio" name="clock" value="off" id="clock-off" /><label for="clock-off">Off</label></div>
+										</div>
+
+										<!--ROTATE-->
+										<div class="form-row">
+											<div class="form-label"><span>Rotate:</span></div>
+											<div class="form-input">
+												<input type="radio" name="rotation" value="0" id="radio-0">
+												<label for="radio-0">0</label>
+												<input type="radio" name="rotation" value="90" id="radio-90">
+												<label for="radio-90">90</label>
+												<input type="radio" name="rotation" value="180" id="radio-180">
+												<label for="radio-180">180</label>
+												<input type="radio" name="rotation" value="270" id="radio-270">
+												<label for="radio-270">270</label>
+											</div>
+										</div>
+
+										<!--SCALING-->
+										<div class="form-row">
+											<div class="form-label"><span>Image Scaling:</span></div>
+											<div class="form-input">
+												<input type="radio" name="imagescaling" value="UniformToFill" id="imagescaling">
+												<label for="radio-0">Uniform To Fill</label>
+												<input type="radio" name="imagescaling" value="Uniform" id="imagescaling">
+												<label for="radio-0">Uniform</label>
+												<input type="radio" name="imagescaling" value="None" id="imagescaling">
+												<label for="radio-0">None</label>
+												<input type="radio" name="imagescaling" value="Fill" id="imagescaling">
+												<label for="radio-0">Fill</label>
+
+											</div>
+										</div>
+
+										<div><input type="hidden" name="tab" value="Settings" /></div>
+
+										<div class="form-row">
+											<input type="submit" value="Save" class="submitbutton" />
+										</div>
+
+										<!--SHUTDOWN-->
+										<div class="form-row">
+											<button name="shutdown" value="oneminute" class="warningbutton">Shutdown system in one minute</button>
+											<button name="shutdown" value="tenseconds" class="warningbutton">Shutdown system in ten seconds</button>
+										</div>
+									</form>
+								</div>
+
+							</div>
+			</div>
+							
+			<script src="jsLists.js"></script>
+			<script>
+				JSLists.createTree("dirs");
+
+                const queryString = window.location.search;
+
+                const urlParams = new URLSearchParams(queryString);
+
+				const page_type = urlParams.get('tab')
+				openTab(event,page_type);
+
+				function openTab(evt, cityName) {
+					var i, tabcontent, tablinks;
+					tabcontent = document.getElementsByClassName("tabcontent");
+					for (i = 0; i < tabcontent.length; i++) {
+						tabcontent[i].style.display = "none";
+					}
+					tablinks = document.getElementsByClassName("tablinks");
+					for (i = 0; i < tablinks.length; i++) {
+						tablinks[i].className = tablinks[i].className.replace(" active", "");
+					}
+					document.getElementById(cityName).style.display = "block";
+					evt.currentTarget.className += " active";
+				}
+			</script>
 </body>

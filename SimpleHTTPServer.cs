@@ -275,6 +275,48 @@ class SimpleHTTPServer
                     AppSettings.Default.SlideshowTransitionTime = slideshowduration;
                 }
             }
+            
+
+            string? ipaddresstimeVal = context.Request.QueryString.Get("ipaddresstime");
+            if (ipaddresstimeVal != null)
+            {
+                int ipaddresstime = 0;
+                if (int.TryParse(context.Request.QueryString.Get("ipaddresstime"), out ipaddresstime))
+                {
+                    AppSettings.Default.NumberOfSecondsToShowIP = ipaddresstime;
+                }
+            }
+
+            string? imagestretchVal = context.Request.QueryString.Get("imagescaling");
+            if (imagestretchVal != null)
+            {
+                switch (imagestretchVal)
+                {
+                    case "Uniform":
+                        {
+                            AppSettings.Default.ImageStretch = Avalonia.Media.Stretch.Uniform;
+                            break;
+                        }
+                    case "UniformToFill":
+                        {
+                            AppSettings.Default.ImageStretch = Avalonia.Media.Stretch.UniformToFill;
+                            break;
+                        }
+                    case "Fill":
+                        {
+                            AppSettings.Default.ImageStretch = Avalonia.Media.Stretch.Fill;
+                            break;
+                        }
+                    case "None":
+                        {
+                            AppSettings.Default.ImageStretch = Avalonia.Media.Stretch.None;
+                            break;
+                        }
+                    default:
+                        break;
+                }
+                
+            }
 
             string? transitiontimeVal = context.Request.QueryString.Get("transitiontime");
             if (transitiontimeVal != null)
@@ -295,8 +337,27 @@ class SimpleHTTPServer
                 {
                     AppSettings.Default.SearchDirectories.Add(directoryToAdd);
                     // Cleanup. Somewhere this is getting doubled up sometimes still. It's a small list so this should be fast.
-                    AppSettings.Default.SearchDirectories = AppSettings.Default.SearchDirectories.Distinct().ToList(); 
+                    AppSettings.Default.SearchDirectories = AppSettings.Default.SearchDirectories.Distinct().ToList();
                 }
+            }
+
+            string? subdirectorytoadd = context.Request.QueryString.Get("cbDirectory");
+            if (subdirectorytoadd != null)
+            {
+                AppSettings.Default.CurrentPlayList.Clear();
+                // We use search directories to add things like NAS drives and usb drives to the system.
+                // This checks to make sure it exists when they're adding it, and that it isn't already in the list..
+                string[] directoryList = subdirectorytoadd.Split(',');
+                foreach (string newdir in directoryList)
+                {
+                    string decodedDirectory = System.Web.HttpUtility.UrlDecode(newdir);
+                    if (Directory.Exists(decodedDirectory) && (!AppSettings.Default.CurrentPlayList.Contains(decodedDirectory)))
+                    {
+                        AppSettings.Default.CurrentPlayList.Add(decodedDirectory);
+                    }
+                }
+                AppSettings.Default.ReloadSettings = true;
+
             }
 
             AppSettings.Default.Save();
@@ -384,29 +445,39 @@ class SimpleHTTPServer
             TextReader reader = File.OpenText("./web/WebTemplate.htm");
             string page = reader.ReadToEnd();
 
+
             // TODO: Break this out into a File/Folder management class
             // to handle this both in Dynaframe core and this engine
             // This goes through all folders in the settings, and gets
             // the first level directory folders to act as playlists
 
-            List<string> dirs = Helpers.GetDirectories();
             string dirChoices = "<br>";
-            foreach (string directory in dirs)
+            dirChoices += "<div id='directories'><ul id='dirs' class='directorylist'><br>";
+            foreach (string dir in AppSettings.Default.SearchDirectories)
             {
-                string dir = Path.GetFileName(directory);
-                string encdirectory = System.Web.HttpUtility.UrlEncode(directory);
-                dirChoices += "<a href=?dir=" + encdirectory + " class='button'>" + dir + "</a>";
+                // Top level directory:
+                dirChoices += "<li class='topleveldirectory'>" + dir;
+
+                string[] subdirectories = Directory.GetDirectories(dir);
+                // TODO: Handle more than one subdirectory / add recursion
+                // lets wait till we get this logic nailed down.
+                dirChoices += "<ul>";
+                foreach (string subdir in subdirectories)
+                {
+                    string subdirectory = Path.GetFileName(subdir);
+                    string encdirectory = System.Web.HttpUtility.UrlEncode(subdir);
+                    string cbChecked = "";
+                    if (AppSettings.Default.CurrentPlayList.Contains(subdir))
+                    {
+                        cbChecked = "checked";
+                    }
+
+                    dirChoices += "<li class='subdirectory'><input type='checkbox' " + cbChecked + " class='directorycb' id='cbDirectory' name='cbDirectory' value='" + encdirectory + "'>" + subdirectory + "</li>";
+                }
+                dirChoices += "</ul></li>";
             }
 
-            
-            AppSettings.Default.SearchDirectories = AppSettings.Default.SearchDirectories.Distinct().ToList();
-            AppSettings.Default.Save();
-            // Add the 'top level' so that we get the 'all' functionality
-            foreach (string rootDirectory in AppSettings.Default.SearchDirectories)
-            {
-                string dir = Path.GetFileName(rootDirectory);
-                dirChoices += "<a href=?dir=" + rootDirectory + " class='button'>" + dir + "</a><br>";
-            }
+            dirChoices += "</ul></div>";
 
             dirChoices += "<br><br><br><div class ='settings'><h2>Search Directories: </h2>";
             foreach (string directory in AppSettings.Default.SearchDirectories)
@@ -421,7 +492,7 @@ class SimpleHTTPServer
             page = page.Replace("<!--INFOBARFONTSIZE-->", "value=" + AppSettings.Default.InfoBarFontSize.ToString() + ">");
             page = page.Replace("<!--SLIDESHOWDURATION-->", "value=" + AppSettings.Default.SlideshowTransitionTime.ToString() + ">");
             page = page.Replace("<!--TRANSITIONTIME-->", "value=" + AppSettings.Default.FadeTransitionTime.ToString() + ">");
-
+            page = page.Replace("<!--IPADDRESSTIME-->", "value=" + AppSettings.Default.NumberOfSecondsToShowIP.ToString() + ">");
             return page;
         }
         catch (Exception exc)

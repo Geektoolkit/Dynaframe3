@@ -22,8 +22,12 @@ namespace Dynaframe3
             // marked as private to prevent outside classes from creating new.
             Shuffle = false;
             Rotation = 0;
+            NumberOfSecondsToShowIP = 15;
+
             OXMOrientnation = "--orientation 0";
-            SearchDirectories = new List<string>() { SpecialDirectories.MyPictures};
+            SearchDirectories = new List<string>() { };
+            CurrentPlayList = new List<string>() { };
+
             CurrentDirectory = SpecialDirectories.MyPictures;
             DateTimeFormat = "H:mm tt";
 
@@ -31,6 +35,7 @@ namespace Dynaframe3
             InfoBarFontSize = 50;
             SlideshowTransitionTime = 30000; // milliseconds between slides
             FadeTransitionTime = 1600;       // milliseconds for fades
+            ImageStretch = Stretch.UniformToFill; // Default image stretch
 
         }
 
@@ -48,11 +53,19 @@ namespace Dynaframe3
 
                     _jsonSource = $"{AppDomain.CurrentDomain.BaseDirectory}{Path.DirectorySeparatorChar}appsettings.json";
 
-
-
                     var config = builder.Build();
                     _appSettings = new AppSettings();
                     config.Bind(_appSettings);
+                    if (_appSettings.SearchDirectories.Count == 0)
+                    {
+                        _appSettings.SearchDirectories.Add(SpecialDirectories.MyPictures);
+                        _appSettings.CurrentPlayList.Clear();
+                        foreach (string dir in Directory.GetDirectories(SpecialDirectories.MyPictures))
+                        {
+                            _appSettings.CurrentPlayList.Add(dir);
+                        }
+
+                    }
                 }
 
                 return _appSettings;
@@ -92,6 +105,7 @@ namespace Dynaframe3
         /// </summary>
         public List<String> SearchDirectories { get; set; }
         
+        public List<string> CurrentPlayList { get; set; }
 
         /// <summary>
         /// The size of the font for the info bar
@@ -116,6 +130,10 @@ namespace Dynaframe3
         // This will need to be expanded to an array in the future to support
         // multiple folders being selected at once
         public string CurrentDirectory { get; set; }
+
+        public int NumberOfSecondsToShowIP { get; set; }
+
+        public Stretch ImageStretch { get; set; }
 
     }
 }

@@ -9,8 +9,8 @@
         Name="mainWindow"
         >
   <Panel Name="mainPanel">
-    <Image Name="Back"  Stretch="UniformToFill" Opacity="0"/>
-    <Image Name="Front" Stretch="UniformToFill" />
+    <Image Name="Back"   Opacity="0"/>
+    <Image Name="Front"  />
     <TextBlock Name="tb" Text="" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="30" Foreground="AliceBlue" Opacity="1" Margin="30"/>
   </Panel>
 </Window>
