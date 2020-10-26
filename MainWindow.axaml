@@ -11,6 +11,10 @@
   <Panel Name="mainPanel">
     <Image Name="Back"   Opacity="0"/>
     <Image Name="Front"  />
-    <TextBlock Name="tb" Text="" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="30" Foreground="AliceBlue" Opacity="1" Margin="30"/>
+    <!-- Future work-->
+    <!--Panel Name="SubPanel" Height="60"  VerticalAlignment="Bottom"  HorizontalAlignment="Left" Margin="30" Width="200">
+      <Rectangle Fill="Black" Opacity=".2" Height="30"></Rectangle -->
+      <TextBlock Name="tb" Text="" FontSize="30" HorizontalAlignment="Left" VerticalAlignment="Bottom" Foreground="AliceBlue" Opacity="1" Margin="30"/>
+    <!--/Panel -->
   </Panel>
 </Window>

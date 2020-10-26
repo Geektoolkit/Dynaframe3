@@ -28,8 +28,6 @@ namespace Dynaframe3
 {
     public class MainWindow : Window
     {
-
-        static private List<string> fileList;
         int index;
         Image frontImage;
         Image backImage;
@@ -38,6 +36,9 @@ namespace Dynaframe3
         Window mainWindow;
         Panel mainPanel;
         Process videoProcess; // handle to the video Player
+
+        // Engines
+        PlayListEngine playListEngine;
 
         // Transitions used for animating the fades
         DoubleTransition fadeTransition;
@@ -62,15 +63,13 @@ namespace Dynaframe3
         // set to a low number to force a quick 'first slide' to appear
         System.Timers.Timer slideTimer = new System.Timers.Timer(500);
 
-        /// <summary>
-        /// This fires every second to update the clock.  
-        /// // TODO: Investigate using synchronizedobject here to sync to UI thread
-        /// </summary>
-        System.Timers.Timer clock = new System.Timers.Timer(1000);
+        DateTime lastUpdated = DateTime.Now;
 
+        Transform rotationTransform;
 
         public MainWindow()
         {
+            playListEngine = new PlayListEngine();
             InitializeComponent();
             SetupWebServer();
         }
@@ -128,37 +127,11 @@ namespace Dynaframe3
             backImage.Transitions.Add(transition2);
 
             slideTimer.Elapsed += Timer_Tick;
-            clock.Elapsed += Clock_Elapsed;
-
-            RefreshSettings();
+       
             GetFiles();
-
             slideTimer.Start();
-            clock.Start();
 
-            RaspberryPiPrep();
-        }
-
-        /// <summary>
-        /// Raspberry pi/linux commands to try to keep the screen on
-        /// </summary>
-        private void RaspberryPiPrep()
-        {
-            try
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    //ProcessStartInfo pInfo = new ProcessStartInfo();
-                    //pInfo.FileName = "setterm";
-                    //pInfo.Arguments = "-blank 0 -powerdown 0";
-                    //Process p = new Process();
-                    //p.StartInfo = pInfo;
-                    // p.Start();
-                    // TODO: Terminal doesn't support this, so this is failing
-                }
-            }
-            catch (Exception) { }
-            
+            Logger.LogComment("Initialized");
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -172,10 +145,43 @@ namespace Dynaframe3
             if ((e.Key == Avalonia.Input.Key.Escape) || ((e.KeyModifiers == Avalonia.Input.KeyModifiers.Control) && (e.Key == Avalonia.Input.Key.X)))
             {
                 slideTimer.Stop();
-                clock.Stop();
                 this.Close();
                 server.Stop();
             }
+
+            if (e.Key == Avalonia.Input.Key.F)
+            {
+                tb.Opacity = 1;
+                infoBar = InfoBar.FileInfo;
+            }
+            if (e.Key == Avalonia.Input.Key.I)
+            {
+                tb.Opacity = 1;
+                infoBar = InfoBar.IP;
+            }
+            if (e.Key == Avalonia.Input.Key.C)
+            {
+                tb.Opacity = 1;
+                infoBar = InfoBar.Clock;
+            }
+            if (e.Key == Avalonia.Input.Key.Right)
+            {
+                playListEngine.GoToNext();
+                PlayImageFile();
+                lastUpdated = DateTime.Now;
+
+            }
+            if (e.Key == Avalonia.Input.Key.Left)
+            {
+                playListEngine.GoToPrevious();
+                PlayImageFile();
+                lastUpdated = DateTime.Now;
+            }
+            if (e.Key == Avalonia.Input.Key.H)
+            {
+                tb.Opacity = 0;
+            }
+
         }
 
         /// <summary>
@@ -185,147 +191,156 @@ namespace Dynaframe3
         /// <param name="e"></param>
         private void Timer_Tick(object sender, EventArgs e)
         {
-            index++;
-            if ((fileList == null) || (fileList.Count == 0))
+            if (AppSettings.Default.ReloadSettings)
             {
+                Logger.LogComment("Reload settings was true");
+                AppSettings.Default.ReloadSettings = false;
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    tb.Text = "Error! No files found! Path is: " + AppSettings.Default.SearchDirectories.ToString();
-                    infoBar = InfoBar.Error;
+                    GetFiles();
                 });
-                
-                return;
             }
+            
+            UpdateInfoBar();
 
-            // Get drives that are available
-            // TODO: Initial Work to support inserted USB drives for loading pictures
-            // Need to maintain a list of locations media can be found
-            // and gracefully handle when it disappears
-            DriveInfo[] driveInfo = System.IO.DriveInfo.GetDrives();
-            foreach (DriveInfo info in driveInfo)
+            if (DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime)
             {
-                if (info.DriveType == DriveType.Removable)
+                lastUpdated = DateTime.Now;
+                playListEngine.GoToNext();
+                Logger.LogComment("Next file is: " + playListEngine.CurrentPlayListItem.Path);
+                try
                 {
-                    //Console.WriteLine("info: " + info.Name);
-                    //Console.WriteLine("type: " + info.DriveType);
-                }
-            }
-
-
-            if (index == fileList.Count)
-            {
-                index = 0;
-            }
-
-            if ((fileList == null) || (fileList.Count == 0))
-            {
-                return;
-
-            }
-
-            //IReadOnlyList<MetadataExtractor.Directory> data = MetadataExtractor.ImageMetadataReader.ReadMetadata(fileList[index]);
-           // foreach (var directory in data)
-                //foreach (var tag in directory.Tags)
-                    //Debug.WriteLine($"{directory.Name} - {tag.Name} = {tag.Description}");
-            try
-            {
-                // ensure the file is there
-                if (!File.Exists(fileList[index]))
-                {
-                    this.Timer_Tick(null, null); // Move on to next file in the list
-                }
-
-
-                // TODO: Try to 'peek' at next file, if video, then slow down more
-                if ((fileList[index].ToUpper().EndsWith(".MOV"))
-                    || (fileList[index].ToUpper().EndsWith(".MP4"))
-                    || (fileList[index].ToUpper().EndsWith(".AVI"))
-                    || (fileList[index].ToUpper().EndsWith(".MKV"))
-                    || (fileList[index].ToUpper().EndsWith(".MPEG"))
-                    )
-                {
-                    PlayVideoFile();
-                }
-                else
-                {
-                    ///
-                    ///    Photo swap code
-                    ///
-
-                    // Step 1: Set the background image to the new one
-                    // fade the top out, revealing the bottom
-                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    // TODO: Try to 'peek' at next file, if video, then slow down more
+                    if (playListEngine.CurrentPlayListItem.ItemType == PlayListItemType.Video)
                     {
-                        try
-                        {
-                            RefreshSettings();
-                            bitmapNew = new Bitmap(fileList[index]);
-                            
-                            backImage.Source = bitmapNew;
-                            backImage.Opacity = 1;
-                            frontImage.Opacity = 0;
-                            mainWindow.WindowState = WindowState.FullScreen;
-                        }
-                        catch (Exception exc)
-                        {
-                            tb.Text = "broken " + exc.Message;
-                        }
-                    });
-
-                    // We sleep on this thread to let the transition occur fully
-                    System.Threading.Thread.Sleep(AppSettings.Default.FadeTransitionTime);
-
-
-                    // At this point the 'bottom' image is opaque showing the new image
-                    // We set the top to that image, and fade it in
-                    // we temporarily clear the transiton out so it's instant
-                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                        KillVideoPlayer();
+                        PlayVideoFile();
+                    }
+                    else
                     {
-                        try
-                        {
-                            frontImage.Transitions.Clear();
-                            frontImage.Source = backImage.Source;
-                            frontImage.Opacity = 1;
-                            frontImage.Transitions.Add(fadeTransition);
-                        }
-                        catch (Exception exc)
-                        {
-                            tb.Text = "Error: " + exc.Message;
-                        }
-                    });
-
-                    // We then fade the background back out to keep it out of the way (in case we 
-                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        backImage.Opacity = 0;
-                    });
+                        PlayImageFile();
+                        KillVideoPlayer(); // if a video is playing, get rid of it now that we've swapped images
+                    }
                 }
-            }
-            catch (Exception)
-            {
-                // Another thread messed with the filelist...ignore for now
-                // I'll refactor this later.
+                catch (InvalidOperationException)
+                { 
+                    // We expect this if a process is no longer around
+                }
+                catch (Exception exc)
+                {
+                    Debug.WriteLine("ERROR: Exception processing file.." + exc.ToString());
+                    Logger.LogComment("ERROR: Exception processing file.." + exc.ToString());
+                }
             }
         }
 
+        private void UpdateInfoBar()
+        {
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                tb.FontFamily = AppSettings.Default.DateTimeFontFamily;
+                switch (infoBar)
+                {
+                    case (InfoBar.Clock):
+                        {
+                            tb.Text = DateTime.Now.ToString(AppSettings.Default.DateTimeFormat);
+                            break;
+                        }
+                    case (InfoBar.FileInfo):
+                        {
+                            tb.Text = playListEngine.CurrentPlayListItem.Path;
+                            break;
+                        }
+                    case (InfoBar.IP):
+                        {
+                            numberOfTimes++;
+
+                            tb.Text = Helpers.GetIPString();
+                            // TODO: Get rid of magic number 2 (2 * 500ms clock timer = 1 second)
+                            if (numberOfTimes > (NumberOfSecondsToShowIP * 2))
+                            {
+                                infoBar = InfoBar.Clock;
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            tb.Text = "";
+                            break;
+                        }
+                }
+            });
+        }
+        private void PlayImageFile()
+        {
+            Logger.LogComment("PlayImageFile() called");
+           
+           // Step 1: Set the background image to the new one
+           // fade the top out, revealing the bottom
+           Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                try
+                {
+                    Logger.LogComment("Beginning to load next file: " + playListEngine.CurrentPlayListItem.Path);
+                    
+                    bitmapNew = new Bitmap(playListEngine.CurrentPlayListItem.Path);
+
+                    backImage.Source = bitmapNew;
+                    backImage.Opacity = 1;
+                    frontImage.Opacity = 0;
+                    mainWindow.WindowState = WindowState.FullScreen;
+                    RefreshSettings();
+                }
+                catch (Exception exc)
+                {
+                    Logger.LogComment("ERROR: Exception: " + exc.ToString());
+                }
+            });
+
+            // We sleep on this thread to let the transition occur fully
+            Thread.Sleep(AppSettings.Default.FadeTransitionTime);
+
+
+            // At this point the 'bottom' image is opaque showing the new image
+            // We set the top to that image, and fade it in
+            // we temporarily clear the transiton out so it's instant
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                try
+                {
+                    frontImage.Transitions.Clear();
+                    frontImage.Source = backImage.Source;
+                    frontImage.Opacity = 1;
+                    frontImage.Transitions.Add(fadeTransition);
+                }
+                catch (Exception exc)
+                {
+                    tb.Text = "Error: " + exc.Message;
+                }
+                backImage.Opacity = 0;
+            });
+        }
         private void PlayVideoFile()
         {
-            this.slideTimer.Stop(); // stop processing images...
+            Logger.LogComment("Entering PlayVideoFile");
             ProcessStartInfo pInfo = new ProcessStartInfo();
             pInfo.WindowStyle = ProcessWindowStyle.Maximized;
 
             // TODO: Parameterize omxplayer settings
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
+                Logger.LogComment("Linux Detected, setting up OMX Player");
                 pInfo.FileName = "omxplayer";
-                pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode stretch " + fileList[index];
-                Console.WriteLine("DF Playing: " + fileList[index]);
+                Logger.LogComment("Setting up Appsettings...");
+                pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode stretch ";
+                pInfo.Arguments += "\"" + playListEngine.CurrentPlayListItem.Path + "\""; 
+                Logger.LogComment("DF Playing: " + playListEngine.CurrentPlayListItem.Path);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 pInfo.UseShellExecute = true;
                 pInfo.FileName = "wmplayer.exe";
-                pInfo.Arguments = fileList[index];
+                pInfo.Arguments = "\"" + playListEngine.CurrentPlayListItem.Path + "\"";
                 pInfo.Arguments += " /fullscreen";
                 Console.WriteLine("Looking for media in: " + pInfo.Arguments);
             }
@@ -333,14 +348,16 @@ namespace Dynaframe3
 
             videoProcess = new Process();
             videoProcess.StartInfo = pInfo;
+            Logger.LogComment("Starting player...");
             videoProcess.Start();
-            System.Threading.Thread.Sleep(500);
+            System.Threading.Thread.Sleep(1000);
 
             int timer = 0;
-            while (!videoProcess.HasExited)
+            Logger.LogComment("Entering Timerloop");
+            while ((videoProcess != null) && (!videoProcess.HasExited))
             {
                 timer += 1;
-                System.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(300);
                 if (timer > 400)
                 {
                     // timeout to not 'hang'
@@ -352,145 +369,71 @@ namespace Dynaframe3
                     mainWindow.Opacity = .1;
                 });
             }
+            Logger.LogComment("Video has exited!");
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 mainWindow.Opacity = 1;
             });
-            videoProcess.Close();
-            videoProcess.Dispose();
-            System.Threading.Thread.Sleep(500);
-            this.slideTimer.Start(); // resume
-            Timer_Tick(null, null); // force next tick
+            try
+            {
+               
+                
+            }
+            catch (Exception)
+            { 
+                // swallow. 
+            }
         }
 
-        /// <summary>
-        /// Secondary 'clock' loop. Mainly controls the secondary UI for now.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Clock_Elapsed(object sender, ElapsedEventArgs e)
+        private void KillVideoPlayer()
         {
-            // Case where files don't match
-            if (AppSettings.Default.ReloadSettings)
+            try
             {
-                AppSettings.Default.ReloadSettings = false;
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                if (videoProcess != null)
                 {
-                    GetFiles();
-                    if (videoProcess != null)
+                    try
                     {
-                        try
-                        {
-                            videoProcess.CloseMainWindow();
-                        }
-                        catch(Exception exc)
-                        {
-                            Debug.WriteLine("Tried and failed to kill video process..." + exc.ToString());
-                        }
+                        videoProcess.CloseMainWindow();
+                        videoProcess = null;
                     }
-                    this.Timer_Tick(null, null);
-                });
-            }
-
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                switch (infoBar)
-                {
-                    case (InfoBar.Clock):
-                        {
-                            tb.Text = DateTime.Now.ToString(AppSettings.Default.DateTimeFormat);
-                            break;
-                        }
-                    case (InfoBar.Error):
-                        {
-                            tb.Text = "Error! Please check your appsettings.json!";
-                            tb.FontSize = 75;
-                            tb.Foreground = Brushes.Red;
-                            break;
-                        }
-                    case (InfoBar.FileInfo):
-                        { 
-                            tb.Text = AppSettings.Default.Shuffle.ToString();
-                            break;
-                        }
-                    case (InfoBar.IP):
+                    catch (InvalidOperationException)
                     {
-                        numberOfTimes++;
-
-                        tb.Text = Helpers.GetIPString();
-                        if (numberOfTimes > NumberOfSecondsToShowIP)
-                        {
-                            infoBar = InfoBar.Clock;
-                        }
-                        break;
+                        // expected if the process isn't there.
                     }
-                    default:
-                        {
-                            tb.Text = "";
-                            break;
-                        }
+                    catch (Exception exc)
+                    {
+                        Debug.WriteLine("Tried and failed to kill video process..." + exc.ToString());
+                        Logger.LogComment("Tried and failed to kill video process. Excpetion: " + exc.ToString());
+                    }
                 }
 
-            });
-
-            // NOTE: We update this here in case a bad value gets put into the app settings
-            // We only try to update it if it's changed. Setting that to a bad value can be catastrophic.
-            // May consider limiting the values in the future.
-            if (slideTimer.Interval != AppSettings.Default.SlideshowTransitionTime)
-            {
-                slideTimer.Interval = AppSettings.Default.SlideshowTransitionTime;
-                Timer_Tick(null, null);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    // OMXPlayer processes can be a bit tricky. to kill them we use
+                    // killall - 9 omxplayer.bin
+                    Helpers.RunProcess("killall", "-9 omxplayer.bin");
+                    videoProcess = null;
+                }
+                else
+                {
+                    videoProcess.Close();
+                    videoProcess.Dispose();
+                    videoProcess = null;
+                }
             }
-
+            catch (Exception)
+            { 
+                // Swallow. This may no longer be there depending on what kills it (OMX player will exit if the video
+                // completes for instance
+            }
         }
-
         private bool GetFiles()
         {
-            index = 0;
-            fileList = new List<string>(); // get a list of files to go through
-            slideTimer.Stop();
-
-            foreach (string directory in AppSettings.Default.CurrentPlayList)
-            {
-                try
-                {
-
-                    if (Directory.Exists(directory))
-                    {
-                        DirectoryInfo dirInfo = new DirectoryInfo(directory);
-
-                        var mediafiles = Helpers.GetFilesByExtensions(dirInfo, ".jpg", ".jpeg", ".png",
-                            ".bmp", ".mov", ".mpg", ".avi", ".mkv", ".mpeg", ".mp4");
-
-                        if (mediafiles != null)
-                            fileList.AddRange(mediafiles.ToList());
-                    }
-                }
-                catch (Exception exc)
-                {
-                    Console.WriteLine("Exception when reading directory: " + directory + " Exception: " + exc.ToString());
-                }
-            }
-
-            if (AppSettings.Default.Shuffle)
-            {
-                Random r = new Random((int)DateTime.Now.Ticks);
-                fileList = Helpers.Shuffle<string>(fileList.ToList(), r).ToList();
-            }
-
-            slideTimer.Start();
-
-            if (fileList.Count > 0)
-            {
-                return true;
-            }
-            else
-            {
-                // 0 files found in all given directories
-                return false;
-            }
+            Logger.LogComment("GetFiles called!");
+            playListEngine.GetPlayListItems();
+            RefreshSettings();
+            return true;
         }   
-
         public void SetupWebServer()
         {
             string current = Directory.GetCurrentDirectory();
@@ -502,6 +445,7 @@ namespace Dynaframe3
         /// </summary>
         private void RefreshSettings()
         {
+            Logger.LogComment("Refresh settings was called");
             if (AppSettings.Default.Clock)
             {
                 tb.Opacity = 1;
@@ -521,18 +465,14 @@ namespace Dynaframe3
             frontImage.Stretch = AppSettings.Default.ImageStretch;
             backImage.Stretch = AppSettings.Default.ImageStretch;
 
-            // Fix up rotations. When rotating, we must redo the layout
-            // to get everything to resize correctly
+
             int degrees = AppSettings.Default.Rotation;
             mainWindow.InvalidateVisual();
 
-          
-
-            Transform t = new RotateTransform(degrees);
             double w = mainWindow.Width;
             double h = mainWindow.Height;
 
-            
+            rotationTransform = new RotateTransform(degrees);
 
             if ((degrees == 90) || (degrees == 270))
             {
@@ -544,7 +484,7 @@ namespace Dynaframe3
                 mainPanel.Width = w;
                 mainPanel.Height = h;
             }
-            mainPanel.RenderTransform = t;
+            mainPanel.RenderTransform = rotationTransform;
 
             // update any fade settings
             fadeTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);

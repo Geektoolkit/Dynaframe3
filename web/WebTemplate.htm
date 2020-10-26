@@ -279,6 +279,17 @@
 											<div class="form-input"><input type="radio" name="clock" id="clock" value="on" /><label for="clock">On</label><input type="radio" name="clock" value="off" id="clock-off" /><label for="clock-off">Off</label></div>
 										</div>
 
+
+										<div class="form-row">
+											<div class="form-label"><span>Date / Time Format <a href="https://www.c-sharpcorner.com/blogs/date-and-time-format-in-c-sharp-programming1">(examples here)</a></span></div>
+											<div class="form-input"><input type="text" name="DateTimeFormat" width="300" placeholder="H:mm tt" <!--DATETIMEFORMAT--></div>
+										</div>
+
+										<div class="form-row">
+											<div class="form-label"><span>Date / Time Font Family</span></div>
+											<div class="form-input"><input type="text" name="DateTimeFontFamily" width="300" placeholder="Verdana" <!--DATETIMEFONTFAMILY--></div>
+										</div>
+
 										<!--ROTATE-->
 										<div class="form-row">
 											<div class="form-label"><span>Rotate:</span></div>
@@ -299,13 +310,13 @@
 											<div class="form-label"><span>Image Scaling:</span></div>
 											<div class="form-input">
 												<input type="radio" name="imagescaling" value="UniformToFill" id="imagescaling">
-												<label for="radio-0">Uniform To Fill</label>
+												<label for="radio-0">UniformToFill - Scales to fill screen. Aspect ratio preserved</label><br />
 												<input type="radio" name="imagescaling" value="Uniform" id="imagescaling">
-												<label for="radio-0">Uniform</label>
+												<label for="radio-0">Uniform - Within Screen, preserves aspect ratio</label><br />
 												<input type="radio" name="imagescaling" value="None" id="imagescaling">
-												<label for="radio-0">None</label>
+												<label for="radio-0">Original</label><br />
 												<input type="radio" name="imagescaling" value="Fill" id="imagescaling">
-												<label for="radio-0">Fill</label>
+												<label for="radio-0">Fill - Fills screen, ignores aspect ratio</label><br />
 
 											</div>
 										</div>

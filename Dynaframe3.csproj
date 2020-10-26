@@ -3,11 +3,12 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Dynaframe</AssemblyName>
-    <Version>2.0.4</Version>
+    <Version>2.0.7</Version>
     <Authors>Joe Farro</Authors>
     <Company>Geektoolkit</Company>
     <Product>Dynaframe</Product>
     <Description>Dynaframe is a dynamic photo application which can show images and videos as slideshows. It features a web frontend, home automation integration, and more.</Description>
+    <AssemblyVersion>2.0.7.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="appsettings.json" />
@@ -42,8 +43,9 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.10.999-cibuild0010094-beta" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0010094-beta" />
+    <PackageReference Include="Avalonia" Version="0.10.999-cibuild0011383-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.10.999-cibuild0011383-beta" />
+    <PackageReference Include="Avalonia.Skia.Desktop" Version="0.5.2-build3633-alpha" />
     <PackageReference Include="MetadataExtractor" Version="2.4.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.7" />

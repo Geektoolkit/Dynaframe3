@@ -1,6 +1,7 @@
 ﻿using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform;
 
 namespace Dynaframe3
 {
@@ -29,8 +30,6 @@ namespace Dynaframe3
 
         // Avalonia configuration, don't remove; also used by visual designer.
         public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>()
-                .UsePlatformDetect()
-                .LogToDebug();
+            => AppBuilder.Configure<App>().UsePlatformDetect().With(new AvaloniaNativePlatformOptions { UseGpu = true }).LogToDebug();
     }
 }

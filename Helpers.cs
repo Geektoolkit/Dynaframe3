@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Text;
 
 namespace Dynaframe3
@@ -25,19 +26,7 @@ namespace Dynaframe3
             list[i] = list[j];
             list[j] = temp;
         }
-        /// <summary>
-        /// Source: https://stackoverflow.com/questions/3527203/getfiles-with-multiple-extensions
-        /// </summary>
-        /// <param name="dirInfo"></param>
-        /// <param name="extensions"></param>
-        /// <returns></returns>
-        public static IEnumerable<string> GetFilesByExtensions(this DirectoryInfo dirInfo, params string[] extensions)
-        {
-            var allowedExtensions = new HashSet<string>(extensions, StringComparer.OrdinalIgnoreCase);
 
-            return dirInfo.EnumerateFiles("*.*", SearchOption.AllDirectories)
-                          .Where(f => allowedExtensions.Contains(f.Extension)).Select(s => s.FullName);
-        }
 
         /// <summary>
         /// Gets the ip address of the system. Dynaframe uses this to help the user locate thier device
@@ -59,13 +48,15 @@ namespace Dynaframe3
                         {
                             string ip = addresses[i].Address.ToString();
                             // Filter out IPV6, local, loopback, etc.
-                            if((!ip.StartsWith("169.")) && (!ip.StartsWith("127.")) && (!ip.Contains("::")))
-                                returnval += "(2.05) Setup at http://" + ip + ":8000 "+ Environment.NewLine;
+                            string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+                            if ((!ip.StartsWith("169.")) && (!ip.StartsWith("127.")) && (!ip.Contains("::")))
+                                returnval += "(Version: " + version + ") \r\n Setup at http://" + ip + ":8000 "+ Environment.NewLine;
                         }
                     }
-                    catch (Exception)
+                    catch (Exception exc)
                     {
-                        // ignore
+                        Logger.LogComment("Exception in GetIPString() : " + exc.ToString());
                     }
                 }
             }
@@ -110,20 +101,42 @@ namespace Dynaframe3
             // 9/5 * C +32 = Farenheight
         }
 
-        /// <summary>
-        /// This gets a list of directories using the multiple directories
-        /// in Appsettings
-        /// </summary>
-        /// <returns></returns>
-        public static List<string> GetDirectories()
+        public static void SetIntAppSetting(string querystring, string property)
         {
-            List<string> directories = new List<string>();
-            foreach (string dir in AppSettings.Default.SearchDirectories)
+            if (querystring != null)
             {
-                string[] dirs = Directory.GetDirectories(dir);
-                directories.AddRange(dirs);
+                int i = 0;
+                if (int.TryParse(querystring, out i))
+                {
+                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, i);
+                }
             }
-            return directories;
         }
+
+        public static void SetStringAppSetting(string querystring, string property)
+        {
+            if (querystring != null)
+            {
+               typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, querystring);
+            }
+        }
+
+        public static void SetBoolAppSetting(string querystring, string property)
+        {
+            if (querystring != null)
+            {
+                if (querystring.ToUpper() == "ON")
+                {
+                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, true);
+                }
+                else
+                {
+                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, false);
+                }
+            }
+        }
+
+
+
     }   
 }

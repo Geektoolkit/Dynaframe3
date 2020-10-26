@@ -18,7 +18,7 @@ namespace Dynaframe3
     {
         private AppSettings()
         {
-            ReloadSettings = false;
+            ReloadSettings = true;
             // marked as private to prevent outside classes from creating new.
             Shuffle = false;
             Rotation = 0;
@@ -30,6 +30,7 @@ namespace Dynaframe3
 
             CurrentDirectory = SpecialDirectories.MyPictures;
             DateTimeFormat = "H:mm tt";
+            DateTimeFontFamily = "Terminal";
 
             Clock = false;
             InfoBarFontSize = 50;
@@ -123,6 +124,8 @@ namespace Dynaframe3
         public int SlideshowTransitionTime { get; set; }
 
         public string DateTimeFormat { get; set; }
+        // Font used for the clock/infobar
+        public string DateTimeFontFamily { get; set; }
 
         public bool ReloadSettings { get; set; }
 
@@ -134,6 +137,8 @@ namespace Dynaframe3
         public int NumberOfSecondsToShowIP { get; set; }
 
         public Stretch ImageStretch { get; set; }
+
+
 
     }
 }

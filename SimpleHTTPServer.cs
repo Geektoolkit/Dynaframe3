@@ -172,72 +172,22 @@ class SimpleHTTPServer
 
         if (context.Request.QueryString.Count > 0)
         {
-            // Shutdown command. This helps raspberry pis shutdown gracefully
-            // but is likely useful for all platforms since the mirror may not
-            // have a keyboard.  In the future may hook this up to an IR remote
-            if (context.Request.QueryString.Get("shutdown") == "oneminute")
-            {
-                // shutdown requested!
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    Helpers.RunProcess("shutdown", "");
-                }
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    Helpers.RunProcess("shutdown", "/t /60");
-                }
+            // Set in App Settings takes the querystring and the Appsettings.Default value name
+            Helpers.SetIntAppSetting(context.Request.QueryString.Get("rotation"), "Rotation");
+            Helpers.SetIntAppSetting(context.Request.QueryString.Get("infobarfontsize"), "InfoBarFontSize");
+            Helpers.SetIntAppSetting(context.Request.QueryString.Get("slideshowduration"), "SlideshowTransitionTime");
+            Helpers.SetIntAppSetting(context.Request.QueryString.Get("ipaddresstime"), "NumberOfSecondsToShowIP");
+            Helpers.SetIntAppSetting(context.Request.QueryString.Get("transitiontime"), "FadeTransitionTime");
 
-            }
-            if (context.Request.QueryString.Get("shutdown") == "tenseconds")
-            {
-                // shutdown requested!
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    System.Threading.Thread.Sleep(10000);
-                    Helpers.RunProcess("shutdown", "now");
-                }
+            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("Shuffle"), "Shuffle");
+            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("clock"), "Clock");
 
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    Helpers.RunProcess("shutdown", "/t /10");
-                }
-
-            }
+            Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFormat"), "DateTimeFormat");
+            Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
 
 
-            string? shuffle = context.Request.QueryString.Get("Shuffle");
-            if (shuffle != null)
-            {
-                if (shuffle.ToUpper() == "ON")
-                {
-                    AppSettings.Default.Shuffle = true;
-                }
-                else
-                {
-                    AppSettings.Default.Shuffle = false;
-                }
-            }
-
-            string? clockval = context.Request.QueryString.Get("clock");
-            if (clockval != null)
-            {
-                if (clockval.ToUpper() == "ON")
-                {
-                    AppSettings.Default.Clock = true;
-                }
-                else
-                {
-                    AppSettings.Default.Clock = false;
-                }
-            }
-
-            string? rotationValue = context.Request.QueryString.Get("rotation");
-            if (rotationValue != null)
-            {
-                AppSettings.Default.Rotation = int.Parse(context.Request.QueryString.Get("rotation"));
-            }
-
+            #region SpecialCasesWhichNeedCleanup
             // Process 'directory' if passed
             string? dir = context.Request.QueryString.Get("dir");
             if(dir != null)
@@ -256,38 +206,7 @@ class SimpleHTTPServer
                 AppSettings.Default.ReloadSettings = true;
             }
 
-            string? infobarfontsizeval = context.Request.QueryString.Get("infobarfontsize");
-            if (infobarfontsizeval != null)
-            {
-                int fontsize = 100;
-                if (int.TryParse(context.Request.QueryString.Get("infobarfontsize"), out fontsize))
-                {
-                    AppSettings.Default.InfoBarFontSize = fontsize;
-                }
-            }
-
-            string? slideshowdurationVal = context.Request.QueryString.Get("slideshowduration");
-            if (slideshowdurationVal != null)
-            {
-                int slideshowduration = 0;
-                if (int.TryParse(context.Request.QueryString.Get("slideshowduration"), out slideshowduration))
-                {
-                    AppSettings.Default.SlideshowTransitionTime = slideshowduration;
-                }
-            }
-            
-
-            string? ipaddresstimeVal = context.Request.QueryString.Get("ipaddresstime");
-            if (ipaddresstimeVal != null)
-            {
-                int ipaddresstime = 0;
-                if (int.TryParse(context.Request.QueryString.Get("ipaddresstime"), out ipaddresstime))
-                {
-                    AppSettings.Default.NumberOfSecondsToShowIP = ipaddresstime;
-                }
-            }
-
-            string? imagestretchVal = context.Request.QueryString.Get("imagescaling");
+            string imagestretchVal = context.Request.QueryString.Get("imagescaling");
             if (imagestretchVal != null)
             {
                 switch (imagestretchVal)
@@ -318,17 +237,43 @@ class SimpleHTTPServer
                 
             }
 
-            string? transitiontimeVal = context.Request.QueryString.Get("transitiontime");
-            if (transitiontimeVal != null)
+            // Shutdown command. This helps raspberry pis shutdown gracefully
+            // but is likely useful for all platforms since the mirror may not
+            // have a keyboard.  In the future may hook this up to an IR remote
+            if (context.Request.QueryString.Get("shutdown") == "oneminute")
             {
-                int transitiontime = 0;
-                if (int.TryParse(context.Request.QueryString.Get("transitiontime"), out transitiontime))
+                // shutdown requested!
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    AppSettings.Default.FadeTransitionTime = transitiontime;
+                    Helpers.RunProcess("shutdown", "");
                 }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Helpers.RunProcess("shutdown", "/t /60");
+                }
+
             }
 
-            string? directoryToAdd = context.Request.QueryString.Get("directoryAdd");
+
+            if (context.Request.QueryString.Get("shutdown") == "tenseconds")
+            {
+                // shutdown requested!
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    System.Threading.Thread.Sleep(10000);
+                    Helpers.RunProcess("shutdown", "now");
+                }
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Helpers.RunProcess("shutdown", "/t /10");
+                }
+
+            }
+
+
+            string directoryToAdd = context.Request.QueryString.Get("directoryAdd");
             if (directoryToAdd != null)
             {
                 // We use search directories to add things like NAS drives and usb drives to the system.
@@ -341,7 +286,7 @@ class SimpleHTTPServer
                 }
             }
 
-            string? subdirectorytoadd = context.Request.QueryString.Get("cbDirectory");
+            string subdirectorytoadd = context.Request.QueryString.Get("cbDirectory");
             if (subdirectorytoadd != null)
             {
                 AppSettings.Default.CurrentPlayList.Clear();
@@ -359,9 +304,11 @@ class SimpleHTTPServer
                 AppSettings.Default.ReloadSettings = true;
 
             }
-
+            #endregion
+            AppSettings.Default.ReloadSettings = true;
             AppSettings.Default.Save();
         }
+
 
 
 
@@ -369,7 +316,6 @@ class SimpleHTTPServer
         GetDefaultPage();
 
         string filename = context.Request.Url.AbsolutePath;
-        Console.WriteLine(filename);
         filename = filename.Substring(1);
 
         if (string.IsNullOrEmpty(filename))
@@ -472,7 +418,9 @@ class SimpleHTTPServer
                         cbChecked = "checked";
                     }
 
-                    dirChoices += "<li class='subdirectory'><input type='checkbox' " + cbChecked + " class='directorycb' id='cbDirectory' name='cbDirectory' value='" + encdirectory + "'>" + subdirectory + "</li>";
+                    dirChoices += "<li class='subdirectory'><input type='checkbox' " +
+                        cbChecked + " class='directorycb' id='cbDirectory' name='cbDirectory' value='" + 
+                        encdirectory + "'>" + subdirectory + "</li>";
                 }
                 dirChoices += "</ul></li>";
             }
@@ -493,6 +441,8 @@ class SimpleHTTPServer
             page = page.Replace("<!--SLIDESHOWDURATION-->", "value=" + AppSettings.Default.SlideshowTransitionTime.ToString() + ">");
             page = page.Replace("<!--TRANSITIONTIME-->", "value=" + AppSettings.Default.FadeTransitionTime.ToString() + ">");
             page = page.Replace("<!--IPADDRESSTIME-->", "value=" + AppSettings.Default.NumberOfSecondsToShowIP.ToString() + ">");
+            page = page.Replace("<!--DATETIMEFORMAT-->", "value='" + AppSettings.Default.DateTimeFormat + "'>");
+            page = page.Replace("<!--DATETIMEFONTFAMILY-->", "value='" + AppSettings.Default.DateTimeFontFamily + "'>");
             return page;
         }
         catch (Exception exc)
