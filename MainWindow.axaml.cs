@@ -23,12 +23,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.VisualBasic.FileIO;
 using System.Collections.Generic;
 using SkiaSharp;
+using MetadataExtractor;
 
 namespace Dynaframe3
 {
     public class MainWindow : Window
     {
-        int index;
         Image frontImage;
         Image backImage;
         TextBlock tb;
@@ -43,11 +43,10 @@ namespace Dynaframe3
         // Transitions used for animating the fades
         DoubleTransition fadeTransition;
 
-        string PlayingDirectory = "";
         SimpleHTTPServer server;
 
-        enum InfoBar { Clock, FileInfo, DateTime, Error, IP}
-        InfoBar infoBar = InfoBar.IP;
+        enum InfoBar { Clock, FileInfo, DateTime, Error, IP, OFF, InitialIP }
+        InfoBar infoBar = InfoBar.InitialIP;
 
         /// <summary>
         /// Tracks number of times the system has gone through a loop. useful for
@@ -82,9 +81,14 @@ namespace Dynaframe3
 
             // setup transitions and animations
             DoubleTransition windowTransition = new DoubleTransition();
-            windowTransition.Duration = TimeSpan.FromMilliseconds(1000);
+            windowTransition.Duration = TimeSpan.FromMilliseconds(2000);
             windowTransition.Property = Window.OpacityProperty;
-           
+
+            DoubleTransition panelTransition = new DoubleTransition();
+            panelTransition.Duration = TimeSpan.FromMilliseconds(1200);
+            panelTransition.Property = Panel.OpacityProperty;
+
+
             fadeTransition = new DoubleTransition();
             fadeTransition.Easing = new QuadraticEaseIn();
             fadeTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
@@ -98,23 +102,29 @@ namespace Dynaframe3
             mainWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             mainPanel = this.FindControl<Panel>("mainPanel");
-            
+            mainPanel.Transitions = new Transitions();
+            mainPanel.Transitions.Add(panelTransition);
+
             tb = this.FindControl<TextBlock>("tb");
             tb.Foreground = Brushes.AliceBlue;
-            tb.Text = "Loaded";
+            tb.Text = "Loading images...";
             tb.FontFamily = new FontFamily("Terminal");
             tb.FontWeight = FontWeight.Bold;
             tb.FontSize = AppSettings.Default.InfoBarFontSize;
             tb.Transitions = new Transitions();
             tb.Transitions.Add(fadeTransition);
+            tb.Padding = new Thickness(30);
 
             frontImage = this.FindControl<Image>("Front");
             backImage = this.FindControl<Image>("Back");
 
+            string intro = Environment.CurrentDirectory + "/images/background.jpg";
+            bitmapNew = new Bitmap(intro);
+
+            frontImage.Source = bitmapNew;
+
             frontImage.Stretch = AppSettings.Default.ImageStretch;
             backImage.Stretch = AppSettings.Default.ImageStretch;
-
-
 
             DoubleTransition transition2 = new DoubleTransition();
             transition2.Easing = new QuadraticEaseIn();
@@ -127,8 +137,8 @@ namespace Dynaframe3
             backImage.Transitions.Add(transition2);
 
             slideTimer.Elapsed += Timer_Tick;
-       
-            GetFiles();
+
+            AppSettings.Default.ReloadSettings = true; 
             slideTimer.Start();
 
             Logger.LogComment("Initialized");
@@ -139,8 +149,11 @@ namespace Dynaframe3
             ((ClassicDesktopStyleApplicationLifetime)Avalonia.Application.Current.ApplicationLifetime).Shutdown(0);
         }
 
+       
+
         private void MainWindow_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
         {
+            tb.Transitions.Clear();
             // Exit on Escape or Control X (Windows and Linux Friendly)
             if ((e.Key == Avalonia.Input.Key.Escape) || ((e.KeyModifiers == Avalonia.Input.KeyModifiers.Control) && (e.Key == Avalonia.Input.Key.X)))
             {
@@ -149,39 +162,70 @@ namespace Dynaframe3
                 server.Stop();
             }
 
+            if (e.Key == Avalonia.Input.Key.T)
+            {
+                if (mainWindow.Opacity != 1)
+                {
+                    mainWindow.Opacity = 1;
+                }
+                else
+                {
+                    mainWindow.Opacity = 0;
+                }
+            }
+            if (e.Key == Avalonia.Input.Key.U)
+            {
+                if (mainPanel.Opacity != 1)
+                {
+                    mainPanel.Opacity = 1;
+                }
+                else
+                {
+                    mainPanel.Opacity = 0;
+                }
+            }
+
+
             if (e.Key == Avalonia.Input.Key.F)
             {
-                tb.Opacity = 1;
                 infoBar = InfoBar.FileInfo;
             }
             if (e.Key == Avalonia.Input.Key.I)
             {
-                tb.Opacity = 1;
                 infoBar = InfoBar.IP;
             }
             if (e.Key == Avalonia.Input.Key.C)
             {
-                tb.Opacity = 1;
                 infoBar = InfoBar.Clock;
             }
             if (e.Key == Avalonia.Input.Key.Right)
             {
+                frontImage.Transitions.Clear();
+                backImage.Transitions.Clear();
                 playListEngine.GoToNext();
-                PlayImageFile();
+                PlayImageFile(true);
                 lastUpdated = DateTime.Now;
+                frontImage.Transitions.Add(fadeTransition);
+                backImage.Transitions.Add(fadeTransition);
 
             }
             if (e.Key == Avalonia.Input.Key.Left)
             {
+                frontImage.Transitions.Clear();
+                backImage.Transitions.Clear();
                 playListEngine.GoToPrevious();
-                PlayImageFile();
+                PlayImageFile(true);
                 lastUpdated = DateTime.Now;
+                frontImage.Transitions.Add(fadeTransition);
+                backImage.Transitions.Add(fadeTransition);
             }
             if (e.Key == Avalonia.Input.Key.H)
             {
                 tb.Opacity = 0;
+                infoBar = InfoBar.OFF;
             }
-
+            UpdateInfoBar();
+            tb.Transitions.Add(fadeTransition);
         }
 
         /// <summary>
@@ -201,8 +245,6 @@ namespace Dynaframe3
                 });
             }
             
-            UpdateInfoBar();
-
             if (DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime)
             {
                 lastUpdated = DateTime.Now;
@@ -218,9 +260,10 @@ namespace Dynaframe3
                     }
                     else
                     {
-                        PlayImageFile();
+                        PlayImageFile(false);
                         KillVideoPlayer(); // if a video is playing, get rid of it now that we've swapped images
                     }
+                    UpdateInfoBar();
                 }
                 catch (InvalidOperationException)
                 { 
@@ -237,21 +280,33 @@ namespace Dynaframe3
         private void UpdateInfoBar()
         {
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
+            { 
                 tb.FontFamily = AppSettings.Default.DateTimeFontFamily;
                 switch (infoBar)
                 {
                     case (InfoBar.Clock):
                         {
+                            tb.Opacity = 1;
                             tb.Text = DateTime.Now.ToString(AppSettings.Default.DateTimeFormat);
                             break;
                         }
                     case (InfoBar.FileInfo):
                         {
-                            tb.Text = playListEngine.CurrentPlayListItem.Path;
+                            tb.Opacity = 1;
+                            FileInfo f = new FileInfo(playListEngine.CurrentPlayListItem.Path);
+                            string fData = f.Name;
+                           // IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(f.FullName);
+
+                            tb.Text = f.Name;
                             break;
                         }
                     case (InfoBar.IP):
+                        {
+                            tb.Opacity = 1;
+                            tb.Text = Helpers.GetIPString();
+                            break;
+                        }
+                    case (InfoBar.InitialIP):
                         {
                             numberOfTimes++;
 
@@ -259,8 +314,20 @@ namespace Dynaframe3
                             // TODO: Get rid of magic number 2 (2 * 500ms clock timer = 1 second)
                             if (numberOfTimes > (NumberOfSecondsToShowIP * 2))
                             {
-                                infoBar = InfoBar.Clock;
+                                if (AppSettings.Default.Clock)
+                                {
+                                    infoBar = InfoBar.Clock;
+                                }
+                                else
+                                {
+                                    infoBar = InfoBar.OFF;
+                                }
                             }
+                            break;
+                        }
+                    case (InfoBar.OFF):
+                        {
+                            tb.Opacity = 0;
                             break;
                         }
                     default:
@@ -271,7 +338,7 @@ namespace Dynaframe3
                 }
             });
         }
-        private void PlayImageFile()
+        private void PlayImageFile(bool fast)
         {
             Logger.LogComment("PlayImageFile() called");
            
@@ -279,6 +346,7 @@ namespace Dynaframe3
            // fade the top out, revealing the bottom
            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
+                mainWindow.Opacity = 1;
                 try
                 {
                     Logger.LogComment("Beginning to load next file: " + playListEngine.CurrentPlayListItem.Path);
@@ -289,7 +357,6 @@ namespace Dynaframe3
                     backImage.Opacity = 1;
                     frontImage.Opacity = 0;
                     mainWindow.WindowState = WindowState.FullScreen;
-                    RefreshSettings();
                 }
                 catch (Exception exc)
                 {
@@ -298,7 +365,10 @@ namespace Dynaframe3
             });
 
             // We sleep on this thread to let the transition occur fully
-            Thread.Sleep(AppSettings.Default.FadeTransitionTime);
+            if (!fast)
+            {
+                Thread.Sleep(AppSettings.Default.FadeTransitionTime);
+            }
 
 
             // At this point the 'bottom' image is opaque showing the new image
@@ -332,9 +402,17 @@ namespace Dynaframe3
                 Logger.LogComment("Linux Detected, setting up OMX Player");
                 pInfo.FileName = "omxplayer";
                 Logger.LogComment("Setting up Appsettings...");
-                pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode stretch ";
+                pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode " + AppSettings.Default.VideoStretch;
+
+                // Append volume command argument
+                if (!AppSettings.Default.VideoVolume)
+                {
+                    pInfo.Arguments += " --vol -6000 ";
+                }
+
                 pInfo.Arguments += "\"" + playListEngine.CurrentPlayListItem.Path + "\""; 
                 Logger.LogComment("DF Playing: " + playListEngine.CurrentPlayListItem.Path);
+                Logger.LogComment("OMXPLayer args: " + pInfo.Arguments);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -350,7 +428,16 @@ namespace Dynaframe3
             videoProcess.StartInfo = pInfo;
             Logger.LogComment("Starting player...");
             videoProcess.Start();
-            System.Threading.Thread.Sleep(1000);
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                mainPanel.Opacity = 0;
+            });
+           
+            System.Threading.Thread.Sleep(1100);
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                mainWindow.Opacity = 0;
+            });
 
             int timer = 0;
             Logger.LogComment("Entering Timerloop");
@@ -364,25 +451,15 @@ namespace Dynaframe3
                     // TODO: Add a setting for this
                     break;
                 }
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    mainWindow.Opacity = .1;
-                });
+               
             }
             Logger.LogComment("Video has exited!");
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
+                mainPanel.Opacity = 1;
                 mainWindow.Opacity = 1;
             });
-            try
-            {
-               
-                
-            }
-            catch (Exception)
-            { 
-                // swallow. 
-            }
+
         }
 
         private void KillVideoPlayer()
@@ -411,8 +488,10 @@ namespace Dynaframe3
                 {
                     // OMXPlayer processes can be a bit tricky. to kill them we use
                     // killall - 9 omxplayer.bin
+
                     Helpers.RunProcess("killall", "-9 omxplayer.bin");
                     videoProcess = null;
+
                 }
                 else
                 {
@@ -436,7 +515,7 @@ namespace Dynaframe3
         }   
         public void SetupWebServer()
         {
-            string current = Directory.GetCurrentDirectory();
+            string current = System.IO.Directory.GetCurrentDirectory();
             server = new SimpleHTTPServer(current + "//web", 8000);
         }
 
@@ -446,18 +525,9 @@ namespace Dynaframe3
         private void RefreshSettings()
         {
             Logger.LogComment("Refresh settings was called");
-            if (AppSettings.Default.Clock)
-            {
-                tb.Opacity = 1;
-            }
-            else
-            {
-                if (infoBar != InfoBar.IP)
-                {
-                    tb.Opacity = 0;
-                }
-            }
-
+            Helpers.DumpAppSettingsToLogger();
+            Logger.LogComment("Current opacity: " + mainWindow.Opacity);
+           
             // Infobar is the text at the bottom (default 100)
             tb.FontSize = AppSettings.Default.InfoBarFontSize;
 
@@ -466,9 +536,23 @@ namespace Dynaframe3
             backImage.Stretch = AppSettings.Default.ImageStretch;
 
 
-            int degrees = AppSettings.Default.Rotation;
-            mainWindow.InvalidateVisual();
+            RotateMainPanel();
 
+
+            if (infoBar == InfoBar.Clock)
+            {
+                tb.Opacity = 1;
+            }
+
+            // update any fade settings
+            fadeTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
+        }
+        /// <summary>
+        /// Rotates the Main Panel to match the orientation specified in appsettings
+        /// </summary>
+        private void RotateMainPanel()
+        {
+            int degrees = AppSettings.Default.Rotation;
             double w = mainWindow.Width;
             double h = mainWindow.Height;
 
@@ -485,12 +569,9 @@ namespace Dynaframe3
                 mainPanel.Height = h;
             }
             mainPanel.RenderTransform = rotationTransform;
-
-            // update any fade settings
-            fadeTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
-
+            mainWindow.InvalidateMeasure();
             AppSettings.Default.OXMOrientnation = "--orientation " + degrees.ToString();
-        }
 
+        }
     }
 }

@@ -206,161 +206,185 @@
 	</style>
 </head>
 <body>
-		<h1>Welcome to <span class="dynaframe">DynaFrame!</span></h1>
+	<h1>Welcome to <span class="dynaframe">DynaFrame!</span></h1>
 
-		<div class="tab">
-			<button class="tablinks" onclick="openTab(event, 'Control')">Control</button>
-			<button class="tablinks" onclick="openTab(event, 'Playlists')">Playlists</button>
-			<button class="tablinks" onclick="openTab(event, 'Settings')">Settings</button>
-		</div>
+	<div class="tab">
+		<button class="tablinks" onclick="openTab(event, 'Control')">Control</button>
+		<button class="tablinks" onclick="openTab(event, 'Playlists')">Playlists</button>
+		<button class="tablinks" onclick="openTab(event, 'Settings')">Settings</button>
+	</div>
 
-		<div id="Control" class="tabcontent">
-			<h3>Coming soon!</h3>
-			<p>This will provide controls such as Go forward a slide, back a slide, pause, etc..</p>
-		</div>
+	<div id="Control" class="tabcontent">
+		<h3>Coming soon!</h3>
+		<p>This will provide controls such as Go forward a slide, back a slide, pause, etc..</p>
+	</div>
 
-		<div id="Playlists" class="tabcontent">
-			<form action="default.htm">
-				<div class="settings">
-					<div class="form">
-						<h3>Playlists</h3>
-						<div class="grid-container">
-							<!-- DIRECTORIES -->
-						</div>
-						<div class="form-row">
-							<div><input type="hidden" name="tab" value="Playlists" /></div>
-							<input type="submit" value="Save" class="submitbutton" />
-						</div>
+	<div id="Playlists" class="tabcontent">
+		<form action="default.htm">
+			<div class="settings">
+				<div class="form">
+					<h3>Playlists</h3>
+					<div class="grid-container">
+						<!-- DIRECTORIES -->
+					</div>
+					<div class="form-row">
+						<div><input type="hidden" name="tab" value="Playlists" /></div>
+						<input type="submit" value="Save" class="submitbutton" />
 					</div>
 				</div>
-			</form>
-		</div>
-
-
-		<div id="Settings" class="tabcontent">		
-				<div class="settings">
-								<div class="form">
-									<h3>Settings</h3>
-									<form action="default.htm">
-										<div class="form-row">
-											<div class="form-label"><span>Directory to Add:</span></div>
-											<div class="form-input"><input type="text" name="directoryAdd" width="300" placeholder="/home/pi/pics" /></div>
-										</div>
-
-										<div class="form-row">
-											<div class="form-label"><span>Infobar (clock) font size:</span></div>
-											<div class="form-input"><input type="text" name="infobarfontsize" placeholder="50" <!--INFOBARFONTSIZE--></div>
-										</div>
-
-										<div class="form-row">
-											<div class="form-label"><span>Slideshow duration between slides (milliseconds) font size:</span></div>
-											<div class="form-input"><input type="text" name="slideshowduration" placeholder="30000" <!--SLIDESHOWDURATION--></div>
-										</div>
-
-										<div class="form-row">
-											<div class="form-label"><span>Transition duration during fades (milliseconds) font size:</span></div>
-											<div class="form-input"><input type="text" name="transitiontime" placeholder="1600" <!--TRANSITIONTIME--></div>
-										</div>
-										<!-- Number of seconds to show ip-->
-										<div class="form-row">
-											<div class="form-label"><span>Number of seconds to show IP Address on start (0 to disable):</span></div>
-											<div class="form-input"><input type="text" name="ipaddresstime" placeholder="15" <!--IPADDRESSTIME--></div>
-										</div>
-
-										<!--SHUFFLE-->
-										<div class="form-row">
-											<div class="form-label"><span>Shuffle:</span></div>
-											<div class="form-input"><input type="radio" name="shuffle" id="shuffle" value="on" /><label for="shuffle">On</label><input id="shuffle-off" type="radio" name="shuffle" value="off" /><label for="shuffle-off">Off</label></div>
-										</div>
-
-										<!--SHOWTIME-->
-										<div class="form-row">
-											<div class="form-label"><span>Show Time:</span></div>
-											<div class="form-input"><input type="radio" name="clock" id="clock" value="on" /><label for="clock">On</label><input type="radio" name="clock" value="off" id="clock-off" /><label for="clock-off">Off</label></div>
-										</div>
-
-
-										<div class="form-row">
-											<div class="form-label"><span>Date / Time Format <a href="https://www.c-sharpcorner.com/blogs/date-and-time-format-in-c-sharp-programming1">(examples here)</a></span></div>
-											<div class="form-input"><input type="text" name="DateTimeFormat" width="300" placeholder="H:mm tt" <!--DATETIMEFORMAT--></div>
-										</div>
-
-										<div class="form-row">
-											<div class="form-label"><span>Date / Time Font Family</span></div>
-											<div class="form-input"><input type="text" name="DateTimeFontFamily" width="300" placeholder="Verdana" <!--DATETIMEFONTFAMILY--></div>
-										</div>
-
-										<!--ROTATE-->
-										<div class="form-row">
-											<div class="form-label"><span>Rotate:</span></div>
-											<div class="form-input">
-												<input type="radio" name="rotation" value="0" id="radio-0">
-												<label for="radio-0">0</label>
-												<input type="radio" name="rotation" value="90" id="radio-90">
-												<label for="radio-90">90</label>
-												<input type="radio" name="rotation" value="180" id="radio-180">
-												<label for="radio-180">180</label>
-												<input type="radio" name="rotation" value="270" id="radio-270">
-												<label for="radio-270">270</label>
-											</div>
-										</div>
-
-										<!--SCALING-->
-										<div class="form-row">
-											<div class="form-label"><span>Image Scaling:</span></div>
-											<div class="form-input">
-												<input type="radio" name="imagescaling" value="UniformToFill" id="imagescaling">
-												<label for="radio-0">UniformToFill - Scales to fill screen. Aspect ratio preserved</label><br />
-												<input type="radio" name="imagescaling" value="Uniform" id="imagescaling">
-												<label for="radio-0">Uniform - Within Screen, preserves aspect ratio</label><br />
-												<input type="radio" name="imagescaling" value="None" id="imagescaling">
-												<label for="radio-0">Original</label><br />
-												<input type="radio" name="imagescaling" value="Fill" id="imagescaling">
-												<label for="radio-0">Fill - Fills screen, ignores aspect ratio</label><br />
-
-											</div>
-										</div>
-
-										<div><input type="hidden" name="tab" value="Settings" /></div>
-
-										<div class="form-row">
-											<input type="submit" value="Save" class="submitbutton" />
-										</div>
-
-										<!--SHUTDOWN-->
-										<div class="form-row">
-											<button name="shutdown" value="oneminute" class="warningbutton">Shutdown system in one minute</button>
-											<button name="shutdown" value="tenseconds" class="warningbutton">Shutdown system in ten seconds</button>
-										</div>
-									</form>
-								</div>
-
-							</div>
 			</div>
-							
-			<script src="jsLists.js"></script>
-			<script>
-				JSLists.createTree("dirs");
+		</form>
+	</div>
 
-                const queryString = window.location.search;
 
-                const urlParams = new URLSearchParams(queryString);
+	<div id="Settings" class="tabcontent">
+		<div class="settings">
+			<div class="form">
+				<h3>Settings</h3>
+				<form action="default.htm">
+					<div class="form-row">
+						<div class="form-label"><span>Directory to Add:</span></div>
+						<div class="form-input"><input type="text" name="directoryAdd" width="300" placeholder="/home/pi/pics" /></div>
+					</div>
 
-				const page_type = urlParams.get('tab')
-				openTab(event,page_type);
+					<div class="form-row">
+						<div class="form-label"><span>Infobar (clock) font size:</span></div>
+						<div class="form-input"><input type="text" name="infobarfontsize" placeholder="50" <!--INFOBARFONTSIZE--></div>
+					</div>
 
-				function openTab(evt, cityName) {
-					var i, tabcontent, tablinks;
-					tabcontent = document.getElementsByClassName("tabcontent");
-					for (i = 0; i < tabcontent.length; i++) {
-						tabcontent[i].style.display = "none";
-					}
-					tablinks = document.getElementsByClassName("tablinks");
-					for (i = 0; i < tablinks.length; i++) {
-						tablinks[i].className = tablinks[i].className.replace(" active", "");
-					}
-					document.getElementById(cityName).style.display = "block";
-					evt.currentTarget.className += " active";
-				}
-			</script>
+					<div class="form-row">
+						<div class="form-label"><span>Slideshow duration between slides (milliseconds) font size:</span></div>
+						<div class="form-input"><input type="text" name="slideshowduration" placeholder="30000" <!--SLIDESHOWDURATION--></div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-label"><span>Transition duration during fades (milliseconds) font size:</span></div>
+						<div class="form-input"><input type="text" name="transitiontime" placeholder="1600" <!--TRANSITIONTIME--></div>
+					</div>
+					<!-- Number of seconds to show ip-->
+					<div class="form-row">
+						<div class="form-label"><span>Number of seconds to show IP Address on start (0 to disable):</span></div>
+						<div class="form-input"><input type="text" name="ipaddresstime" placeholder="15" <!--IPADDRESSTIME--></div>
+					</div>
+
+					<!--SHUFFLE-->
+					<div class="form-row">
+						<div class="form-label"><span>Shuffle:</span></div>
+						<div class="form-input"><input type="radio" name="shuffle" id="shuffle" value="on" /><label for="shuffle">On</label><input id="shuffle-off" type="radio" name="shuffle" value="off" /><label for="shuffle-off">Off</label></div>
+					</div>
+
+					<!--SHOWTIME-->
+					<div class="form-row">
+						<div class="form-label"><span>Show Time:</span></div>
+						<div class="form-input"><input type="radio" name="clock" id="clock" value="on" /><label for="clock">On</label><input type="radio" name="clock" value="off" id="clock-off" /><label for="clock-off">Off</label></div>
+					</div>
+
+
+					<div class="form-row">
+						<div class="form-label"><span>Date / Time Format <a href="https://www.c-sharpcorner.com/blogs/date-and-time-format-in-c-sharp-programming1">(examples here)</a></span></div>
+						<div class="form-input"><input type="text" name="DateTimeFormat" width="300" placeholder="H:mm tt" <!--DATETIMEFORMAT--></div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-label"><span>Date / Time Font Family</span></div>
+						<div class="form-input"><input type="text" name="DateTimeFontFamily" width="300" placeholder="Verdana" <!--DATETIMEFONTFAMILY--></div>
+					</div>
+
+					<!--ROTATE-->
+					<div class="form-row">
+						<div class="form-label"><span>Rotate:</span></div>
+						<div class="form-input">
+							<input type="radio" name="rotation" value="0" id="radio-0">
+							<label for="radio-0">0</label>
+							<input type="radio" name="rotation" value="90" id="radio-90">
+							<label for="radio-90">90</label>
+							<input type="radio" name="rotation" value="180" id="radio-180">
+							<label for="radio-180">180</label>
+							<input type="radio" name="rotation" value="270" id="radio-270">
+							<label for="radio-270">270</label>
+						</div>
+					</div>
+
+					<!--SCALING-->
+					<div class="form-row">
+						<div class="form-label"><span>Image Scaling:</span></div>
+						<div class="form-input">
+							<input type="radio" name="imagescaling" value="UniformToFill" id="imagescaling">
+							<label for="radio-0">UniformToFill - Scales to fill screen. Aspect ratio preserved</label><br />
+							<input type="radio" name="imagescaling" value="Uniform" id="imagescaling">
+							<label for="radio-0">Uniform - Within Screen, preserves aspect ratio</label><br />
+							<input type="radio" name="imagescaling" value="None" id="imagescaling">
+							<label for="radio-0">Original</label><br />
+							<input type="radio" name="imagescaling" value="Fill" id="imagescaling">
+							<label for="radio-0">Fill - Fills screen, ignores aspect ratio</label><br />
+						</div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-label"><span>Video Aspect Mode</span></div>
+						<div class="form-input">
+							<input type="radio" name="VideoStretch" value="Letterbox" id="VideoStretch">
+							<label for="radio-0">Letterbox</label><br />
+							<input type="radio" name="VideoStretch" value="Fill" id="VideoStretch">
+							<label for="radio-0">Fill</label><br />
+							<input type="radio" name="VideoStretch" value="Stretch" id="VideoStretch">
+							<label for="radio-0">Stretch</label><br />
+						</div>
+					</div>
+
+					<!--VideoVolume-->
+					<div class="form-row">
+						<div class="form-label"><span>Should Videos Play Audio</span></div>
+						<div class="form-input"><input type="radio" name="shuffle" id="VideoVolume" value="on" /><label for="shuffle">On</label><input id="shuffle-off" type="radio" name="shuffle" value="off" /><label for="shuffle-off">Off</label></div>
+					</div>
+
+					<!--Directory expansion-->
+					<div class="form-row">
+						<div class="form-label"><span>Directory Tree style - Expanded by default, or Toggleable?</span></div>
+						<div class="form-input"><input type="radio" name="ExpandDirectoriesByDefault" id="ExpandDirectoriesByDefault" value="on" /><label for="ExpandDirectoriesByDefault">Expanded</label><input id="ExpandDirectoriesByDefault-off" type="radio" name="ExpandDirectoriesByDefault" value="off" /><label for="ExpandDirectoriesByDefault-off">Toggleable</label></div>
+					</div>
+
+					<div><input type="hidden" name="tab" value="Settings" /></div>
+
+					<div class="form-row">
+						<input type="submit" value="Save" class="submitbutton" />
+					</div>
+
+					<!--SHUTDOWN-->
+					<div class="form-row">
+						<button name="shutdown" value="oneminute" class="warningbutton">Shutdown system in one minute</button>
+						<button name="shutdown" value="tenseconds" class="warningbutton">Shutdown system in ten seconds</button>
+					</div>
+				</form>
+			</div>
+
+		</div>
+	</div>
+
+	<script src="jsLists.js"></script>
+	<script>
+		JSLists.createTree("dirs");
+		//JSLISTOPENSETTING
+
+		const queryString = window.location.search;
+
+		const urlParams = new URLSearchParams(queryString);
+
+		const page_type = urlParams.get('tab')
+		openTab(event, page_type);
+
+		function openTab(evt, cityName) {
+			var i, tabcontent, tablinks;
+			tabcontent = document.getElementsByClassName("tabcontent");
+			for (i = 0; i < tabcontent.length; i++) {
+				tabcontent[i].style.display = "none";
+			}
+			tablinks = document.getElementsByClassName("tablinks");
+			for (i = 0; i < tablinks.length; i++) {
+				tablinks[i].className = tablinks[i].className.replace(" active", "");
+			}
+			document.getElementById(cityName).style.display = "block";
+			evt.currentTarget.className += " active";
+		}
+	</script>
 </body>

@@ -21,6 +21,8 @@ namespace Dynaframe3
             ReloadSettings = true;
             // marked as private to prevent outside classes from creating new.
             Shuffle = false;
+            VideoVolume = false;
+
             Rotation = 0;
             NumberOfSecondsToShowIP = 15;
 
@@ -34,9 +36,11 @@ namespace Dynaframe3
 
             Clock = false;
             InfoBarFontSize = 50;
-            SlideshowTransitionTime = 30000; // milliseconds between slides
-            FadeTransitionTime = 1600;       // milliseconds for fades
+            SlideshowTransitionTime = 30000;      // milliseconds between slides
+            FadeTransitionTime = 1600;            // milliseconds for fades
             ImageStretch = Stretch.UniformToFill; // Default image stretch
+            VideoStretch = "Fill";                // Used for OMXPlayer
+            ExpandDirectoriesByDefault = false;   // WebUI setting to expand the trees
 
         }
 
@@ -91,6 +95,14 @@ namespace Dynaframe3
         /// Show the current time
         /// </summary>
         public bool Clock { get; set; }
+
+        /// <summary>
+        /// Should videos play with volume? Default off.
+        /// </summary>
+        public bool VideoVolume { get; set; }
+
+        public bool ExpandDirectoriesByDefault { get; set; }
+
         /// <summary>
         /// Rotation of the images and text
         /// </summary>
@@ -137,6 +149,8 @@ namespace Dynaframe3
         public int NumberOfSecondsToShowIP { get; set; }
 
         public Stretch ImageStretch { get; set; }
+
+        public string VideoStretch { get; set; }
 
 
 

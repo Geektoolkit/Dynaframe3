@@ -180,25 +180,28 @@ class SimpleHTTPServer
             Helpers.SetIntAppSetting(context.Request.QueryString.Get("ipaddresstime"), "NumberOfSecondsToShowIP");
             Helpers.SetIntAppSetting(context.Request.QueryString.Get("transitiontime"), "FadeTransitionTime");
 
+
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("Shuffle"), "Shuffle");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("clock"), "Clock");
+            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("VideoVolume"), "VideoVolume");
+            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("ExpandDirectoriesByDefault"), "ExpandDirectoriesByDefault");
 
             Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFormat"), "DateTimeFormat");
             Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
-
+            Helpers.SetStringAppSetting(context.Request.QueryString.Get("VideoStretch"), "VideoStretch");
 
             #region SpecialCasesWhichNeedCleanup
             // Process 'directory' if passed
-            string? dir = context.Request.QueryString.Get("dir");
-            if(dir != null)
+            string dir = context.Request.QueryString.Get("dir");
+            if (dir != null)
             {
-                string pictureDir = dir.Replace("'","");
+                string pictureDir = dir.Replace("'", "");
                 AppSettings.Default.CurrentDirectory = pictureDir;
                 AppSettings.Default.ReloadSettings = true;
             }
 
             // see if 'rem' (remove) was passed
-            string? rem = context.Request.QueryString.Get("rem");
+            string rem = context.Request.QueryString.Get("rem");
             if (rem != null)
             {
                 string removeDir = rem.Replace("'", "");
@@ -234,8 +237,10 @@ class SimpleHTTPServer
                     default:
                         break;
                 }
-                
+
             }
+          
+
 
             // Shutdown command. This helps raspberry pis shutdown gracefully
             // but is likely useful for all platforms since the mirror may not
@@ -398,16 +403,17 @@ class SimpleHTTPServer
             // the first level directory folders to act as playlists
 
             string dirChoices = "<br>";
-            dirChoices += "<div id='directories'><ul id='dirs' class='directorylist'><br>";
+           
             foreach (string dir in AppSettings.Default.SearchDirectories)
             {
                 // Top level directory:
+                dirChoices += "<ul id='dirs' class='directorylist'>";
                 dirChoices += "<li class='topleveldirectory'>" + dir;
 
                 string[] subdirectories = Directory.GetDirectories(dir);
                 // TODO: Handle more than one subdirectory / add recursion
                 // lets wait till we get this logic nailed down.
-                dirChoices += "<ul>";
+                dirChoices += "<ul " + dir.GetHashCode() + ">";
                 foreach (string subdir in subdirectories)
                 {
                     string subdirectory = Path.GetFileName(subdir);
@@ -425,7 +431,7 @@ class SimpleHTTPServer
                 dirChoices += "</ul></li>";
             }
 
-            dirChoices += "</ul></div>";
+            dirChoices += "</li></div>";
 
             dirChoices += "<br><br><br><div class ='settings'><h2>Search Directories: </h2>";
             foreach (string directory in AppSettings.Default.SearchDirectories)
@@ -443,6 +449,12 @@ class SimpleHTTPServer
             page = page.Replace("<!--IPADDRESSTIME-->", "value=" + AppSettings.Default.NumberOfSecondsToShowIP.ToString() + ">");
             page = page.Replace("<!--DATETIMEFORMAT-->", "value='" + AppSettings.Default.DateTimeFormat + "'>");
             page = page.Replace("<!--DATETIMEFONTFAMILY-->", "value='" + AppSettings.Default.DateTimeFontFamily + "'>");
+
+            if (AppSettings.Default.ExpandDirectoriesByDefault)
+            {
+                page = page.Replace(@"//JSLISTOPENSETTING", "JSLists.openAll();");
+            }
+
             return page;
         }
         catch (Exception exc)

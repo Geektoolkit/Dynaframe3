@@ -136,6 +136,21 @@ namespace Dynaframe3
             }
         }
 
+        public static void DumpAppSettingsToLogger()
+        {
+            Logger.LogComment("Current App Settings");
+            Logger.LogComment("FadeTransition: " + AppSettings.Default.FadeTransitionTime);
+            Logger.LogComment("SlideshowTransitionTime: " + AppSettings.Default.SlideshowTransitionTime);
+            Logger.LogComment("FontSize: " + AppSettings.Default.InfoBarFontSize);
+            Logger.LogComment("FontFamily: " + AppSettings.Default.DateTimeFontFamily);
+            Logger.LogComment("Clock: " + AppSettings.Default.Clock);
+            Logger.LogComment("Rotation: " + AppSettings.Default.Rotation);
+            Logger.LogComment("Shuffle: " + AppSettings.Default.Shuffle);
+            Logger.LogComment("VideoStretch: " + AppSettings.Default.VideoStretch);
+            Logger.LogComment("VideoVolume: " + AppSettings.Default.VideoVolume);
+
+        }
+
 
 
     }   
