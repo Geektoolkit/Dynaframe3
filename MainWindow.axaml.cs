@@ -45,16 +45,6 @@ namespace Dynaframe3
 
         SimpleHTTPServer server;
 
-        enum InfoBar { Clock, FileInfo, DateTime, Error, IP, OFF, InitialIP }
-        InfoBar infoBar = InfoBar.InitialIP;
-
-        /// <summary>
-        /// Tracks number of times the system has gone through a loop. useful for
-        /// settings such as the IP address 
-        /// </summary>
-        int numberOfTimes = 0;
-        int NumberOfSecondsToShowIP = AppSettings.Default.NumberOfSecondsToShowIP;
-
         /// <summary>
         /// This controls the time between 'slides'
         /// </summary>
@@ -63,6 +53,8 @@ namespace Dynaframe3
         System.Timers.Timer slideTimer = new System.Timers.Timer(500);
 
         DateTime lastUpdated = DateTime.Now;
+        DateTime timeStarted = DateTime.Now;
+
 
         Transform rotationTransform;
 
@@ -97,6 +89,7 @@ namespace Dynaframe3
             mainWindow = this.FindControl<Window>("mainWindow");
             mainWindow.Transitions = new Transitions();
             mainWindow.Transitions.Add(windowTransition);
+
             mainWindow.SystemDecorations = SystemDecorations.None;
             mainWindow.WindowState = WindowState.Maximized;
             mainWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -104,6 +97,10 @@ namespace Dynaframe3
             mainPanel = this.FindControl<Panel>("mainPanel");
             mainPanel.Transitions = new Transitions();
             mainPanel.Transitions.Add(panelTransition);
+            if (AppSettings.Default.Rotation != 0)
+            {
+                RotateMainPanel();
+            }
 
             tb = this.FindControl<TextBlock>("tb");
             tb.Foreground = Brushes.AliceBlue;
@@ -188,15 +185,15 @@ namespace Dynaframe3
 
             if (e.Key == Avalonia.Input.Key.F)
             {
-                infoBar = InfoBar.FileInfo;
+                AppSettings.Default.InfoBarState = AppSettings.InfoBar.FileInfo;
             }
             if (e.Key == Avalonia.Input.Key.I)
             {
-                infoBar = InfoBar.IP;
+                AppSettings.Default.InfoBarState = AppSettings.InfoBar.IP;
             }
             if (e.Key == Avalonia.Input.Key.C)
             {
-                infoBar = InfoBar.Clock;
+                AppSettings.Default.InfoBarState = AppSettings.InfoBar.DateTime;
             }
             if (e.Key == Avalonia.Input.Key.Right)
             {
@@ -222,7 +219,7 @@ namespace Dynaframe3
             if (e.Key == Avalonia.Input.Key.H)
             {
                 tb.Opacity = 0;
-                infoBar = InfoBar.OFF;
+                AppSettings.Default.InfoBarState = AppSettings.InfoBar.OFF;
             }
             UpdateInfoBar();
             tb.Transitions.Add(fadeTransition);
@@ -241,10 +238,14 @@ namespace Dynaframe3
                 AppSettings.Default.ReloadSettings = false;
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
+                    RefreshSettings();
                     GetFiles();
                 });
             }
             
+            UpdateInfoBar();
+
+
             if (DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime)
             {
                 lastUpdated = DateTime.Now;
@@ -263,7 +264,6 @@ namespace Dynaframe3
                         PlayImageFile(false);
                         KillVideoPlayer(); // if a video is playing, get rid of it now that we've swapped images
                     }
-                    UpdateInfoBar();
                 }
                 catch (InvalidOperationException)
                 { 
@@ -282,60 +282,49 @@ namespace Dynaframe3
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             { 
                 tb.FontFamily = AppSettings.Default.DateTimeFontFamily;
-                switch (infoBar)
+                if (DateTime.Now.Subtract(timeStarted).TotalSeconds < AppSettings.Default.NumberOfSecondsToShowIP)
                 {
-                    case (InfoBar.Clock):
-                        {
-                            tb.Opacity = 1;
-                            tb.Text = DateTime.Now.ToString(AppSettings.Default.DateTimeFormat);
-                            break;
-                        }
-                    case (InfoBar.FileInfo):
-                        {
-                            tb.Opacity = 1;
-                            FileInfo f = new FileInfo(playListEngine.CurrentPlayListItem.Path);
-                            string fData = f.Name;
-                           // IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(f.FullName);
-
-                            tb.Text = f.Name;
-                            break;
-                        }
-                    case (InfoBar.IP):
-                        {
-                            tb.Opacity = 1;
-                            tb.Text = Helpers.GetIPString();
-                            break;
-                        }
-                    case (InfoBar.InitialIP):
-                        {
-                            numberOfTimes++;
-
-                            tb.Text = Helpers.GetIPString();
-                            // TODO: Get rid of magic number 2 (2 * 500ms clock timer = 1 second)
-                            if (numberOfTimes > (NumberOfSecondsToShowIP * 2))
-                            {
-                                if (AppSettings.Default.Clock)
-                                {
-                                    infoBar = InfoBar.Clock;
-                                }
-                                else
-                                {
-                                    infoBar = InfoBar.OFF;
-                                }
-                            }
-                            break;
-                        }
-                    case (InfoBar.OFF):
-                        {
-                            tb.Opacity = 0;
-                            break;
-                        }
-                    default:
-                        {
-                            tb.Text = "";
-                            break;
-                        }
+                    tb.Text = Helpers.GetIPString();
+                    tb.Opacity = 1;
                 }
+                else
+                {
+                    switch (AppSettings.Default.InfoBarState)
+                    {
+                        case (AppSettings.InfoBar.DateTime):
+                            {
+                                tb.Opacity = 1;
+                                tb.Text = DateTime.Now.ToString(AppSettings.Default.DateTimeFormat);
+                                break;
+                            }
+                        case (AppSettings.InfoBar.FileInfo):
+                            {
+                                tb.Opacity = 1;
+                                FileInfo f = new FileInfo(playListEngine.CurrentPlayListItem.Path);
+                                string fData = f.Name;
+                                // IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(f.FullName);
+
+                                tb.Text = f.Name;
+                                break;
+                            }
+                        case (AppSettings.InfoBar.IP):
+                            {
+                                tb.Opacity = 1;
+                                tb.Text = Helpers.GetIPString();
+                                break;
+                            }
+                        case (AppSettings.InfoBar.OFF):
+                            {
+                                tb.Opacity = 0;
+                                break;
+                            }
+                        default:
+                            {
+                                tb.Text = "";
+                                break;
+                            }
+                    } // end switch
+                } // end if
             });
         }
         private void PlayImageFile(bool fast)
@@ -508,9 +497,9 @@ namespace Dynaframe3
         }
         private bool GetFiles()
         {
+            RefreshSettings();
             Logger.LogComment("GetFiles called!");
             playListEngine.GetPlayListItems();
-            RefreshSettings();
             return true;
         }   
         public void SetupWebServer()
@@ -539,7 +528,7 @@ namespace Dynaframe3
             RotateMainPanel();
 
 
-            if (infoBar == InfoBar.Clock)
+            if (AppSettings.Default.Clock)
             {
                 tb.Opacity = 1;
             }

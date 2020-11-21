@@ -36,6 +36,11 @@ namespace Dynaframe3
         public static string GetIPString()
         {
             string returnval = "";
+
+            string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            returnval += "(Version: " + version + ")   ";
+            returnval += "Setup using: \r\n";
+
             NetworkInterface[] nets = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
             if (nets.Length > 0)
             {
@@ -44,14 +49,16 @@ namespace Dynaframe3
                     try
                     {
                         var addresses = net.GetIPProperties().UnicastAddresses;
+ 
+
                         for (int i = 0; i < addresses.Count; i++)
                         {
                             string ip = addresses[i].Address.ToString();
                             // Filter out IPV6, local, loopback, etc.
-                            string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                            
 
                             if ((!ip.StartsWith("169.")) && (!ip.StartsWith("127.")) && (!ip.Contains("::")))
-                                returnval += "(Version: " + version + ") \r\n Setup at http://" + ip + ":8000 "+ Environment.NewLine;
+                                returnval += "http://" + ip + ":8000 "+ Environment.NewLine;
                         }
                     }
                     catch (Exception exc)

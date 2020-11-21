@@ -239,7 +239,32 @@ class SimpleHTTPServer
                 }
 
             }
-          
+
+            string infobarmodeVal = context.Request.QueryString.Get("infobarmode");
+            if (infobarmodeVal != null)
+            {
+                switch (infobarmodeVal)
+                {
+                    case "DateTime":
+                        {
+                            AppSettings.Default.InfoBarState = AppSettings.InfoBar.DateTime;
+                            break;
+                        }
+                    case "Fileinfo":
+                        {
+                            AppSettings.Default.InfoBarState = AppSettings.InfoBar.FileInfo;
+                            break;
+                        }
+                    case "Off":
+                        {
+                            AppSettings.Default.InfoBarState = AppSettings.InfoBar.OFF;
+                            break;
+                        }
+                    default:
+                        break;
+                }
+
+            }
 
 
             // Shutdown command. This helps raspberry pis shutdown gracefully

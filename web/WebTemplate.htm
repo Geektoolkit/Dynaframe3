@@ -248,7 +248,7 @@
 					</div>
 
 					<div class="form-row">
-						<div class="form-label"><span>Infobar (clock) font size:</span></div>
+						<div class="form-label"><span>Infobar font size:</span></div>
 						<div class="form-input"><input type="text" name="infobarfontsize" placeholder="50" <!--INFOBARFONTSIZE--></div>
 					</div>
 
@@ -261,12 +261,23 @@
 						<div class="form-label"><span>Transition duration during fades (milliseconds) font size:</span></div>
 						<div class="form-input"><input type="text" name="transitiontime" placeholder="1600" <!--TRANSITIONTIME--></div>
 					</div>
+					<!-- Infobar Settings -->
 					<!-- Number of seconds to show ip-->
 					<div class="form-row">
 						<div class="form-label"><span>Number of seconds to show IP Address on start (0 to disable):</span></div>
 						<div class="form-input"><input type="text" name="ipaddresstime" placeholder="15" <!--IPADDRESSTIME--></div>
 					</div>
-
+					<div class="form-row">
+						<div class="form-label"><span>Infobar Mode:</span></div>
+						<div class="form-input">
+							<input type="radio" name="infobarmode" value="DateTime" id="infobarmode">
+							<label for="radio-0">Show Date / Time</label><br />
+							<input type="radio" name="infobarmode" value="Fileinfo" id="infobarmode">
+							<label for="radio-0">Show Image Filenames</label><br />
+							<input type="radio" name="infobarmode" value="Off" id="infobarmode">
+							<label for="radio-0">Hide the Infobar</label><br /><br />
+						</div>
+					</div>
 					<!--SHUFFLE-->
 					<div class="form-row">
 						<div class="form-label"><span>Shuffle:</span></div>

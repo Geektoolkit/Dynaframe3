@@ -24,7 +24,7 @@ namespace Dynaframe3
             VideoVolume = false;
 
             Rotation = 0;
-            NumberOfSecondsToShowIP = 15;
+            NumberOfSecondsToShowIP = 10;
 
             OXMOrientnation = "--orientation 0";
             SearchDirectories = new List<string>() { };
@@ -35,6 +35,7 @@ namespace Dynaframe3
             DateTimeFontFamily = "Terminal";
 
             Clock = false;
+
             InfoBarFontSize = 50;
             SlideshowTransitionTime = 30000;      // milliseconds between slides
             FadeTransitionTime = 1600;            // milliseconds for fades
@@ -124,6 +125,9 @@ namespace Dynaframe3
         /// The size of the font for the info bar
         /// </summary>
         public int InfoBarFontSize { get; set; }
+
+        public enum InfoBar { Clock, FileInfo, DateTime, Error, IP, OFF, InitialIP }
+        public InfoBar InfoBarState { get; set; }
 
         /// <summary>
         /// Time to crossfade between images
