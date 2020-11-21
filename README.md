@@ -3,18 +3,28 @@ Dynamic Photo and Video Slideshow system for SBC (such as Raspberry pi)
 
 Video Demo, how to install, and intro here: https://youtu.be/XEaUsaNEzjY
 
-Note: Please see the releases section for the latest release. The below command will install 2.03 which I consider stable, but there are more features in later releases if you'd like to try them. To remove a release just delete the folder and rerun the install script.
+Note: Please see the releases section for the latest release. The below command will install 2.07 which I consider stable, but there are more features in later releases if you'd like to try them. To remove a release just delete the folder and rerun the install script.
 
 Quickstart: On a raspberry pi based system you'll want to connect to a network, put a few images in the Pictures folder to get started, and then run:
 
-    sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.03/install.sh && bash install.sh; rm -f install.sh ; sudo reboot
+    sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.07/install.sh && bash install.sh; rm -f install.sh ; sudo reboot
     
 On reboot it should startup, and it'll show you the URL of the configuration page.
 
 To exit, please hit the 'esc' button.  
+
 To restart on a raspberry pi, you can launch it again using ./Dynaframe 
-    
-On Windows you can find a release specific to Windows, and then run Dynaframe.exe.
+
+Hardware Requirements:
+I recommend a Raspberry pi 3B+ or better. It really shines on a Pi4 2gig or better.
+A heatsink is required...this gets VERY CPU intensive when transitioning, and fast transitions will thermal the pi and bring up the temp gauge.
+I recommend either a FLIRC style case, a good heatsink solution, or a small fan for active cooling.  
+Adding memory to the GPU and slowing down the time between transitions (as well as speeding up the transition time) can help with cooling if needed.
+
+Additional steps to clean up some things:
+1) To get rid of the mouse cursor, you'll want to install unclutter.  sudo apt-get install unclutter, and then run: unclutter -idle 0
+2) To prevent screen blanking, please run: sudo raspi-config, and then turn off screen blanking in the menus there (I believe it's under advanced)
+I'm working on getting these into the setup scripts.
 
 Welcome to Dynaframe!  Dynaframe was designed to be a simple photo and video slideshow viewer.  I wanted to have something that could do slideshows but also show 'plotagraphs', which are essentially animated images.  I use an app on iOS called 'Werble' which made some really cool ones, but there wasn't a good way to show them off.
 
@@ -47,7 +57,7 @@ Question: What happened to Dynaframe 2?
   Q: What's next for this project?
     I have a few 'hot' features I want to get in.  These include:
     1) EXIF data - I think having the ability to mark up images with data such as where its taken, or the story behind it, would be handy, esp. if being used as a family photo frame.  I want to have a way to show that data
-    2) font settings - I'd like to have the front for the clock, and future uses, have settings
+    2) DONE - font settings - I'd like to have the front for the clock, and future uses, have settings
     3) Weather/RSS feeds - There is the ability to easily turn on text...it'd be useful to have that get other data such as possibly a stock quote, weather, calendar info, or an RSS feed
     4) Gesture/keypad/ir remotes - I'd like to have support for methods to control the panel, for instance an IR Remote could let someone enter thier wifi account info possibly
     5) customizable keys - I'd like to enable keyboard shortcuts for those that do have keyboards connevcted, and to start then shimming in Gestures and other control methods built on top of that
