@@ -38,8 +38,7 @@ namespace Dynaframe3
             string returnval = "";
 
             string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
-            returnval += "(Version: " + version + ")   ";
-            returnval += "Setup using: \r\n";
+            returnval += "(Version: " + version + ")\r\n";
 
             NetworkInterface[] nets = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
             if (nets.Length > 0)
@@ -108,7 +107,13 @@ namespace Dynaframe3
             // 9/5 * C +32 = Farenheight
         }
 
-        public static void SetIntAppSetting(string querystring, string property)
+        /// <summary>
+        /// Parses out a value as an int and sets it based on the query string. 
+        /// </summary>
+        /// <param name="querystring"></param>
+        /// <param name="property"></param>
+        /// <returns>0 if a value was not found, 1 if a value was set</returns>
+        public static int SetIntAppSetting(string querystring, string property)
         {
             if (querystring != null)
             {
@@ -117,18 +122,34 @@ namespace Dynaframe3
                 {
                     typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, i);
                 }
+                return 1;
             }
+            return 0;
         }
 
-        public static void SetStringAppSetting(string querystring, string property)
+        /// <summary>
+        /// Takes in a string value and returns a 0/1 based on if a setting was found
+        /// </summary>
+        /// <param name="querystring"></param>
+        /// <param name="property"></param>
+        /// <returns>0 if no setting was changed, 1 if it was</returns>
+        public static int SetStringAppSetting(string querystring, string property)
         {
             if (querystring != null)
             {
                typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, querystring);
+                return 1;
             }
+            return 0;
         }
 
-        public static void SetBoolAppSetting(string querystring, string property)
+        /// <summary>
+        /// Sets a boolean value based on the query string. 
+        /// </summary>
+        /// <param name="querystring"></param>
+        /// <param name="property"></param>
+        /// <returns>0 if no setting was passed, 1 if it was.</returns>
+        public static int SetBoolAppSetting(string querystring, string property)
         {
             if (querystring != null)
             {
@@ -140,7 +161,9 @@ namespace Dynaframe3
                 {
                     typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, false);
                 }
+                return 1;
             }
+            return 0;
         }
 
         public static void DumpAppSettingsToLogger()

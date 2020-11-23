@@ -166,29 +166,41 @@ class SimpleHTTPServer
 
     private void Process(HttpListenerContext context)
     {
+        // Track if we need to refresh the page. Set this to false
+        bool ReloadSettings = false;
+        bool ReloadDirectories = false;
+
         // TODO: Clean this up. Need a consistent way to read in values
         // and cleanly set settings. For now having this ugly is a good
         // tradeoff to let me learn how to do it better in the future
 
         if (context.Request.QueryString.Count > 0)
         {
+            int refreshDirectories = 0; // track if a directory change is made. 0 = no change.
+            int refreshSettings = 0;    // track i fa setting change is made. 0 = no change.
 
             // Set in App Settings takes the querystring and the Appsettings.Default value name
-            Helpers.SetIntAppSetting(context.Request.QueryString.Get("rotation"), "Rotation");
-            Helpers.SetIntAppSetting(context.Request.QueryString.Get("infobarfontsize"), "InfoBarFontSize");
-            Helpers.SetIntAppSetting(context.Request.QueryString.Get("slideshowduration"), "SlideshowTransitionTime");
-            Helpers.SetIntAppSetting(context.Request.QueryString.Get("ipaddresstime"), "NumberOfSecondsToShowIP");
-            Helpers.SetIntAppSetting(context.Request.QueryString.Get("transitiontime"), "FadeTransitionTime");
+            refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("rotation"), "Rotation");
+            refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("infobarfontsize"), "InfoBarFontSize");
+            refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("slideshowduration"), "SlideshowTransitionTime");
+            refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("ipaddresstime"), "NumberOfSecondsToShowIP");
+            refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("transitiontime"), "FadeTransitionTime");
 
 
-            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("Shuffle"), "Shuffle");
-            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("clock"), "Clock");
+            refreshDirectories += Helpers.SetBoolAppSetting(context.Request.QueryString.Get("Shuffle"), "Shuffle");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("VideoVolume"), "VideoVolume");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("ExpandDirectoriesByDefault"), "ExpandDirectoriesByDefault");
 
-            Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFormat"), "DateTimeFormat");
-            Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
-            Helpers.SetStringAppSetting(context.Request.QueryString.Get("VideoStretch"), "VideoStretch");
+            refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFormat"), "DateTimeFormat");
+            refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
+            refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("VideoStretch"), "VideoStretch");
+
+            
+            if (context.Request.QueryString.Get("COMMAND") != "")
+            {
+                CommandProcessor.ProcessCommand(context.Request.QueryString.Get("COMMAND"));
+                refreshSettings++; // Any commands should invoke a settings refresh
+            }
 
             #region SpecialCasesWhichNeedCleanup
             // Process 'directory' if passed
@@ -197,7 +209,7 @@ class SimpleHTTPServer
             {
                 string pictureDir = dir.Replace("'", "");
                 AppSettings.Default.CurrentDirectory = pictureDir;
-                AppSettings.Default.ReloadSettings = true;
+                refreshDirectories++;
             }
 
             // see if 'rem' (remove) was passed
@@ -206,12 +218,13 @@ class SimpleHTTPServer
             {
                 string removeDir = rem.Replace("'", "");
                 AppSettings.Default.SearchDirectories.Remove(rem);
-                AppSettings.Default.ReloadSettings = true;
+                refreshDirectories++;
             }
 
             string imagestretchVal = context.Request.QueryString.Get("imagescaling");
             if (imagestretchVal != null)
             {
+                refreshSettings++;
                 switch (imagestretchVal)
                 {
                     case "Uniform":
@@ -240,68 +253,6 @@ class SimpleHTTPServer
 
             }
 
-            string infobarmodeVal = context.Request.QueryString.Get("infobarmode");
-            if (infobarmodeVal != null)
-            {
-                switch (infobarmodeVal)
-                {
-                    case "DateTime":
-                        {
-                            AppSettings.Default.InfoBarState = AppSettings.InfoBar.DateTime;
-                            break;
-                        }
-                    case "Fileinfo":
-                        {
-                            AppSettings.Default.InfoBarState = AppSettings.InfoBar.FileInfo;
-                            break;
-                        }
-                    case "Off":
-                        {
-                            AppSettings.Default.InfoBarState = AppSettings.InfoBar.OFF;
-                            break;
-                        }
-                    default:
-                        break;
-                }
-
-            }
-
-
-            // Shutdown command. This helps raspberry pis shutdown gracefully
-            // but is likely useful for all platforms since the mirror may not
-            // have a keyboard.  In the future may hook this up to an IR remote
-            if (context.Request.QueryString.Get("shutdown") == "oneminute")
-            {
-                // shutdown requested!
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    Helpers.RunProcess("shutdown", "");
-                }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    Helpers.RunProcess("shutdown", "/t /60");
-                }
-
-            }
-
-
-            if (context.Request.QueryString.Get("shutdown") == "tenseconds")
-            {
-                // shutdown requested!
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    System.Threading.Thread.Sleep(10000);
-                    Helpers.RunProcess("shutdown", "now");
-                }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    Helpers.RunProcess("shutdown", "/t /10");
-                }
-
-            }
-
 
             string directoryToAdd = context.Request.QueryString.Get("directoryAdd");
             if (directoryToAdd != null)
@@ -313,6 +264,7 @@ class SimpleHTTPServer
                     AppSettings.Default.SearchDirectories.Add(directoryToAdd);
                     // Cleanup. Somewhere this is getting doubled up sometimes still. It's a small list so this should be fast.
                     AppSettings.Default.SearchDirectories = AppSettings.Default.SearchDirectories.Distinct().ToList();
+                    refreshDirectories++;
                 }
             }
 
@@ -331,12 +283,20 @@ class SimpleHTTPServer
                         AppSettings.Default.CurrentPlayList.Add(decodedDirectory);
                     }
                 }
-                AppSettings.Default.ReloadSettings = true;
+                refreshDirectories++;
 
             }
             #endregion
-            AppSettings.Default.ReloadSettings = true;
+            if (refreshDirectories > 0)
+            {
+                AppSettings.Default.RefreshDirctories = true;
+            }
+            if (refreshSettings > 0)
+            {
+                AppSettings.Default.ReloadSettings = true;
+            }
             AppSettings.Default.Save();
+            
         }
 
 

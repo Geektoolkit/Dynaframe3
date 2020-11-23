@@ -14,10 +14,35 @@
 			background-color: #2452f9;
 			border: none;
 			padding: 5px 10px;
-			text-align: left font-family: 'Open Sans';
+			text-align: left;
+			font-family: 'Open Sans';
 			border-radius: 8px;
 			border: 3px solid #D4F5F5;
 		}
+
+        .warningbutton {
+            -webkit-appearance: button;
+            -moz-appearance: button;
+            appearance: button;
+            text-decoration: none;
+            color: #fff;
+            font-size: 20px;
+            height: 80px;
+            background-color: red;
+            border: none;
+            padding: 5px 10px;
+            text-align: left;
+            font-family: 'Open Sans';
+            border-radius: 5px;
+            margin: auto;
+        }
+
+        .warningbutton:hover {
+            cursor: pointer;
+            background-color: #a83246;
+        }
+
+
         .tab {
             overflow: hidden;
             border: 1px solid #ccc;
@@ -68,27 +93,6 @@
 			font-family: 'Open Sans';
 			font-size: 20px;
 		}
-
-		.warningbutton {
-			-webkit-appearance: button;
-			-moz-appearance: button;
-			appearance: button;
-			text-decoration: none;
-			color: #fff;
-			font-size: 20px;
-			background-color: red;
-			border: none;
-			padding: 8px 16px;
-			text-align: center;
-			font-family: 'Open Sans';
-			border-radius: 5px;
-			margin: auto;
-		}
-
-			.warningbutton:hover {
-				cursor: pointer;
-				background-color: #a83246;
-			}
 
 		.submitbutton {
 			-webkit-appearance: button;
@@ -159,6 +163,11 @@
 			padding: 8px 12px;
 			width: 100%;
 		}
+        legend {
+            border-radius: 5px;
+            font-size: 20px;
+            padding: 8px 12px;
+        }
 
 
 		input[type="text"]:focus {
@@ -205,7 +214,7 @@
 			}
 	</style>
 </head>
-<body>
+<body onload="mainPageLoaded()">
 	<h1>Welcome to <span class="dynaframe">DynaFrame!</span></h1>
 
 	<div class="tab">
@@ -215,8 +224,37 @@
 	</div>
 
 	<div id="Control" class="tabcontent">
-		<h3>Coming soon!</h3>
-		<p>This will provide controls such as Go forward a slide, back a slide, pause, etc..</p>
+		<!--------------------------------------------------->
+		<!-- CONTROL BOX-->
+		<!--------------------------------------------------->
+		<fieldset>
+			<legend>Frame Controls</legend>
+			<a class="button" href="default.htm?COMMAND=SCREENOFF">Turn Screen Off</a>
+			<a class="button" href="default.htm?COMMAND=SCREENON">Turn Screen On</a>
+			<a class="warningbutton" href="default.htm?COMMAND=REBOOT" style="width:120px">Reboot</a>
+			<a class="warningbutton" href="default.htm?COMMAND=SHUTDOWN">Shutdown</a>
+		</fieldset>
+		<fieldset>
+			<legend>Infobar Settings</legend>
+			<a class="button" href="default.htm?COMMAND=INFOBAR_DATETIME">Date / Time Mode</a>
+			<a class="button" href="default.htm?COMMAND=INFOBAR_FILENAME">Filename Mode</a>
+			<a class="button" href="default.htm?COMMAND=INFOBAR_HIDDEN">Hide Infobar</a>
+		</fieldset>
+
+		<fieldset>
+			<legend>Slide Controls</legend>
+			<a class="button" href="default.htm?COMMAND=CONTROL_FIRST">First</a>
+			<a class="button" href="default.htm?COMMAND=CONTROL_BACKWARD">Backward</a>
+			<a class="button" href="default.htm?COMMAND=CONTROL_PAUSE">Pause</a>
+			<a class="button" href="default.htm?COMMAND=CONTROL_FORWARD">Forward</a>
+		</fieldset>
+
+		<fieldset>
+			<legend>Utilities</legend>
+			<a class="button" href="default.htm?COMMAND=UTILITY_UPDATEFILELIST">Update File list</a>
+		</fieldset>
+
+
 	</div>
 
 	<div id="Playlists" class="tabcontent">
@@ -267,29 +305,12 @@
 						<div class="form-label"><span>Number of seconds to show IP Address on start (0 to disable):</span></div>
 						<div class="form-input"><input type="text" name="ipaddresstime" placeholder="15" <!--IPADDRESSTIME--></div>
 					</div>
-					<div class="form-row">
-						<div class="form-label"><span>Infobar Mode:</span></div>
-						<div class="form-input">
-							<input type="radio" name="infobarmode" value="DateTime" id="infobarmode">
-							<label for="radio-0">Show Date / Time</label><br />
-							<input type="radio" name="infobarmode" value="Fileinfo" id="infobarmode">
-							<label for="radio-0">Show Image Filenames</label><br />
-							<input type="radio" name="infobarmode" value="Off" id="infobarmode">
-							<label for="radio-0">Hide the Infobar</label><br /><br />
-						</div>
-					</div>
+
 					<!--SHUFFLE-->
 					<div class="form-row">
 						<div class="form-label"><span>Shuffle:</span></div>
 						<div class="form-input"><input type="radio" name="shuffle" id="shuffle" value="on" /><label for="shuffle">On</label><input id="shuffle-off" type="radio" name="shuffle" value="off" /><label for="shuffle-off">Off</label></div>
 					</div>
-
-					<!--SHOWTIME-->
-					<div class="form-row">
-						<div class="form-label"><span>Show Time:</span></div>
-						<div class="form-input"><input type="radio" name="clock" id="clock" value="on" /><label for="clock">On</label><input type="radio" name="clock" value="off" id="clock-off" /><label for="clock-off">Off</label></div>
-					</div>
-
 
 					<div class="form-row">
 						<div class="form-label"><span>Date / Time Format <a href="https://www.c-sharpcorner.com/blogs/date-and-time-format-in-c-sharp-programming1">(examples here)</a></span></div>
@@ -361,11 +382,6 @@
 						<input type="submit" value="Save" class="submitbutton" />
 					</div>
 
-					<!--SHUTDOWN-->
-					<div class="form-row">
-						<button name="shutdown" value="oneminute" class="warningbutton">Shutdown system in one minute</button>
-						<button name="shutdown" value="tenseconds" class="warningbutton">Shutdown system in ten seconds</button>
-					</div>
 				</form>
 			</div>
 
@@ -383,6 +399,12 @@
 
 		const page_type = urlParams.get('tab')
 		openTab(event, page_type);
+
+        function mainPageLoaded() {
+			if (queryString.indexOf("COMMAND") != -1) {
+                openTab(event, 'Control');
+            }
+		}
 
 		function openTab(evt, cityName) {
 			var i, tabcontent, tablinks;

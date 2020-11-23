@@ -52,8 +52,10 @@ namespace Dynaframe3
         // set to a low number to force a quick 'first slide' to appear
         System.Timers.Timer slideTimer = new System.Timers.Timer(500);
 
+        // Track state of the engine
         DateTime lastUpdated = DateTime.Now;
         DateTime timeStarted = DateTime.Now;
+        bool IsPaused = false;
 
 
         Transform rotationTransform;
@@ -67,6 +69,8 @@ namespace Dynaframe3
 
         private void InitializeComponent()
         {
+            CommandProcessor.GetMainWindowHandle(this);
+
             AvaloniaXamlLoader.Load(this);
             this.KeyDown += MainWindow_KeyDown;
             this.Closed += MainWindow_Closed;
@@ -115,7 +119,16 @@ namespace Dynaframe3
             frontImage = this.FindControl<Image>("Front");
             backImage = this.FindControl<Image>("Back");
 
-            string intro = Environment.CurrentDirectory + "/images/background.jpg";
+            string intro;
+            if ((AppSettings.Default.Rotation == 0) || AppSettings.Default.Rotation == 180)
+            {
+                intro = Environment.CurrentDirectory + "/images/background.jpg";
+            }
+            else
+            {
+                intro = Environment.CurrentDirectory + "/images/vertbackground.jpg";
+            }
+             
             bitmapNew = new Bitmap(intro);
 
             frontImage.Source = bitmapNew;
@@ -137,8 +150,10 @@ namespace Dynaframe3
 
             AppSettings.Default.ReloadSettings = true; 
             slideTimer.Start();
-
+            Timer_Tick(null, null);
             Logger.LogComment("Initialized");
+            
+
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -146,11 +161,46 @@ namespace Dynaframe3
             ((ClassicDesktopStyleApplicationLifetime)Avalonia.Application.Current.ApplicationLifetime).Shutdown(0);
         }
 
-       
+
+        public void GoToNextImage()
+        {
+            tb.Transitions.Clear();
+            playListEngine.GoToNext();
+            PlayImageFile(true);
+            lastUpdated = DateTime.Now;
+            tb.Transitions.Add(fadeTransition);
+        }
+        public void GoToPreviousImage()
+        {
+            tb.Transitions.Clear();
+            playListEngine.GoToPrevious();
+            PlayImageFile(true);
+            lastUpdated = DateTime.Now;
+            tb.Transitions.Add(fadeTransition);
+        }
+        public void GoToFirstImage()
+        {
+            tb.Transitions.Clear();
+            GetFiles();
+            PlayImageFile(true);
+            lastUpdated = DateTime.Now;
+            tb.Transitions.Add(fadeTransition);
+        }
+        public void Pause()
+        {
+            if (IsPaused)
+            {
+                IsPaused = false;
+            }
+            else
+            {
+                IsPaused = true;
+            }
+        }
 
         private void MainWindow_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
         {
-            tb.Transitions.Clear();
+           
             // Exit on Escape or Control X (Windows and Linux Friendly)
             if ((e.Key == Avalonia.Input.Key.Escape) || ((e.KeyModifiers == Avalonia.Input.KeyModifiers.Control) && (e.Key == Avalonia.Input.Key.X)))
             {
@@ -195,34 +245,23 @@ namespace Dynaframe3
             {
                 AppSettings.Default.InfoBarState = AppSettings.InfoBar.DateTime;
             }
-            if (e.Key == Avalonia.Input.Key.Right)
-            {
-                frontImage.Transitions.Clear();
-                backImage.Transitions.Clear();
-                playListEngine.GoToNext();
-                PlayImageFile(true);
-                lastUpdated = DateTime.Now;
-                frontImage.Transitions.Add(fadeTransition);
-                backImage.Transitions.Add(fadeTransition);
-
-            }
-            if (e.Key == Avalonia.Input.Key.Left)
-            {
-                frontImage.Transitions.Clear();
-                backImage.Transitions.Clear();
-                playListEngine.GoToPrevious();
-                PlayImageFile(true);
-                lastUpdated = DateTime.Now;
-                frontImage.Transitions.Add(fadeTransition);
-                backImage.Transitions.Add(fadeTransition);
-            }
             if (e.Key == Avalonia.Input.Key.H)
             {
                 tb.Opacity = 0;
                 AppSettings.Default.InfoBarState = AppSettings.InfoBar.OFF;
             }
+
+            if (e.Key == Avalonia.Input.Key.Right)
+            {
+                GoToNextImage();
+            }
+            if (e.Key == Avalonia.Input.Key.Left)
+            {
+                GoToPreviousImage();
+            }
+
             UpdateInfoBar();
-            tb.Transitions.Add(fadeTransition);
+            
         }
 
         /// <summary>
@@ -232,21 +271,43 @@ namespace Dynaframe3
         /// <param name="e"></param>
         private void Timer_Tick(object sender, EventArgs e)
         {
+            if (IsPaused)
+            {
+                UpdateInfoBar();
+                // Note: Do not stop the timer...we need it to 'recheck'
+                return;
+            }
+
             if (AppSettings.Default.ReloadSettings)
             {
+                slideTimer.Stop();
                 Logger.LogComment("Reload settings was true");
                 AppSettings.Default.ReloadSettings = false;
                 Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     RefreshSettings();
+                });
+                slideTimer.Start();
+            }
+
+            // Check to see if the directories flag was modified
+            if (AppSettings.Default.RefreshDirctories)
+            {
+                slideTimer.Stop();
+                Logger.LogComment("Refresh Directories was true");
+                AppSettings.Default.RefreshDirctories = false;
+                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
                     GetFiles();
                 });
+                lastUpdated = lastUpdated.Subtract(TimeSpan.FromMilliseconds(AppSettings.Default.SlideshowTransitionTime));
+                slideTimer.Start();
             }
             
             UpdateInfoBar();
 
 
-            if (DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime)
+            if ((DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime))
             {
                 lastUpdated = DateTime.Now;
                 playListEngine.GoToNext();
@@ -324,6 +385,12 @@ namespace Dynaframe3
                                 break;
                             }
                     } // end switch
+
+                    if ((IsPaused) && (AppSettings.Default.InfoBarState != AppSettings.InfoBar.OFF))
+                    {
+                        tb.Text += " (Paused)";
+                    }
+
                 } // end if
             });
         }
@@ -497,7 +564,6 @@ namespace Dynaframe3
         }
         private bool GetFiles()
         {
-            RefreshSettings();
             Logger.LogComment("GetFiles called!");
             playListEngine.GetPlayListItems();
             return true;
@@ -545,12 +611,28 @@ namespace Dynaframe3
             double w = mainWindow.Width;
             double h = mainWindow.Height;
 
+            // if the screen is rotated, and we haven't rendered anything yet, then we'll get back NaN when trying to 
+            // calculate for rotation. Look for this and set some default guesses to get us by the first rendering.
+            if (Double.IsNaN(w) && (degrees == 90) || (degrees == 270))
+            {
+                mainWindow.Width = 1920;
+                mainWindow.Height = 1080;
+                // Screen hasn't rendered yet...force a resolution
+                w = 1080;
+                h = 1920;
+                mainWindow.InvalidateMeasure();
+                Logger.LogComment("Tried to fix rendering");
+            }
+
             rotationTransform = new RotateTransform(degrees);
 
             if ((degrees == 90) || (degrees == 270))
             {
                 mainPanel.Width = h;
                 mainPanel.Height = w;
+                Logger.LogComment("Rotation 90 degrees. calculated  W: " + w + " H: " + h);
+                Logger.LogComment("Rotation 90 degrees. Panel  Width: " + mainPanel.Width + " Height: " + mainPanel.Height);
+                Logger.LogComment("Rotation 90 degrees. Window Width: " + mainWindow.Width + " Height: " + mainWindow.Height);
             }
             else
             {

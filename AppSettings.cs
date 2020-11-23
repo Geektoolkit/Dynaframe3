@@ -19,6 +19,7 @@ namespace Dynaframe3
         private AppSettings()
         {
             ReloadSettings = true;
+            RefreshDirctories = true;
             // marked as private to prevent outside classes from creating new.
             Shuffle = false;
             VideoVolume = false;
@@ -143,8 +144,6 @@ namespace Dynaframe3
         // Font used for the clock/infobar
         public string DateTimeFontFamily { get; set; }
 
-        public bool ReloadSettings { get; set; }
-
         // This is the currently selected 'playlist'.  
         // This will need to be expanded to an array in the future to support
         // multiple folders being selected at once
@@ -155,6 +154,17 @@ namespace Dynaframe3
         public Stretch ImageStretch { get; set; }
 
         public string VideoStretch { get; set; }
+
+
+        /// <summary>
+        ///  Control if we should reload settings on the page (for layout/rendering)
+        /// </summary>
+        public bool ReloadSettings { get; set; }
+
+        /// <summary>
+        /// Track if we should Refresh the Directories or not (for changes such as added files)
+        /// </summary>
+        public bool RefreshDirctories { get; set; }
 
 
 
