@@ -7,7 +7,7 @@
 # unclutter is installed by install.sh and used to hide the mouse cursor
 # setterm is used to prevent screen blanking
 
-@unclutter -idle 0
+unclutter -idle 0 &
 cd /home/pi/Dynaframe
 mkdir -p  /home/pi/Dynaframe/logs
 echo "starting Dynaframe" >> /home/pi/Dynaframe/logs/run.sh.log

@@ -52,10 +52,11 @@ namespace Dynaframe3
         // set to a low number to force a quick 'first slide' to appear
         System.Timers.Timer slideTimer = new System.Timers.Timer(500);
 
-        // Track state of the engine
-        DateTime lastUpdated = DateTime.Now;
+        // Track state of the engine. Lastupdated we set back in time so that the first
+        // frame fires as soon as it can.
+        DateTime lastUpdated = DateTime.Now.Subtract(TimeSpan.FromDays(1976));
         DateTime timeStarted = DateTime.Now;
-        bool IsPaused = false;
+        public bool IsPaused = false;
 
 
         Transform rotationTransform;
@@ -95,7 +96,7 @@ namespace Dynaframe3
             mainWindow.Transitions.Add(windowTransition);
 
             mainWindow.SystemDecorations = SystemDecorations.None;
-            mainWindow.WindowState = WindowState.Maximized;
+            mainWindow.WindowState = WindowState.FullScreen;
             mainWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             mainPanel = this.FindControl<Panel>("mainPanel");
@@ -128,7 +129,7 @@ namespace Dynaframe3
             {
                 intro = Environment.CurrentDirectory + "/images/vertbackground.jpg";
             }
-             
+
             bitmapNew = new Bitmap(intro);
 
             frontImage.Source = bitmapNew;
@@ -148,11 +149,11 @@ namespace Dynaframe3
 
             slideTimer.Elapsed += Timer_Tick;
 
-            AppSettings.Default.ReloadSettings = true; 
+            AppSettings.Default.ReloadSettings = true;
             slideTimer.Start();
             Timer_Tick(null, null);
             Logger.LogComment("Initialized");
-            
+
 
         }
 
@@ -166,7 +167,7 @@ namespace Dynaframe3
         {
             tb.Transitions.Clear();
             playListEngine.GoToNext();
-            PlayImageFile(true);
+            PlayImageFile(true, playListEngine.CurrentPlayListItem.Path);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
@@ -174,7 +175,7 @@ namespace Dynaframe3
         {
             tb.Transitions.Clear();
             playListEngine.GoToPrevious();
-            PlayImageFile(true);
+            PlayImageFile(true, playListEngine.CurrentPlayListItem.Path);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
@@ -182,7 +183,7 @@ namespace Dynaframe3
         {
             tb.Transitions.Clear();
             GetFiles();
-            PlayImageFile(true);
+            PlayImageFile(true, playListEngine.CurrentPlayListItem.Path);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
@@ -200,7 +201,7 @@ namespace Dynaframe3
 
         private void MainWindow_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
         {
-           
+
             // Exit on Escape or Control X (Windows and Linux Friendly)
             if ((e.Key == Avalonia.Input.Key.Escape) || ((e.KeyModifiers == Avalonia.Input.KeyModifiers.Control) && (e.Key == Avalonia.Input.Key.X)))
             {
@@ -260,8 +261,14 @@ namespace Dynaframe3
                 GoToPreviousImage();
             }
 
+            if (e.Key == Avalonia.Input.Key.P)
+            {
+                Pause();
+            }
+
+
             UpdateInfoBar();
-            
+
         }
 
         /// <summary>
@@ -303,7 +310,7 @@ namespace Dynaframe3
                 lastUpdated = lastUpdated.Subtract(TimeSpan.FromMilliseconds(AppSettings.Default.SlideshowTransitionTime));
                 slideTimer.Start();
             }
-            
+
             UpdateInfoBar();
 
 
@@ -318,26 +325,61 @@ namespace Dynaframe3
                     if (playListEngine.CurrentPlayListItem.ItemType == PlayListItemType.Video)
                     {
                         KillVideoPlayer();
-                        PlayVideoFile();
+                        PlayVideoFile(playListEngine.CurrentPlayListItem.Path);
                     }
                     else
                     {
-                        PlayImageFile(false);
+                        PlayImageFile(false, playListEngine.CurrentPlayListItem.Path);
                         KillVideoPlayer(); // if a video is playing, get rid of it now that we've swapped images
                     }
                 }
                 catch (InvalidOperationException)
-                { 
+                {
                     // We expect this if a process is no longer around
                 }
                 catch (Exception exc)
                 {
-                    Debug.WriteLine("ERROR: Exception processing file.." + exc.ToString());
                     Logger.LogComment("ERROR: Exception processing file.." + exc.ToString());
                 }
             }
         }
+        public void PlayFile(string path)
+        {
+            // Externally exposed API to allow for frame syncing or automation scenarios.
+            // note: The file that we try to play may not exist, if not, we should look at the folder and try to
+            // find it, if that doesn't exist then show randome file from playlist
+            //
+            // Future use from Avalonia Gitter: How to load an image from network path..
+            // var response = await httpClient.GetAsync(bitmapPath, HttpCompletionOption.ResponseContentRead);
+            // var stream = await response.Content.ReadAsStreamAsync();
+            // bitmap = new Bitmap(stream);
+            //
+            //
+            PlayListItemType type = PlayListEngineHelper.GetPlayListItemTypeFromPath(path);
+            try
+            {
+                // TODO: Try to 'peek' at next file, if video, then slow down more
+                if (type == PlayListItemType.Video)
+                {
+                    KillVideoPlayer();
+                    PlayVideoFile(path);
+                }
+                else
+                {
+                    PlayImageFile(false, path);
+                    KillVideoPlayer(); // if a video is playing, get rid of it now that we've swapped images
+                }
+            }
+            catch (InvalidOperationException)
+            {
+                // We expect this if a process is no longer around
+            }
+            catch (Exception exc)
+            {
+                Logger.LogComment("ERROR: PlayFile: Exception processing file.." + exc.ToString());
+            }
 
+        }
         private void UpdateInfoBar()
         {
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
@@ -394,7 +436,7 @@ namespace Dynaframe3
                 } // end if
             });
         }
-        private void PlayImageFile(bool fast)
+        public  void PlayImageFile(bool fast, string path)
         {
             Logger.LogComment("PlayImageFile() called");
            
@@ -405,9 +447,9 @@ namespace Dynaframe3
                 mainWindow.Opacity = 1;
                 try
                 {
-                    Logger.LogComment("Beginning to load next file: " + playListEngine.CurrentPlayListItem.Path);
+                    Logger.LogComment("Beginning to load next file: " + path);
                     
-                    bitmapNew = new Bitmap(playListEngine.CurrentPlayListItem.Path);
+                    bitmapNew = new Bitmap(path);
 
                     backImage.Source = bitmapNew;
                     backImage.Opacity = 1;
@@ -446,7 +488,7 @@ namespace Dynaframe3
                 backImage.Opacity = 0;
             });
         }
-        private void PlayVideoFile()
+        private void PlayVideoFile(string path)
         {
             Logger.LogComment("Entering PlayVideoFile");
             ProcessStartInfo pInfo = new ProcessStartInfo();
@@ -466,15 +508,15 @@ namespace Dynaframe3
                     pInfo.Arguments += " --vol -6000 ";
                 }
 
-                pInfo.Arguments += "\"" + playListEngine.CurrentPlayListItem.Path + "\""; 
-                Logger.LogComment("DF Playing: " + playListEngine.CurrentPlayListItem.Path);
+                pInfo.Arguments += "\"" + path + "\""; 
+                Logger.LogComment("DF Playing: " + path);
                 Logger.LogComment("OMXPLayer args: " + pInfo.Arguments);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 pInfo.UseShellExecute = true;
                 pInfo.FileName = "wmplayer.exe";
-                pInfo.Arguments = "\"" + playListEngine.CurrentPlayListItem.Path + "\"";
+                pInfo.Arguments = "\"" + path + "\"";
                 pInfo.Arguments += " /fullscreen";
                 Console.WriteLine("Looking for media in: " + pInfo.Arguments);
             }
@@ -571,7 +613,18 @@ namespace Dynaframe3
         public void SetupWebServer()
         {
             string current = System.IO.Directory.GetCurrentDirectory();
-            server = new SimpleHTTPServer(current + "//web", 8000);
+            try
+            {
+                server = new SimpleHTTPServer(current + "//web", AppSettings.Default.ListenerPort);
+            }
+            catch (Exception exc)
+            {
+                // This can happen if the port is in use. Wittypi for instance uses 8000.  If this happens, message the user and try 5053 to try to reduce
+                // the chances of a collision....and to give them a chance to pick one of thier own.
+                Logger.LogComment("Error trying to start on default port!  Please set a new port in appsettings.json. Going to try again using Port 5053");
+                AppSettings.Default.ListenerPort = 5053;
+                server = new SimpleHTTPServer(current + "//web", AppSettings.Default.ListenerPort);
+            }
         }
 
         /// <summary>

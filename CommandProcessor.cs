@@ -108,6 +108,12 @@ namespace Dynaframe3
             }
         }
 
+        public static void ProcessSetFile(string filename)
+        {
+            Logger.LogComment("SYNC: SetFile recieved: " + filename);
+            handleMainWindow.IsPaused = true; // Need to think of where this should go.
+            handleMainWindow.PlayFile(filename);
+        }
         public static void ProcessCommand(string command)
         {
             Logger.LogComment("Command recieved: " + command);

@@ -98,7 +98,11 @@ namespace Dynaframe3
         /// <returns></returns>
         public List<PlayListItem> GetPlayListItems()
         {
+            // Logic notes:
+            // 1) SearchDirectories tracks the top level directories
+            // 2) Appsettings.default.currentplaylist tracks subdirectories under top level
             CurrentPlayListItems.Clear();
+
             return GetPlayListItems(AppSettings.Default.CurrentPlayList, SearchOption.AllDirectories)
                 .Concat(GetPlayListItems(AppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly)).ToList();
         }

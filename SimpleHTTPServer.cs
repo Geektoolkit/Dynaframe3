@@ -196,10 +196,15 @@ class SimpleHTTPServer
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("VideoStretch"), "VideoStretch");
 
             
-            if (context.Request.QueryString.Get("COMMAND") != "")
+            if (context.Request.QueryString.Get("COMMAND") != null)
             {
                 CommandProcessor.ProcessCommand(context.Request.QueryString.Get("COMMAND"));
                 refreshSettings++; // Any commands should invoke a settings refresh
+            }
+
+            if (context.Request.QueryString.Get("SETFILE") != null)
+            {
+                CommandProcessor.ProcessSetFile(context.Request.QueryString.Get("SETFILE"));
             }
 
             #region SpecialCasesWhichNeedCleanup
@@ -216,8 +221,38 @@ class SimpleHTTPServer
             string rem = context.Request.QueryString.Get("rem");
             if (rem != null)
             {
+                Logger.LogComment("Removing directory..." + rem);
                 string removeDir = rem.Replace("'", "");
                 AppSettings.Default.SearchDirectories.Remove(rem);
+
+                List<string> ToRemove = new List<string>(); 
+
+                // Go through and find items to remove. We can't modify the list 'in place' so make a target
+                // list and then go through that. Awkward but too tired to figure out the right way to fix
+                // this right now.
+                foreach (string subdirectory in AppSettings.Default.CurrentPlayList)
+                {
+                    if (subdirectory.Contains(removeDir))
+                    {
+                        ToRemove.Add(subdirectory);
+                    }
+                }
+
+                foreach (string del in ToRemove)
+                {
+                    if (AppSettings.Default.CurrentPlayList.Contains(del))
+                    {
+                        AppSettings.Default.CurrentPlayList.Remove(del);
+                        Logger.LogComment("Removing subdirectory: " + del);
+                    }
+                }
+
+                Logger.LogComment("New Playlist is as follows----------------");
+                foreach (string playlistDir in AppSettings.Default.CurrentPlayList)
+                {
+                    Logger.LogComment(playlistDir);
+                }
+                Logger.LogComment("End Playlist dump -------------");
                 refreshDirectories++;
             }
 
@@ -298,7 +333,6 @@ class SimpleHTTPServer
             AppSettings.Default.Save();
             
         }
-
 
 
 
@@ -434,6 +468,26 @@ class SimpleHTTPServer
             page = page.Replace("<!--IPADDRESSTIME-->", "value=" + AppSettings.Default.NumberOfSecondsToShowIP.ToString() + ">");
             page = page.Replace("<!--DATETIMEFORMAT-->", "value='" + AppSettings.Default.DateTimeFormat + "'>");
             page = page.Replace("<!--DATETIMEFONTFAMILY-->", "value='" + AppSettings.Default.DateTimeFontFamily + "'>");
+
+            // Fill in 'current settings' here
+            // Note: I am terrible at the compressed notation for if/else, but it is really clean here. If you need a primer, or for my
+            // reference, this helps: https://www.csharp-console-examples.com/conditional/if-else-statement/c-if-else-shorthand-with-examples/
+            // We store settings as boolean, but really sometimes they're better expressed as 'on/off'. The 'friendly' strings below are transaltions
+            // from the internal way we store stuff to a friendly way to show the user the current setting.
+
+
+            page = page.Replace("<!--ROTATIONCURRENTSETTING-->",                "(Current value: " + AppSettings.Default.Rotation.ToString() + " )");
+            page = page.Replace("<!--IMAGESCALINGCURRENTSETTING-->",            "(Current value: " + AppSettings.Default.ImageStretch.ToString() + " )");
+
+            string shufflefriendly = AppSettings.Default.Shuffle ? "On" : "Off";
+            page = page.Replace("<!--SHUFFLECURRENTSETTING-->",                 "(Current value: " + shufflefriendly + " )");
+            page = page.Replace("<!--VIDEOASPECTMODECURRENTSETTING-->",         "(Current value: " + AppSettings.Default.VideoStretch + " )");
+            
+            string videoplayasaudiofriendly = AppSettings.Default.VideoVolume ? "On" : "Off";
+            page = page.Replace("<!--VIDEOPLAYAUDIOCURRENTSETTING-->",          "(Current value: " + videoplayasaudiofriendly + " )");
+            
+            string  expandcollaspedfriendly = AppSettings.Default.ExpandDirectoriesByDefault ? "Expanded" : "Toggleable";
+            page = page.Replace("<!--TREEVIEWCURRENTSETTING-->",                "(Current value: " + expandcollaspedfriendly + " )");
 
             if (AppSettings.Default.ExpandDirectoriesByDefault)
             {

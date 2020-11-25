@@ -43,6 +43,7 @@ namespace Dynaframe3
             ImageStretch = Stretch.UniformToFill; // Default image stretch
             VideoStretch = "Fill";                // Used for OMXPlayer
             ExpandDirectoriesByDefault = false;   // WebUI setting to expand the trees
+            ListenerPort = 8000;                  // Default port for the WebUI to listen on
 
         }
 
@@ -65,6 +66,7 @@ namespace Dynaframe3
                     config.Bind(_appSettings);
                     if (_appSettings.SearchDirectories.Count == 0)
                     {
+                        // Firstrun...if there are no search directories, add in mypictures and subfolders
                         _appSettings.SearchDirectories.Add(SpecialDirectories.MyPictures);
                         _appSettings.CurrentPlayList.Clear();
                         foreach (string dir in Directory.GetDirectories(SpecialDirectories.MyPictures))
@@ -166,6 +168,11 @@ namespace Dynaframe3
         /// </summary>
         public bool RefreshDirctories { get; set; }
 
+        /// <summary>
+        /// The public port the webUI should be running on. This setting will require a restart
+        /// to take effect, and the plan is to only expose it via the appsettings file.
+        /// </summary>
+        public int ListenerPort { get; set; }
 
 
     }
