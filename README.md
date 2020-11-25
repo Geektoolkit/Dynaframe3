@@ -3,7 +3,7 @@ Dynamic Photo and Video Slideshow system for SBC (such as Raspberry pi)
 
 Video Demo, how to install, and intro here: https://youtu.be/XEaUsaNEzjY
 
-Note: Please see the releases section for the latest release. The below command will install 2.07 which I consider stable, but there are more features in later releases if you'd like to try them. To remove a release just delete the folder and rerun the install script.
+Note: Please see the releases section for the latest release. The below command will install 2.09 which I consider stable, but there are more features in later releases if you'd like to try them. To remove a release just delete the folder using "sudo rm -rf Dynaframe" and rerun the install script.
 
 Quickstart: On a raspberry pi based system you'll want to connect to a network, put a few images in the Pictures folder to get started, and then run:
 
@@ -18,6 +18,7 @@ To restart on a raspberry pi, you can launch it again using ./Dynaframe
 Hardware Requirements:
 I recommend a Raspberry pi 3B+ or better. It really shines on a Pi4 2gig or better.
 A heatsink is required...this gets VERY CPU intensive when transitioning, and fast transitions will thermal the pi and bring up the temp gauge.
+OpenGL acceleration needs to be OFF! You can find this using sudo raspi-config and ensuring it's set to 'legacy' under opengl settigs.
 I recommend either a FLIRC style case, a good heatsink solution, or a small fan for active cooling.  
 Adding memory to the GPU and slowing down the time between transitions (as well as speeding up the transition time) can help with cooling if needed.
 
