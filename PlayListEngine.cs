@@ -154,5 +154,69 @@ namespace Dynaframe3
             }
         }
 
+
+        /// <summary>
+        /// This is for playlist syncing. This gets called when a playlist is handed in on the
+        /// command via setfile. It' checks to find a file that is as close as possible on this unit.
+        /// </summary>
+        /// <param name="path">Remote machine path which was passed in</param>
+        /// <returns>a full path to a file</returns>
+        public string ConvertFileNameToLocal(string path)
+        {
+            // Note: Path is from a remote machine
+            // Formula is:
+            // 1) If an exact match is found..return that.
+            // 2) If the root folder and file name is found, return that (probably common case)
+            // 3) If the file name is found...return that
+            // 4) If folder is found, return random file from that folder
+            // 5) If nothing is found, return a random file (Not sure what to do here)
+            // Sample for below uses:
+            //          passed in: c:\geektoolkit\pictures\scifi\mandalorian.jpg
+            //          
+
+            // Test 1: Full path found on this machine: c:\geektoolkit\pictures\scifi\mandalorian.jpg
+            var testpath = CurrentPlayListItems.Where(p => p.Path.ToUpper() == path.ToUpper()).FirstOrDefault();
+            if (testpath != null)
+            {
+                Logger.LogComment("SYNC: (case 1) Full path found! Returning: " + testpath);
+                return testpath.Path;
+            }
+
+            // case 2: Match from just the directory name, and a matching image was found: scifi\mandalorian.jpg
+            // Note: this is 'golden path' and how I expect this to be used.
+            testpath = CurrentPlayListItems.Where(p => p.Path.Contains(new FileInfo(path).Directory.Name.ToUpper()) && new FileInfo(p.Path).Name.ToUpper() == new FileInfo(path).Name.ToUpper()).FirstOrDefault();
+            if (testpath != null)
+            {
+                Logger.LogComment("SYNC: (case 2) Folder/Filename found! Returning: " + testpath);
+                return testpath.Path;
+            }
+
+            // case 3: Match any file in the playlist against mandalorian.jpg
+            testpath = CurrentPlayListItems.Where(p => new FileInfo(p.Path).Name.ToUpper() == new FileInfo(path).Name.ToUpper()).FirstOrDefault();
+            if (testpath != null)
+            {
+                Logger.LogComment("SYNC: (case 3) Filename only found! Returning: " + testpath);
+                return testpath.Path;
+            }
+
+            // case 4: Match a folder with the same name as the subfolder/playlist:  scifi
+            testpath = CurrentPlayListItems.Where(p => new FileInfo(p.Path).Directory.Name.ToUpper() == new FileInfo(path).Directory.Name.ToUpper()).FirstOrDefault();
+            if (testpath != null)
+            {
+                // note: in this case, the testpath is likely just a foldername.  We have to get a file out of it.
+                Logger.LogComment("SYNC: (case 4) - Found folder!");
+                string file = PlayListEngineHelper.GetRandomFileFromFolder(testpath.Path);
+                Logger.LogComment("SYNC: (case 4) Folder only found! Returning: " + file);
+                return file;
+            }
+
+            // case 5: just return something to show
+            Logger.LogComment("SYNC: (case 5) - NO matches found for path, DirectoryName, Filename, continuing on with current playlist..returning" + CurrentPlayListItem.Path);
+            return CurrentPlayListItem.Path;
+
+
+            return "";
+        }
+
     }
 }

@@ -220,6 +220,7 @@
 	<div class="tab">
 		<button class="tablinks" onclick="openTab(event, 'Control')">Control</button>
 		<button class="tablinks" onclick="openTab(event, 'Playlists')">Playlists</button>
+		<button class="tablinks" onclick="openTab(event, 'SyncSettings')">Sync</button>
 		<button class="tablinks" onclick="openTab(event, 'Settings')">Settings</button>
 	</div>
 
@@ -233,11 +234,13 @@
 			<a class="button" href="default.htm?COMMAND=SCREENON">Turn Screen On</a>
 			<a class="warningbutton" href="default.htm?COMMAND=REBOOT" style="width:120px">Reboot</a>
 			<a class="warningbutton" href="default.htm?COMMAND=SHUTDOWN">Shutdown</a>
+			<a class="warningbutton" href="default.htm?COMMAND=EXITAPP">Exit Dynaframe</a>
 		</fieldset>
 		<fieldset>
 			<legend>Infobar Settings</legend>
 			<a class="button" href="default.htm?COMMAND=INFOBAR_DATETIME">Date / Time Mode</a>
 			<a class="button" href="default.htm?COMMAND=INFOBAR_FILENAME">Filename Mode</a>
+			<a class="button" href="default.htm?COMMAND=INFOBAR_IP">Show IP</a>
 			<a class="button" href="default.htm?COMMAND=INFOBAR_HIDDEN">Hide Infobar</a>
 		</fieldset>
 
@@ -253,8 +256,6 @@
 			<legend>Utilities</legend>
 			<a class="button" href="default.htm?COMMAND=UTILITY_UPDATEFILELIST">Update File list</a>
 		</fieldset>
-
-
 	</div>
 
 	<div id="Playlists" class="tabcontent">
@@ -273,6 +274,37 @@
 			</div>
 		</form>
 	</div>
+
+	<div id="SyncSettings" class="tabcontent">
+		<form action="default.htm">
+			<div class="settings">
+				<div class="form">
+					<h3>Sync Settings</h3>
+					<!-- SYNC SETTINGS-->
+					<div><input type="hidden" name="tab" value="SyncSettings" /></div><br />
+					<div class="form-row">
+						<div class="form-label"><span>Sync Enabled <!--SYNCCURRENTSETTING--></span></div>
+						<div class="form-input"><input type="radio" name="syncenabled" id="syncenabled" value="on" /><label for="syncenabled">On</label><input id="syncenabled-off" type="radio" name="syncenabled" value="off" /><label for="syncenabled-off">Off</label></div>
+					</div>
+
+					<div class="form-row">
+						<div class="form-label"><span>Client IP to Add</span></div>
+						<div class="form-input"><input type="text" name="ClientIP"/></div>
+					</div>
+
+					<div class="form-row">
+						<input type="submit" value="Update Sync Settings" class="submitbutton" />
+						<a class="button" href="default.htm?tab=SyncSettings&CLEARSYNCLIST=" style="height:45px">Clear list</a>
+					</div>
+					<div class="form-row">
+						<div class="form-label"><span>Current Clients:</span></div>
+						<div class="form-label"><!--CurrentClients--></div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+
 
 
 	<div id="Settings" class="tabcontent">
@@ -388,6 +420,8 @@
 		</div>
 	</div>
 
+
+
 	<script src="jsLists.js"></script>
 	<script>
 		JSLists.createTree("dirs");
@@ -400,9 +434,12 @@
 		const page_type = urlParams.get('tab')
 		openTab(event, page_type);
 
-        function mainPageLoaded() {
+		function mainPageLoaded() {
 			if (queryString.indexOf("COMMAND") != -1) {
-                openTab(event, 'Control');
+				openTab(event, 'Control');
+			}
+            if (queryString.indexOf("SyncSettings") != -1) {
+                openTab(event, 'SyncSettings');
             }
 		}
 

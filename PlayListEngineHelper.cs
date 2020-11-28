@@ -65,5 +65,17 @@ namespace Dynaframe3
             }
             return PlayListItemType.Invalid;
         }
+
+        public static string GetRandomFileFromFolder(string fileName)
+        {
+            string Folder = new FileInfo(fileName).DirectoryName;
+            Logger.LogComment("Getting random file from folder " + Folder);
+            string[] files = Directory.GetFiles(Folder);
+            Logger.LogComment("Found: " + files.Length + " files");
+            int index = new Random((int)DateTime.Now.Ticks).Next(0, files.Length - 1);
+            Logger.LogComment("Returning index: " + index);
+            return files[index];
+                
+        }
     }
 }

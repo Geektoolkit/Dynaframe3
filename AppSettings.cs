@@ -30,12 +30,11 @@ namespace Dynaframe3
             OXMOrientnation = "--orientation 0";
             SearchDirectories = new List<string>() { };
             CurrentPlayList = new List<string>() { };
+            RemoteClients = new List<string>() { };
 
             CurrentDirectory = SpecialDirectories.MyPictures;
             DateTimeFormat = "H:mm tt";
             DateTimeFontFamily = "Terminal";
-
-            Clock = false;
 
             InfoBarFontSize = 50;
             SlideshowTransitionTime = 30000;      // milliseconds between slides
@@ -44,6 +43,8 @@ namespace Dynaframe3
             VideoStretch = "Fill";                // Used for OMXPlayer
             ExpandDirectoriesByDefault = false;   // WebUI setting to expand the trees
             ListenerPort = 8000;                  // Default port for the WebUI to listen on
+            IsSyncEnabled = false;                // Sync with other frames off by default
+
 
         }
 
@@ -96,15 +97,13 @@ namespace Dynaframe3
         public bool Shuffle { get; set; }
 
         /// <summary>
-        /// Show the current time
-        /// </summary>
-        public bool Clock { get; set; }
-
-        /// <summary>
         /// Should videos play with volume? Default off.
         /// </summary>
         public bool VideoVolume { get; set; }
 
+        /// <summary>
+        /// WebUI setting around if the directories should be expanded.
+        /// </summary>
         public bool ExpandDirectoriesByDefault { get; set; }
 
         /// <summary>
@@ -153,8 +152,16 @@ namespace Dynaframe3
 
         public int NumberOfSecondsToShowIP { get; set; }
 
+        /// <summary>
+        /// This alters how images are shown..stretch / aspect ratio settings are part
+        /// of this. Stretch is an Avalonia property.
+        /// </summary>
         public Stretch ImageStretch { get; set; }
 
+        /// <summary>
+        /// Tracks the video fill setting for omxplayer. This is what states if it should
+        /// zoom, stretch, show original size, etc.  Ignored for Windows currently.
+        /// </summary>
         public string VideoStretch { get; set; }
 
 
@@ -174,6 +181,13 @@ namespace Dynaframe3
         /// </summary>
         public int ListenerPort { get; set; }
 
+
+        // Sync Settings
+        public bool IsSyncEnabled { get; set; }
+        /// <summary>
+        /// List of ip addresses which are used to send remote commands to control clients
+        /// </summary>
+        public List<string> RemoteClients { get; set; }
 
     }
 }

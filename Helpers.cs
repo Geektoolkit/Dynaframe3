@@ -173,9 +173,10 @@ namespace Dynaframe3
             Logger.LogComment("SlideshowTransitionTime: " + AppSettings.Default.SlideshowTransitionTime);
             Logger.LogComment("FontSize: " + AppSettings.Default.InfoBarFontSize);
             Logger.LogComment("FontFamily: " + AppSettings.Default.DateTimeFontFamily);
-            Logger.LogComment("Clock: " + AppSettings.Default.Clock);
+            Logger.LogComment("DateTimeFormat: " + AppSettings.Default.DateTimeFormat);
             Logger.LogComment("Rotation: " + AppSettings.Default.Rotation);
             Logger.LogComment("Shuffle: " + AppSettings.Default.Shuffle);
+            Logger.LogComment("ImageStretch: " + AppSettings.Default.ImageStretch);
             Logger.LogComment("VideoStretch: " + AppSettings.Default.VideoStretch);
             Logger.LogComment("VideoVolume: " + AppSettings.Default.VideoVolume);
 

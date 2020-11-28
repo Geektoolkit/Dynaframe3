@@ -3,12 +3,12 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Dynaframe</AssemblyName>
-    <Version>2.0.11</Version>
+    <Version>2.12</Version>
     <Authors>Joe Farro</Authors>
     <Company>Geektoolkit</Company>
     <Product>Dynaframe</Product>
     <Description>Dynaframe is a dynamic photo application which can show images and videos as slideshows. It features a web frontend, home automation integration, and more.</Description>
-    <AssemblyVersion>2.0.11.0</AssemblyVersion>
+    <AssemblyVersion>2.12.0.0</AssemblyVersion>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="appsettings.json" />

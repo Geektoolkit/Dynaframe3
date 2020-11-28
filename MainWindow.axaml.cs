@@ -38,12 +38,12 @@ namespace Dynaframe3
         Process videoProcess; // handle to the video Player
 
         // Engines
-        PlayListEngine playListEngine;
+        internal PlayListEngine playListEngine;
 
         // Transitions used for animating the fades
         DoubleTransition fadeTransition;
 
-        SimpleHTTPServer server;
+        internal SimpleHTTPServer server;
 
         /// <summary>
         /// This controls the time between 'slides'
@@ -71,6 +71,7 @@ namespace Dynaframe3
         private void InitializeComponent()
         {
             CommandProcessor.GetMainWindowHandle(this);
+            SyncedFrame.SyncEngine.Initialize(); // initialize the list of frames for syncing.
 
             AvaloniaXamlLoader.Load(this);
             this.KeyDown += MainWindow_KeyDown;
@@ -313,12 +314,37 @@ namespace Dynaframe3
 
             UpdateInfoBar();
 
-
+            //
+            //  This is the main check for if we need to switch frames. First we check to see if the 
+            //  amount of time that has transpired is over our tranistion time. If so, we check:
+            //  1) Are we syncing to other frames? if so send those signals
+            //  2) Is it an audio or video? Call appropriate play method based on that.
+            //
             if ((DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime))
             {
                 lastUpdated = DateTime.Now;
                 playListEngine.GoToNext();
                 Logger.LogComment("Next file is: " + playListEngine.CurrentPlayListItem.Path);
+
+                // sync frame call
+                if ((AppSettings.Default.IsSyncEnabled) &&(SyncedFrame.SyncEngine.syncedFrames.Count > 0))
+                {
+                    Logger.LogComment("SyncFrames enabled...sending sync signals..");
+                    // We have frames to sync! Send this off to them:
+                    try
+                    {
+                        SyncedFrame.SyncEngine.SyncFrames(playListEngine.CurrentPlayListItem.Path);
+                    }
+                    catch(Exception exc)
+                    {
+                        // This is a 'backstop' to catch any nastiness from networking. The whole network blind call to
+                        // an IP thing is risky, and I've seen an instance where the try/catch in syncframes failed.
+                        // Adding this to try to catch that if it happens and to understand why. Also to not 
+                        // bring down the entire app due to network flakiness.
+                        Logger.LogComment("ERROR: Excpetion trying to sync frames, caught in mainWindow. Excpetion: " + exc.ToString());
+                    }
+                }
+
                 try
                 {
                     // TODO: Try to 'peek' at next file, if video, then slow down more
@@ -355,6 +381,8 @@ namespace Dynaframe3
             // bitmap = new Bitmap(stream);
             //
             //
+
+           
             PlayListItemType type = PlayListEngineHelper.GetPlayListItemTypeFromPath(path);
             try
             {
@@ -459,6 +487,11 @@ namespace Dynaframe3
                 catch (Exception exc)
                 {
                     Logger.LogComment("ERROR: Exception: " + exc.ToString());
+                    // We couldn't find a file...try a directory refresh to 
+                    // try to heal things. this could be a network share
+                    // dropped offline, a thumbdrive got removed, or a file
+                    // was deleted.
+                    AppSettings.Default.RefreshDirctories = true; 
                 }
             });
 
@@ -557,7 +590,6 @@ namespace Dynaframe3
                 mainPanel.Opacity = 1;
                 mainWindow.Opacity = 1;
             });
-
         }
 
         private void KillVideoPlayer()
@@ -604,6 +636,11 @@ namespace Dynaframe3
                 // completes for instance
             }
         }
+
+        /// <summary>
+        /// The main method which gets new files from the playlist.
+        /// </summary>
+        /// <returns></returns>
         private bool GetFiles()
         {
             Logger.LogComment("GetFiles called!");
@@ -643,14 +680,7 @@ namespace Dynaframe3
             frontImage.Stretch = AppSettings.Default.ImageStretch;
             backImage.Stretch = AppSettings.Default.ImageStretch;
 
-
             RotateMainPanel();
-
-
-            if (AppSettings.Default.Clock)
-            {
-                tb.Opacity = 1;
-            }
 
             // update any fade settings
             fadeTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
@@ -666,7 +696,7 @@ namespace Dynaframe3
 
             // if the screen is rotated, and we haven't rendered anything yet, then we'll get back NaN when trying to 
             // calculate for rotation. Look for this and set some default guesses to get us by the first rendering.
-            if (Double.IsNaN(w) && (degrees == 90) || (degrees == 270))
+            if (((Double.IsNaN(w) && (degrees == 90))) || ((Double.IsNaN(w) && (degrees == 270))))
             {
                 mainWindow.Width = 1920;
                 mainWindow.Height = 1080;
@@ -683,9 +713,9 @@ namespace Dynaframe3
             {
                 mainPanel.Width = h;
                 mainPanel.Height = w;
-                Logger.LogComment("Rotation 90 degrees. calculated  W: " + w + " H: " + h);
-                Logger.LogComment("Rotation 90 degrees. Panel  Width: " + mainPanel.Width + " Height: " + mainPanel.Height);
-                Logger.LogComment("Rotation 90 degrees. Window Width: " + mainWindow.Width + " Height: " + mainWindow.Height);
+                Logger.LogComment("Rotating to Portrait. calculated  W: " + w + " H: " + h);
+                Logger.LogComment("Rotation to Portrait. Panel  Width: " + mainPanel.Width + " Height: " + mainPanel.Height);
+                Logger.LogComment("Rotation to Portrait. Window Width: " + mainWindow.Width + " Height: " + mainWindow.Height);
             }
             else
             {

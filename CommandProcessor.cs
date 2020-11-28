@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Avalonia.Controls.ApplicationLifetimes;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -48,6 +49,11 @@ namespace Dynaframe3
                 case "INFOBAR_HIDDEN":
                     {
                         AppSettings.Default.InfoBarState = AppSettings.InfoBar.OFF;
+                        break;
+                    }
+                case "INFOBAR_IP":
+                    {
+                        AppSettings.Default.InfoBarState = AppSettings.InfoBar.IP;
                         break;
                     }
                 default:
@@ -108,11 +114,20 @@ namespace Dynaframe3
             }
         }
 
+        /// <summary>
+        /// This method handles incoming transmissions from other frames. 
+        /// </summary>
+        /// <param name="filename"></param>
         public static void ProcessSetFile(string filename)
         {
             Logger.LogComment("SYNC: SetFile recieved: " + filename);
-            handleMainWindow.IsPaused = true; // Need to think of where this should go.
-            handleMainWindow.PlayFile(filename);
+
+            // We have to do a bit of logic to figure out what is the 'closest' we can come to this file on this frame
+            // This next call is where the magic happens for going from another frames file to matching on this frame
+            string localFile = handleMainWindow.playListEngine.ConvertFileNameToLocal(filename);
+
+            Logger.LogComment("SYNC: Converted it to: " + filename);
+            handleMainWindow.PlayFile(localFile);
         }
         public static void ProcessCommand(string command)
         {
@@ -152,6 +167,17 @@ namespace Dynaframe3
                 case "SHUTDOWN":
                     {
                         Helpers.RunProcess("shutdown", "");
+                        break;
+                    }
+                case "EXITAPP":
+                    {
+                        // Close up shop we're going home
+                        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            handleMainWindow.Close();
+                            handleMainWindow.server.Stop();
+                        });
+                        throw new Exception("EXIT Called...exiting app!");
                         break;
                     }
                 case "UTILITY_UPDATEFILELIST":

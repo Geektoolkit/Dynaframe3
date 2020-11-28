@@ -29,12 +29,12 @@ namespace Dynaframe3
         }
 
         // Avalonia configuration, don't remove; also used by visual designer.
-        public static AppBuilder BuildAvaloniaApp()
-            => AppBuilder.Configure<App>().UsePlatformDetect().With(new AvaloniaNativePlatformOptions { UseGpu = true }).LogToTrace();
+         public static AppBuilder BuildAvaloniaApp()
+             => AppBuilder.Configure<App>().UsePlatformDetect().With(new AvaloniaNativePlatformOptions { UseGpu = true }).LogToTrace();
 
-
-        //  public static AppBuilder BuildAvaloniaApp()
-            //=> AppBuilder.Configure<App>().UsePlatformDetect().With(new AvaloniaNativePlatformOptions { UseGpu = true }).LogToTrace();
+        // Joe - Storing this here as it's a way to test with a disabled GPU if needed.
+        //public static AppBuilder BuildAvaloniaApp()
+        //  => AppBuilder.Configure<App>().UsePlatformDetect().With(new X11PlatformOptions { UseGpu = false, UseEGL = false }).LogToTrace();
 
     }
 }

@@ -14,7 +14,7 @@ using Microsoft.VisualBasic.FileIO;
 using Dynaframe3;
 using System.Runtime.InteropServices;
 
-class SimpleHTTPServer
+internal class SimpleHTTPServer
 {
     private readonly string[] _indexFiles = {
         "index.html",
@@ -179,6 +179,7 @@ class SimpleHTTPServer
             int refreshDirectories = 0; // track if a directory change is made. 0 = no change.
             int refreshSettings = 0;    // track i fa setting change is made. 0 = no change.
 
+            Logger.LogComment("SIMPLEHTTPSERVER: Checking query string for values to edit..");
             // Set in App Settings takes the querystring and the Appsettings.Default value name
             refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("rotation"), "Rotation");
             refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("infobarfontsize"), "InfoBarFontSize");
@@ -188,6 +189,8 @@ class SimpleHTTPServer
 
 
             refreshDirectories += Helpers.SetBoolAppSetting(context.Request.QueryString.Get("Shuffle"), "Shuffle");
+            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("syncenabled"), "IsSyncEnabled");
+            
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("VideoVolume"), "VideoVolume");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("ExpandDirectoriesByDefault"), "ExpandDirectoriesByDefault");
 
@@ -195,7 +198,7 @@ class SimpleHTTPServer
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("VideoStretch"), "VideoStretch");
 
-            
+            // setup commands
             if (context.Request.QueryString.Get("COMMAND") != null)
             {
                 CommandProcessor.ProcessCommand(context.Request.QueryString.Get("COMMAND"));
@@ -205,6 +208,24 @@ class SimpleHTTPServer
             if (context.Request.QueryString.Get("SETFILE") != null)
             {
                 CommandProcessor.ProcessSetFile(context.Request.QueryString.Get("SETFILE"));
+            }
+
+            // Setup synced frames
+            if ((context.Request.QueryString.Get("ClientIP") != null) && (context.Request.QueryString.Get("ClientIP") != ""))
+            {
+                string ip = context.Request.QueryString.Get("ClientIP");
+                if (!AppSettings.Default.RemoteClients.Contains(ip))
+                {
+                    AppSettings.Default.RemoteClients.Add(context.Request.QueryString.Get("ClientIP"));
+                }
+                
+                SyncedFrame.SyncEngine.AddFrame(ip);
+                Logger.LogComment("Added Frame to be Synced...");
+            }
+            if (context.Request.QueryString.Get("CLEARSYNCLIST") != null)
+            {
+                AppSettings.Default.RemoteClients.Clear();
+                SyncedFrame.SyncEngine.syncedFrames.Clear();
             }
 
             #region SpecialCasesWhichNeedCleanup
@@ -218,42 +239,52 @@ class SimpleHTTPServer
             }
 
             // see if 'rem' (remove) was passed
-            string rem = context.Request.QueryString.Get("rem");
-            if (rem != null)
+            try
             {
-                Logger.LogComment("Removing directory..." + rem);
-                string removeDir = rem.Replace("'", "");
-                AppSettings.Default.SearchDirectories.Remove(rem);
-
-                List<string> ToRemove = new List<string>(); 
-
-                // Go through and find items to remove. We can't modify the list 'in place' so make a target
-                // list and then go through that. Awkward but too tired to figure out the right way to fix
-                // this right now.
-                foreach (string subdirectory in AppSettings.Default.CurrentPlayList)
+                string rem = context.Request.QueryString.Get("rem");
+                if (rem != null)
                 {
-                    if (subdirectory.Contains(removeDir))
+                    Logger.LogComment("SimpleHTTPServer: Removing directory..." + rem);
+                    string removeDir = rem.Replace("'", "");
+                    AppSettings.Default.SearchDirectories.Remove(rem);
+
+                    List<string> ToRemove = new List<string>();
+
+                    // Go through and find items to remove. We can't modify the list 'in place' so make a target
+                    // list and then go through that. Awkward but too tired to figure out the right way to fix
+                    // this right now.
+                    Logger.LogComment("Emumerating directories to remove..");
+                    foreach (string subdirectory in AppSettings.Default.CurrentPlayList)
                     {
-                        ToRemove.Add(subdirectory);
+                        if (subdirectory.Contains(removeDir))
+                        {
+                            ToRemove.Add(subdirectory);
+                        }
                     }
-                }
 
-                foreach (string del in ToRemove)
-                {
-                    if (AppSettings.Default.CurrentPlayList.Contains(del))
+                    foreach (string del in ToRemove)
                     {
-                        AppSettings.Default.CurrentPlayList.Remove(del);
-                        Logger.LogComment("Removing subdirectory: " + del);
+                        if (AppSettings.Default.CurrentPlayList.Contains(del))
+                        {
+                            AppSettings.Default.CurrentPlayList.Remove(del);
+                            Logger.LogComment("Removing subdirectory: " + del);
+                        }
                     }
-                }
 
-                Logger.LogComment("New Playlist is as follows----------------");
-                foreach (string playlistDir in AppSettings.Default.CurrentPlayList)
-                {
-                    Logger.LogComment(playlistDir);
+                    Logger.LogComment("New Playlist is as follows----------------");
+                    foreach (string playlistDir in AppSettings.Default.CurrentPlayList)
+                    {
+                        Logger.LogComment(playlistDir);
+                    }
+                    Logger.LogComment("End Playlist dump -------------");
+                    refreshDirectories++;
                 }
-                Logger.LogComment("End Playlist dump -------------");
-                refreshDirectories++;
+            }
+            catch (Exception exc)
+            {
+                // Note: Lots of potentially dangerous work in removing, so adding a check
+                // to backstop any issues.
+                Logger.LogComment("Excpetion when trying to remove directory! " + exc.ToString());
             }
 
             string imagestretchVal = context.Request.QueryString.Get("imagescaling");
@@ -306,6 +337,7 @@ class SimpleHTTPServer
             string subdirectorytoadd = context.Request.QueryString.Get("cbDirectory");
             if (subdirectorytoadd != null)
             {
+                Logger.LogComment("SIMPLEHTTPSERVER: Adding directory: " + subdirectorytoadd);
                 AppSettings.Default.CurrentPlayList.Clear();
                 // We use search directories to add things like NAS drives and usb drives to the system.
                 // This checks to make sure it exists when they're adding it, and that it isn't already in the list..
@@ -330,6 +362,7 @@ class SimpleHTTPServer
             {
                 AppSettings.Default.ReloadSettings = true;
             }
+            Logger.LogComment("SimpleHTTPServer: saving appsettings");
             AppSettings.Default.Save();
             
         }
@@ -452,7 +485,7 @@ class SimpleHTTPServer
 
             dirChoices += "</li></div>";
 
-            dirChoices += "<br><br><br><div class ='settings'><h2>Search Directories: </h2>";
+            dirChoices += "<br><br><br><div class ='settings'><h4>Search Directories: </h4>";
             foreach (string directory in AppSettings.Default.SearchDirectories)
             {
                 dirChoices += directory + "&nbsp&nbsp&nbsp<a href=?rem=" + directory + " class='remove'>Remove</a><br>";
@@ -460,6 +493,16 @@ class SimpleHTTPServer
             dirChoices += "</div><br>";
 
             page = page.Replace("<!-- DIRECTORIES -->", dirChoices);
+
+
+            // Sync Client list
+            string clients = "";
+            foreach (string client in AppSettings.Default.RemoteClients)
+            {
+                clients += "<br>" + client;
+            }
+            page = page.Replace("<!--CurrentClients-->", clients);
+            
 
             // Generate custom settings here
             page = page.Replace("<!--INFOBARFONTSIZE-->", "value=" + AppSettings.Default.InfoBarFontSize.ToString() + ">");
@@ -482,11 +525,16 @@ class SimpleHTTPServer
             string shufflefriendly = AppSettings.Default.Shuffle ? "On" : "Off";
             page = page.Replace("<!--SHUFFLECURRENTSETTING-->",                 "(Current value: " + shufflefriendly + " )");
             page = page.Replace("<!--VIDEOASPECTMODECURRENTSETTING-->",         "(Current value: " + AppSettings.Default.VideoStretch + " )");
-            
+
             string videoplayasaudiofriendly = AppSettings.Default.VideoVolume ? "On" : "Off";
             page = page.Replace("<!--VIDEOPLAYAUDIOCURRENTSETTING-->",          "(Current value: " + videoplayasaudiofriendly + " )");
-            
-            string  expandcollaspedfriendly = AppSettings.Default.ExpandDirectoriesByDefault ? "Expanded" : "Toggleable";
+
+            // Sync Tab Setting:
+            string syncsettingsfriendly = AppSettings.Default.IsSyncEnabled ? "On" : "Off";
+            page = page.Replace("<!--SYNCCURRENTSETTING-->", "(Current value: " + syncsettingsfriendly + " )");
+
+
+            string expandcollaspedfriendly = AppSettings.Default.ExpandDirectoriesByDefault ? "Expanded" : "Toggleable";
             page = page.Replace("<!--TREEVIEWCURRENTSETTING-->",                "(Current value: " + expandcollaspedfriendly + " )");
 
             if (AppSettings.Default.ExpandDirectoriesByDefault)
