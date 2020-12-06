@@ -8,6 +8,8 @@ using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using Avalonia.Rendering;
+using Avalonia.Skia;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
@@ -322,9 +324,11 @@ namespace Dynaframe3
             //
             if ((DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime))
             {
+                slideTimer.Stop(); // Stop the timer so we don't collide withourself while we process getting an image to display...
                 lastUpdated = DateTime.Now;
                 playListEngine.GoToNext();
                 Logger.LogComment("Next file is: " + playListEngine.CurrentPlayListItem.Path);
+                slideTimer.Start();
 
                 // sync frame call
                 if ((AppSettings.Default.IsSyncEnabled) &&(SyncedFrame.SyncEngine.syncedFrames.Count > 0))
@@ -482,7 +486,9 @@ namespace Dynaframe3
                     backImage.Source = bitmapNew;
                     backImage.Opacity = 1;
                     frontImage.Opacity = 0;
-                    mainWindow.WindowState = WindowState.FullScreen;
+                    mainWindow.WindowState = WindowState.FullScreen;             
+                    
+
                 }
                 catch (Exception exc)
                 {
@@ -533,12 +539,12 @@ namespace Dynaframe3
                 Logger.LogComment("Linux Detected, setting up OMX Player");
                 pInfo.FileName = "omxplayer";
                 Logger.LogComment("Setting up Appsettings...");
-                pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode " + AppSettings.Default.VideoStretch;
+                pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode " + AppSettings.Default.VideoStretch + " ";
 
                 // Append volume command argument
                 if (!AppSettings.Default.VideoVolume)
                 {
-                    pInfo.Arguments += " --vol -6000 ";
+                    pInfo.Arguments += "--vol -6000 ";
                 }
 
                 pInfo.Arguments += "\"" + path + "\""; 

@@ -1,0 +1,2 @@
+﻿Notes for future devlopment:
+Screen blanking - https://linuxreviews.org/HOWTO_turn_Screensavers_and_Monitor_Power_Saving_on_and_off

@@ -179,7 +179,8 @@ namespace Dynaframe3
             Logger.LogComment("ImageStretch: " + AppSettings.Default.ImageStretch);
             Logger.LogComment("VideoStretch: " + AppSettings.Default.VideoStretch);
             Logger.LogComment("VideoVolume: " + AppSettings.Default.VideoVolume);
-
+            Logger.LogComment("isSyncEnabled: " + AppSettings.Default.IsSyncEnabled);
+            Logger.LogComment("Number of Sync Clients: " + AppSettings.Default.RemoteClients.Count);
         }
 
 

@@ -102,9 +102,17 @@ namespace Dynaframe3
             // 1) SearchDirectories tracks the top level directories
             // 2) Appsettings.default.currentplaylist tracks subdirectories under top level
             CurrentPlayListItems.Clear();
-
-            return GetPlayListItems(AppSettings.Default.CurrentPlayList, SearchOption.AllDirectories)
+            List<PlayListItem> items = GetPlayListItems(AppSettings.Default.CurrentPlayList, SearchOption.AllDirectories)
                 .Concat(GetPlayListItems(AppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly)).ToList();
+
+            // Sort by name for now. Sort by date for later.
+            CurrentPlayListItems.Sort((y, z) => new FileInfo(y.Path).Name.CompareTo(new FileInfo(z.Path).Name));
+
+            // Sort by date
+            // CurrentPlayListItems.Sort((y, z) => new FileInfo(y.Path).CreationTime.CompareTo(new FileInfo(z.Path).CreationTime));
+
+            return items;
+
         }
 
         /// <summary>

@@ -13,6 +13,7 @@ using System.Diagnostics;
 using Microsoft.VisualBasic.FileIO;
 using Dynaframe3;
 using System.Runtime.InteropServices;
+using System.Reflection;
 
 internal class SimpleHTTPServer
 {
@@ -512,6 +513,8 @@ internal class SimpleHTTPServer
             page = page.Replace("<!--DATETIMEFORMAT-->", "value='" + AppSettings.Default.DateTimeFormat + "'>");
             page = page.Replace("<!--DATETIMEFONTFAMILY-->", "value='" + AppSettings.Default.DateTimeFontFamily + "'>");
 
+            // Fill in info from the app here
+            page = page.Replace("<!--VERSIONSTRING-->", Assembly.GetExecutingAssembly().GetName().Version.ToString());
             // Fill in 'current settings' here
             // Note: I am terrible at the compressed notation for if/else, but it is really clean here. If you need a primer, or for my
             // reference, this helps: https://www.csharp-console-examples.com/conditional/if-else-statement/c-if-else-shorthand-with-examples/
