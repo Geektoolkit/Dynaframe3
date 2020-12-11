@@ -3,11 +3,11 @@ Dynamic Photo and Video Slideshow system for SBC (such as Raspberry pi)
 
 Video Demo, how to install, and intro here: https://youtu.be/XEaUsaNEzjY
 
-Note: Please see the releases section for the latest release. The below command will install 2.09 which I consider stable, but there are more features in later releases if you'd like to try them. To remove a release just delete the folder using "sudo rm -rf Dynaframe" and rerun the install script.
+Note: Please see the releases section for the latest release. The below command will install 2.13 which I consider stable, but there are more features in later releases if you'd like to try them. To remove a release just delete the folder using "sudo rm -rf Dynaframe" and rerun the install script.
 
 Quickstart: On a raspberry pi based system you'll want to connect to a network, put a few images in the Pictures folder to get started, and then run:
 
-    sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.09/install.sh && bash install.sh; rm -f install.sh ; sudo reboot
+    sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.13/install.sh && bash install.sh; rm -f install.sh ; sudo reboot
     
 On reboot it should startup, and it'll show you the URL of the configuration page.
 
@@ -67,15 +67,15 @@ Question: What happened to Dynaframe 2?
  
  
  Compiling:
-   This is built on Avalonia in VS 2019 (.10 Preview 5 I believe), and the dotnet core SDK.  The dependancies should come down via Nuget.
+   This is built on Avalonia in VS 2019 (.10 Preview 6), and the dotnet core SDK.  The dependancies should come down via Nuget.
  
  Thankyou for taking a look at my project. To simply install it on a raspbery pi, you can launch one of the following (if you're not installing on a pi, you'll likely have to compile it for now. I'll make differnet releases based on demand.
 
 (This one autoreboots at the end)
-sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.09/install.sh && bash install.sh; rm -f install.sh ; sudo reboot
+sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.13/install.sh && bash install.sh; rm -f install.sh ; sudo reboot
 
 If you want to keep the install.sh around to poke at it and not reboot, you can also try:
-sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.09/install.sh && bash install.sh
+sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.13/install.sh && bash install.sh
 
 Thankyou. Please file issues as you find them and I'll do what I can. This is a side project for me.
 
