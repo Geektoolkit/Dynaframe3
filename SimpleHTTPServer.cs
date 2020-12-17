@@ -522,28 +522,179 @@ internal class SimpleHTTPServer
             // from the internal way we store stuff to a friendly way to show the user the current setting.
 
 
-            page = page.Replace("<!--ROTATIONCURRENTSETTING-->",                "(Current value: " + AppSettings.Default.Rotation.ToString() + " )");
-            page = page.Replace("<!--IMAGESCALINGCURRENTSETTING-->",            "(Current value: " + AppSettings.Default.ImageStretch.ToString() + " )");
+            // Rotation Settings 
+
+            switch (AppSettings.Default.Rotation.ToString())
+            {
+                case "0":
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING0-->", "value=\"0\" checked");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING90-->", "value=\"90\"");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING180-->", "value=\"180\"");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING270-->", "value=\"270\"");
+                    break;
+                case "90":
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING90-->", "value=\"90\" checked");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING0-->", "value=\"0\"");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING180-->", "value=\"180\"");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING270-->", "value=\"270\"");
+                    break;
+                case "180":
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING180-->", "value=\"180\" checked");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING90-->", "value=\"90\"");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING0-->", "value=\"0\"");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING270-->", "value=\"270\"");
+                    break;
+                case "270":
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING270-->", "value=\"270\" checked");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING90-->", "value=\"90\"");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING180-->", "value=\"180\"");
+                    page = page.Replace("<!--ROTATIONCURRENTSETTING0-->", "value=\"0\"");
+                    break;
+            }
+
+            //Image Scale Settings
+
+            switch (AppSettings.Default.ImageStretch.ToString())
+            {
+                case "UniformToFill":
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGUNIFILL-->", "checked");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGUNI-->", "");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGNONE-->", "");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGFILL-->", "");
+                    break;
+                case "Uniform":
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGUNI-->", "checked");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGUNIFILL-->", "");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGNONE-->", "");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGFILL-->", "");
+                    break;
+                case "None":
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGNONE-->", "checked");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGUNIFILL-->", "");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGUNI-->", "");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGFILL-->", "");
+                    break;
+                case "Fill":
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGFILL-->", "checked");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGUNIFILL-->", "");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGUNI-->", "");
+                    page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGNONE-->", "");
+                    break;
+            }
+
+            // Shuffle Settings
 
             string shufflefriendly = AppSettings.Default.Shuffle ? "On" : "Off";
-            page = page.Replace("<!--SHUFFLECURRENTSETTING-->",                 "(Current value: " + shufflefriendly + " )");
-            page = page.Replace("<!--VIDEOASPECTMODECURRENTSETTING-->",         "(Current value: " + AppSettings.Default.VideoStretch + " )");
+            switch (shufflefriendly.ToString())
+            {
+                case "On":
+                    page = page.Replace("<!--SHUFFLECURRENTSETTINGON-->", "checked");
+                    page = page.Replace("<!--SHUFFLECURRENTSETTINGOFF-->", "");
+                    break;
+                case "Off":
+                    page = page.Replace("<!--SHUFFLECURRENTSETTINGOFF-->", "checked");
+                    page = page.Replace("<!--SHUFFLECURRENTSETTINGON-->", "");
+                    break;
+            }
+
+
+            // Video Aspect Setting
+
+
+            page = page.Replace("<!--VIDEOASPECTMODECURRENTSETTING-->", "  " + AppSettings.Default.VideoStretch);
+
+            switch (AppSettings.Default.VideoStretch.ToString())
+            {
+                case "Fill":
+                    page = page.Replace("<!--VIDEOASPECTFILL-->", "checked");
+                    page = page.Replace("<!--VIDEOASPECTLB-->", "");
+                    page = page.Replace("<!--VIDEOASPECTSTRETCH-->", "");
+
+                    break;
+                case "Letterbox":
+                    page = page.Replace("<!--VIDEOASPECTLB-->", "checked");
+                    page = page.Replace("<!--VIDEOASPECTFILL-->", "");
+                    page = page.Replace("<!--VIDEOASPECTSTRETCH-->", "");
+
+                    break;
+                case "Stretch":
+                    page = page.Replace("<!--VIDEOASPECTSTRETCH-->", "checked");
+                    page = page.Replace("<!--VIDEOASPECTFILL-->", "");
+                    page = page.Replace("<!--VIDEOASPECTLB-->", "");
+
+                    break;
+            }
+
+
+            // Video Player Audio Settings
 
             string videoplayasaudiofriendly = AppSettings.Default.VideoVolume ? "On" : "Off";
             page = page.Replace("<!--VIDEOPLAYAUDIOCURRENTSETTING-->",          "(Current value: " + videoplayasaudiofriendly + " )");
+            switch (videoplayasaudiofriendly.ToString())
+            {
+                case "On":
+                    page = page.Replace("<!--VIDEOPLAYAUDIOON-->", "checked");
+                    page = page.Replace("<!--VIDEOPLAYAUDIOOFF-->", "");
+                    break;
+                case "Off":
+                    page = page.Replace("<!--VIDEOPLAYAUDIOOFF-->", "checked");
+                    page = page.Replace("<!--VIDEOPLAYAUDIOON-->", "");
+                    break;
+            }
 
-            // Sync Tab Setting:
+
+
+            // Sync Tab Setting
+
             string syncsettingsfriendly = AppSettings.Default.IsSyncEnabled ? "On" : "Off";
-            page = page.Replace("<!--SYNCCURRENTSETTING-->", "(Current value: " + syncsettingsfriendly + " )");
+            switch (syncsettingsfriendly.ToString())
+            {
+                case "On":
+                    page = page.Replace("<!--SYNCCURRENTSETTINGON-->", "checked");
+                    page = page.Replace("<!--SYNCCURRENTSETTINGOFF-->", "");
+                    break;
+                case "Off":
+                    page = page.Replace("<!--SYNCCURRENTSETTINGOFF-->", "checked");
+                    page = page.Replace("<!--SYNCCURRENTSETTINGON-->", "");
+                    break;
+            }
 
+
+
+
+            // Tree View Settings
 
             string expandcollaspedfriendly = AppSettings.Default.ExpandDirectoriesByDefault ? "Expanded" : "Toggleable";
             page = page.Replace("<!--TREEVIEWCURRENTSETTING-->",                "(Current value: " + expandcollaspedfriendly + " )");
+            switch (expandcollaspedfriendly)
+            {
+                case "Expanded":
+                    page = page.Replace("<!--TREEVIEWON-->", "checked");
+                    page = page.Replace("<!--TREEVIEWOFF-->", "");
+                    break;
+                case "Toggleable":
+                    page = page.Replace("<!--TREEVIEWOFF-->", "checked");
+                    page = page.Replace("<!--TREEVIEWON-->", "");
+                    break;
+            }
+
+
+
+
+            // Expand Directory
 
             if (AppSettings.Default.ExpandDirectoriesByDefault)
             {
                 page = page.Replace(@"//JSLISTOPENSETTING", "JSLists.openAll();");
             }
+
+            // Write JSON to hidden field, This should be done to a new URL file, but this works for me now. 
+
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(AppSettings.Default, Newtonsoft.Json.Formatting.Indented);
+          
+
+
+            page = page.Replace("<!--JSONSettings-->", json);
 
             return page;
         }

@@ -287,16 +287,24 @@
 			<div class="settings">
 				<div class="form">
 					<h3>Sync Settings</h3>
+
 					<!-- SYNC SETTINGS-->
 					<div><input type="hidden" name="tab" value="SyncSettings" /></div><br />
+
 					<div class="form-row">
-						<div class="form-label"><span>Sync Enabled <!--SYNCCURRENTSETTING--></span></div>
-						<div class="form-input"><input type="radio" name="syncenabled" id="syncenabled" value="on" /><label for="syncenabled">On</label><input id="syncenabled-off" type="radio" name="syncenabled" value="off" /><label for="syncenabled-off">Off</label></div>
+						<div class="form-label"><span>Sync Enabled</span></div>
+						<div class="form-input">
+							<input type="radio" name="syncenabled" value="on"  <!--SYNCCURRENTSETTINGON--> id="syncenabled" /><label for="shuffle">On</label>
+							<input type="radio" name="syncenabled" value="off" <!--SYNCCURRENTSETTINGOFF--> id="syncenabled-off"/><label for="shuffle">Off</label>
+						</div>
 					</div>
+
+
+
 
 					<div class="form-row">
 						<div class="form-label"><span>Client IP to Add</span></div>
-						<div class="form-input"><input type="text" name="ClientIP"/></div>
+						<div class="form-input"><input type="text" name="ClientIP" /></div>
 					</div>
 
 					<div class="form-row">
@@ -345,11 +353,18 @@
 						<div class="form-input"><input type="text" name="ipaddresstime" placeholder="15" <!--IPADDRESSTIME--></div>
 					</div>
 
+
+
 					<!--SHUFFLE-->
 					<div class="form-row">
-						<div class="form-label"><span>Shuffle <!--SHUFFLECURRENTSETTING--></span></div>
-						<div class="form-input"><input type="radio" name="shuffle" id="shuffle" value="on" /><label for="shuffle">On</label><input id="shuffle-off" type="radio" name="shuffle" value="off" /><label for="shuffle-off">Off</label></div>
+						<div class="form-label"><span>Shuffle <!--SHUFFLECURRENTSETTING--> </span></div>
+						<div class="form-input">
+							<input type="radio" name="shuffle" value="on" <!--SHUFFLECURRENTSETTINGON--> id="shuffle"><label for="shuffle">On</label>
+							<input type="radio" name="shuffle" value="off" <!--SHUFFLECURRENTSETTINGOFF--> id="shuffle-off"><label for="shuffle-off">Off</label>
+						</div>
 					</div>
+
+
 
 					<div class="form-row">
 						<div class="form-label"><span>Date / Time Format <a href="https://www.c-sharpcorner.com/blogs/date-and-time-format-in-c-sharp-programming1">(examples here)</a></span></div>
@@ -363,16 +378,12 @@
 
 					<!--ROTATE-->
 					<div class="form-row">
-						<div class="form-label"><span>Rotate <!--ROTATIONCURRENTSETTING--></span></div>
+						<div class="form-label"><span>Rotate</div>
 						<div class="form-input">
-							<input type="radio" name="rotation" value="0" id="radio-0">
-							<label for="radio-0">0</label>
-							<input type="radio" name="rotation" value="90" id="radio-90">
-							<label for="radio-90">90</label>
-							<input type="radio" name="rotation" value="180" id="radio-180">
-							<label for="radio-180">180</label>
-							<input type="radio" name="rotation" value="270" id="radio-270">
-							<label for="radio-270">270</label>
+							<input type="radio" name="rotation" <!--ROTATIONCURRENTSETTING0--> id="radio-0"><label for="radio-0">0</label>
+							<input type="radio" name="rotation" <!--ROTATIONCURRENTSETTING90--> id="radio-90"><label for="radio-90">90</label>
+							<input type="radio" name="rotation" <!--ROTATIONCURRENTSETTING180--> id="radio-180"><label for="radio-180">180</label>
+							<input type="radio" name="rotation" <!--ROTATIONCURRENTSETTING270--> id="radio-270"><label for="radio-270">270</label>
 						</div>
 					</div>
 
@@ -380,40 +391,53 @@
 					<div class="form-row">
 						<div class="form-label"><span>Image Scaling <!--IMAGESCALINGCURRENTSETTING--></span></div>
 						<div class="form-input">
-							<input type="radio" name="imagescaling" value="UniformToFill" id="imagescaling">
-							<label for="radio-0">UniformToFill - Scales to fill screen. Aspect ratio preserved</label><br />
-							<input type="radio" name="imagescaling" value="Uniform" id="imagescaling">
-							<label for="radio-0">Uniform - Within Screen, preserves aspect ratio</label><br />
-							<input type="radio" name="imagescaling" value="None" id="imagescaling">
-							<label for="radio-0">Original</label><br />
-							<input type="radio" name="imagescaling" value="Fill" id="imagescaling">
-							<label for="radio-0">Fill - Fills screen, ignores aspect ratio</label><br />
+							<input type="radio" name="imagescaling" value="UniformToFill" <!--IMAGESCALINGCURRENTSETTINGUNIFILL--> id="imagescaling"> <label for="radio-0">UniformToFill - Scales to fill screen. Aspect ratio preserved</label><br />
+							<input type="radio" name="imagescaling" value="Uniform" <!--IMAGESCALINGCURRENTSETTINGUNI--> id="imagescaling"> <label for="radio-0">Uniform - Within Screen, preserves aspect ratio</label><br />
+							<input type="radio" name="imagescaling" value="None" <!--IMAGESCALINGCURRENTSETTINGNONE--> id="imagescaling">	<label for="radio-0">Original</label><br />
+							<input type="radio" name="imagescaling" value="Fill" <!--IMAGESCALINGCURRENTSETTINGFILL--> id="imagescaling"> <label for="radio-0">Fill - Fills screen, ignores aspect ratio</label><br />
 						</div>
 					</div>
 
+
+					<!-- Video Aspect Settings-->
+
 					<div class="form-row">
-						<div class="form-label"><span>Video Aspect Mode <!--VIDEOASPECTMODECURRENTSETTING--></span></div>
+						<div class="form-label"><span>Video Aspect Mode</span></div>
 						<div class="form-input">
-							<input type="radio" name="VideoStretch" value="Letterbox" id="VideoStretch">
-							<label for="radio-0">Letterbox</label><br />
-							<input type="radio" name="VideoStretch" value="Fill" id="VideoStretch">
-							<label for="radio-0">Fill</label><br />
-							<input type="radio" name="VideoStretch" value="Stretch" id="VideoStretch">
-							<label for="radio-0">Stretch</label><br />
+							<input type="radio" name="VideoStretch" value="Letterbox" <!--VIDEOASPECTLB--> id="VideoStretch"> <label for="radio5">Letterbox</label>
+							<input type="radio" name="VideoStretch" value="Fill" <!--VIDEOASPECTFILL--> id="VideoStretch"> <label for="radio5">Fill</label>
+							<input type="radio" name="VideoStretch" value="Stretch" <!--VIDEOASPECTSTRETCH--> id="VideoStretch"> <label for="radio5">Stretch</label>
 						</div>
 					</div>
+
+
+
 
 					<!--VideoVolume-->
 					<div class="form-row">
-						<div class="form-label"><span>Should Videos Play Audio <!--VIDEOPLAYAUDIOCURRENTSETTING--></span></div>
-						<div class="form-input"><input type="radio" name="VideoVolume" id="VideoVolume" value="on" /><label for="shuffle">On</label><input id="shuffle-off" type="radio" name="shuffle" value="off" /><label for="shuffle-off">Off</label></div>
+						<div class="form-label"><span>Should Videos Play Audio</span></div>
+						<div class="form-input">
+							<input type="radio" name="VideoVolume" value="on"  <!--VIDEOPLAYAUDIOON--> id="VideoVolume" /><label for="shuffle">On</label>
+							<input type="radio" name="VideoVolume" value="off" <!--VIDEOPLAYAUDIOOFF--> id="VideoVolume"/><label for="shuffle">Off</label>
+						</div>
 					</div>
 
 					<!--Directory expansion-->
 					<div class="form-row">
-						<div class="form-label"><span>Directory Tree style - Expanded by default, or Toggleable? <!--TREEVIEWCURRENTSETTING--></span></div>
-						<div class="form-input"><input type="radio" name="ExpandDirectoriesByDefault" id="ExpandDirectoriesByDefault" value="on" /><label for="ExpandDirectoriesByDefault">Expanded</label><input id="ExpandDirectoriesByDefault-off" type="radio" name="ExpandDirectoriesByDefault" value="off" /><label for="ExpandDirectoriesByDefault-off">Toggleable</label></div>
+						<div class="form-label"><span>Directory Tree style - Expanded by default, or Toggleable?</span></div>
+						<div class="form-input">
+							<input type="radio" name="ExpandDirectoriesByDefault" value="on" <!--TREEVIEWON--> id="ExpandDirectoriesByDefault" /><label for="ExpandDirectoriesByDefault">Expanded</label>
+							<input type="radio" name="ExpandDirectoriesByDefault" value="off" <!--TREEVIEWOFF--> id="ExpandDirectoriesByDefault" /><label for="ExpandDirectoriesByDefault">Toggleable</label>
+						</div>
 					</div>
+
+
+
+
+
+
+					<!--JSON Hidden Field for all values-->
+					<input type="hidden" id="appdata" name="appdata" value="<!--JSONSettings-->"
 
 					<div><input type="hidden" name="tab" value="Settings" /></div>
 
