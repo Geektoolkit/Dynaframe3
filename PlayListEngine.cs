@@ -43,6 +43,11 @@ namespace Dynaframe3
                 try
                 {
                     IEnumerable<string> files = PlayListEngineHelper.GetFilesByExtensions(new DirectoryInfo(Folder), searchOptions, PlayListEngineHelper.GetSupportedExtensions());
+                    
+                    // Filter here
+                    // Filter 1: MAC Computers create files that end in .jpg that start with "._"
+                    files = files.Except(files.Where(f => new FileInfo(f).Name.StartsWith("._")));
+
                     foreach (string file in files)
                     {
                         PlayListItem item = new PlayListItem();
@@ -59,30 +64,7 @@ namespace Dynaframe3
 
             }
 
-            if (AppSettings.Default.Shuffle)
-            {
-                Random r = new Random((int)DateTime.Now.Ticks);
-                playListItems = Helpers.Shuffle<PlayListItem> (playListItems, r).ToList();
-            }
-
             CurrentPlayListItems.AddRange(playListItems);
-            Logger.LogComment("New List generated! Contains: " + CurrentPlayListItems.Count + " items.");
-            // extra logging for now
-            Logger.LogComment("----------------------Begin Playlist Dump----------------");
-            try
-            {
-                for (int i = 0; i < CurrentPlayListItems.Count; i++)
-                {
-                    Logger.LogComment(CurrentPlayListItems[i].ItemType + ":" + CurrentPlayListItems[i].Path);
-                }
-            }
-            catch (Exception)
-            { 
-                // Collection was modified, basically timing issue. ignore.
-            }
-
-            Logger.LogComment("------------------- END PLAYLIST DUMP-------------------");
-            // Return it in case we want to use this for the UI for future work.
 
             if (CurrentPlayListItems.Count > 0)
             {
@@ -105,11 +87,38 @@ namespace Dynaframe3
             List<PlayListItem> items = GetPlayListItems(AppSettings.Default.CurrentPlayList, SearchOption.AllDirectories)
                 .Concat(GetPlayListItems(AppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly)).ToList();
 
-            // Sort by name for now. Sort by date for later.
-            CurrentPlayListItems.Sort((y, z) => new FileInfo(y.Path).Name.CompareTo(new FileInfo(z.Path).Name));
+            if (AppSettings.Default.Shuffle)
+            {
+                Random r = new Random((int)DateTime.Now.Ticks);
+                CurrentPlayListItems = Helpers.Shuffle<PlayListItem>(CurrentPlayListItems, r).ToList();
+            }
+            else
+            {
+                // Sort the list here:
+                CurrentPlayListItems.Sort((y, z) => new FileInfo(y.Path).Name.CompareTo(new FileInfo(z.Path).Name));
 
-            // Sort by date
-            // CurrentPlayListItems.Sort((y, z) => new FileInfo(y.Path).CreationTime.CompareTo(new FileInfo(z.Path).CreationTime));
+                // Sort by date
+                // CurrentPlayListItems.Sort((y, z) => new FileInfo(y.Path).CreationTime.CompareTo(new FileInfo(z.Path).CreationTime));
+
+
+            }
+
+            Logger.LogComment("New List generated! Contains: " + CurrentPlayListItems.Count + " items. Shuffle setting is: " + AppSettings.Default.Shuffle);
+            // extra logging for now 
+            Logger.LogComment("----------------------Begin Playlist Dump----------------");
+            try
+            {
+                for (int i = 0; i < CurrentPlayListItems.Count; i++)
+                {
+                    Logger.LogComment(CurrentPlayListItems[i].ItemType + ":" + CurrentPlayListItems[i].Path);
+                }
+            }
+            catch (Exception)
+            {
+                // Collection was modified, basically timing issue. ignore.
+            }
+
+            Logger.LogComment("------------------- END PLAYLIST DUMP-------------------");
 
             return items;
 
@@ -121,6 +130,9 @@ namespace Dynaframe3
         public void GoToNext()
         {
             int index = CurrentPlayListItems.IndexOf(CurrentPlayListItem);
+            PlayListItem instructions = new PlayListItem() { ItemType = PlayListItemType.Image, Path = Environment.CurrentDirectory + "/images/Instructions.png" };
+
+
             if (index == -1)
             {
                 Logger.LogComment("ERROR: GoToNext was unable to find current item in playlist!");
@@ -129,12 +141,20 @@ namespace Dynaframe3
             // If at the end of the list...return the first one
             if (index == CurrentPlayListItems.Count - 1)
             {
-                Logger.LogComment("Reached end of the list!");
+                Logger.LogComment("Reached end of the list! (or no items found)");
                 GetPlayListItems(); // refresh the list. This will help with shuffled lists possibly. May make this a setting.
+                if (playListItems.Count == 0)
+                {
+                    CurrentPlayListItems.Add(instructions);
+                }
                 CurrentPlayListItem = CurrentPlayListItems.First();
             }
             else
             {
+                if (CurrentPlayListItems.Contains(instructions))
+                {
+                    CurrentPlayListItems.RemoveAll(f=> f.Path == instructions.Path);
+                }
                 CurrentPlayListItem = CurrentPlayListItems[index + 1];
             }
         }
