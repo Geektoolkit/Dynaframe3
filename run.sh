@@ -15,9 +15,9 @@ cd /home/pi/Dynaframe
 mkdir -p  /home/pi/Dynaframe/logs
 echo "starting Dynaframe" >> /home/pi/Dynaframe/logs/run.sh.log
 
+# find and delete any log file older than 10 days, could be longer later.
+find /home/pi/Dynaframe/logs/ -mtime +10 -type f -delete
+
 # set date and time, create log file oneach reboot
 now=$(date +"%Y-%m-%d-%H-%M")
 ./Dynaframe > /home/pi/Dynaframe/logs/dynaframe-${now}.log 2>&1
-
-# find and delete any log file older than 10 days
-find /home/pi/Dynaframe/logs -mtime +10 -type f -delete
