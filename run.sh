@@ -10,7 +10,7 @@
 # filename/date article on bin/bash/scripting https://www.cyberciti.biz/faq/unix-linux-appleosx-bsd-shell-appending-date-to-filename/
 # delete older then 10days on stack overflow https://stackoverflow.com/questions/13489398/delete-files-older-than-10-days-using-shell-script-in-unix
 
-unclutter -idle 2 &
+# unclutter -idle 2 & (redundant command that is running elsewhere)
 cd /home/pi/Dynaframe
 mkdir -p  /home/pi/Dynaframe/logs
 echo "starting Dynaframe" >> /home/pi/Dynaframe/logs/run.sh.log
