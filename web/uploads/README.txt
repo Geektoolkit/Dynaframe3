@@ -1,0 +1,1 @@
+﻿Uploads Directory for WebUI upload gallery. We will need to add a new playlist to the default to include on install. Images here are uploaded from the WEBUI.
