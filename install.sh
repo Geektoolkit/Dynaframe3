@@ -11,7 +11,7 @@ echo "Version is: $version"
 if [ -z "$1" ]
 then
   echo -e  "${CYAN}No version passed in...using default${NC}"
-  version="2.11"
+  version="2.15"
 fi
 
 
@@ -19,7 +19,8 @@ echo -e "${GREEN}=========================================================="
 echo -e "  -- Geektoolkit present: Dynaframe 2.0                 --"
 echo -e "  -- Preparing to install Version: $version                 --"
 echo -e "  -- Find out more on youtube on the ${CYAN}Geektookit ${GREEN}channel --"
-echo -e "  -- Coding: Joe Farro  Special thanks: qwksilver       --"
+echo -e "  -- Created by: Joe Farro  of Geektoolkit              --"
+echo -e "  -- Special thanks: qwksilver  RichN001                --"
 echo -e "  -- Powered by Avalonia.                               --"
 echo -e "==========================================================${NC}"
 if [ -f "$file" ];

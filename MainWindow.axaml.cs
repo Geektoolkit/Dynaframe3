@@ -186,6 +186,7 @@ namespace Dynaframe3
         {
             tb.Transitions.Clear();
             GetFiles();
+            AppSettings.Default.RefreshDirctories = false;
             PlayImageFile(true, playListEngine.CurrentPlayListItem.Path);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
@@ -470,7 +471,7 @@ namespace Dynaframe3
         }
         public  void PlayImageFile(bool fast, string path)
         {
-            Logger.LogComment("PlayImageFile() called");
+            Logger.LogComment("PlayImageFile() called with Fast=" + fast.ToString() + " and path: " + path);
            
            // Step 1: Set the background image to the new one
            // fade the top out, revealing the bottom
@@ -497,7 +498,12 @@ namespace Dynaframe3
                     // try to heal things. this could be a network share
                     // dropped offline, a thumbdrive got removed, or a file
                     // was deleted.
-                    AppSettings.Default.RefreshDirctories = true; 
+                    // Update: Only do this if the path wasn't there. If we failed to read
+                    // an image, then just move on so we don't reset the playlist.
+                    if (!File.Exists(path))
+                    {
+                        AppSettings.Default.RefreshDirctories = true;
+                    }
                 }
             });
 
@@ -570,6 +576,7 @@ namespace Dynaframe3
                 mainPanel.Opacity = 0;
             });
            
+            // Give video player time to start, then fade out to reveal it...
             System.Threading.Thread.Sleep(1100);
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
