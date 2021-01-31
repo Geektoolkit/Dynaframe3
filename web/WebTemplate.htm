@@ -129,10 +129,10 @@
 						<div class="form-input"><input type="text" name="ClientIP"/></div>
 <br>
 					<div class="form-row">
-				<div class="d-grid gap-2 d-md-block">
-							<input type="submit" class="btn btn-primary btn-lg" value="Update Sync Settings">
-						
-						<a class="btn btn-warning btn-lg" onclick="func3()" href="default.htm?tab=SyncSettings&CLEARSYNCLIST=#tab3" style="height:45px">Clear list</a></div><br>
+						<div class="d-grid gap-2 d-md-block">
+							<input type="submit" class="btn btn-primary btn-lg" onclick="func3()" value="Update Sync Settings">
+							<a class="btn btn-warning btn-lg" onclick="func3()" href="default.htm?tab=SyncSettings&CLEARSYNCLIST=#tab3" style="height:45px">Clear list</a>
+						</div><br>
 					<div class="form-row">
 						<div class="form-label"><span><b>Current Clients:</b></span></div>
 						<div class="form-label"><!--CurrentClients--></div>
@@ -233,19 +233,6 @@
 							</div>
 
 					</div>
-
-
-
-
-					<!--VideoVolume-->
-					<div class="form-row">
-						<div class="form-label"><span>Should Videos Play Audio</span></div>
-						<div class="form-input">
-							<input type="radio" name="VideoVolume" value="on"  <!--VIDEOPLAYAUDIOON--> id="VideoVolume" /><label for="VideoVolume">On</label>
-							<input type="radio" name="VideoVolume" value="off" <!--VIDEOPLAYAUDIOOFF--> id="VideoVolume"/><label for="VideoVolume">Off</label>
-
-						</div>
-						
 						
 								<br>
 						
@@ -273,7 +260,7 @@
 					<br><br><br>	
 						
 							<div class="d-grid gap-2 d-md-block">
-							<input type="submit" class="btn btn-primary btn-lg" onclick="func5()"  value="Save"
+							<input type="submit" class="btn btn-primary btn-lg" onclick="func4()"  value="Save"
 				</div>
 			</form>
 		</div>										
@@ -285,25 +272,9 @@
 	<script>
 	 JSLists.createTree("dirs");
 		//JSLISTOPENSETTING
-		var tabvalue ;
-		function func4() {
-			var content, directoryAdd, infobarfontsize, slideshowduration, transitiontime;
-			directoryAdd = document.getElementById("directoryAdd").value;
-			infobarfontsize = document.getElementById("infobarfontsize").value;
-			slideshowduration = document.getElementById("slideshowduration").value;
-			transitiontime = document.getElementById("transitiontime").value;
-			
-			console.log(directoryAdd);
-			console.log(infobarfontsize);
-			console.log(slideshowduration);
-			console.log(transitiontime);
 
-			content = "directoryAdd = " + directoryAdd + ", infobarfontsize = " + infobarfontsize + ", slideshowduration = " + slideshowduration + ", transitiontime = " + transitiontime;
-			//alert(content);
-			tabvalue = "tab4";
-			window.location.hash = tabvalue;		
 
-		}
+// Function onclicks to return user to correct tab
 
 		function func2()
 		{
@@ -318,7 +289,7 @@
 			window.location.hash = "tab3";				
 		}
 
-		function func5()
+		function func4()
 		{
 			//alert("tab4");
 			window.location.hash = "tab4";		
