@@ -74,6 +74,12 @@ namespace Dynaframe3
                         {
                             _appSettings.CurrentPlayList.Add(dir);
                         }
+                        string dirPath = AppDomain.CurrentDomain.BaseDirectory + "/web/uploads/";
+                        _appSettings.SearchDirectories.Add(dirPath);
+                        foreach (string dir in Directory.GetDirectories(dirPath))
+                        {
+                            _appSettings.CurrentPlayList.Add(dir);
+                        }
 
                     }
                 }
@@ -120,7 +126,7 @@ namespace Dynaframe3
         /// List of directories which should be scanned for pictures
         /// </summary>
         public List<String> SearchDirectories { get; set; }
-        
+
         public List<string> CurrentPlayList { get; set; }
 
         /// <summary>
