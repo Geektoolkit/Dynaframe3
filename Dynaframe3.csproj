@@ -17,7 +17,6 @@
   <ItemGroup>
     <None Remove="appsettings.json" />
     <None Remove="dynaframe.desktop" />
-    <None Remove="images\Instructions.png" />
     <None Remove="install.sh" />
     <None Remove="run.sh" />
   </ItemGroup>
@@ -26,9 +25,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="dynaframe.desktop">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="images\Instructions.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="install.sh">
@@ -52,12 +48,6 @@
     <None Update="images\2.mov">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="images\background.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="images\vertbackground.jpg">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="web\WebTemplate.htm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -76,13 +66,22 @@
     <None Update="web\css\style.css">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="web\uploads\README.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="web\upload.htm">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="web\images\logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="images\Instructions.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="images\background.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="images\vertbackground.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="web\uploads\README.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -92,5 +91,10 @@
     <Folder Include="web\css\" />
     <Folder Include="web\js\" />
     <Folder Include="web\uploads\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="AppSettings.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Compile>
   </ItemGroup>
 </Project>

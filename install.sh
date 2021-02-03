@@ -65,6 +65,8 @@ mkdir -p /home/pi/.config/autostart
 sudo cp dynaframe.desktop  /home/pi/.config/autostart
 echo -e "${GREEN}cleaning up zip file ${NC}"
 rm Dynaframe2.zip
+echo -e "${GREEN}cleaning up upload dir ${NC}"
+rm /home/pi/Dynaframe/web/uploads/README.txt
 if [ -f "/home/pi/appsettings.json" ];
 then
   echo -e "${GREEN}Restoring old appsettings...${NC}"
@@ -73,3 +75,4 @@ then
 fi
 cp "/home/pi/Dynaframe/install.sh" "/home/pi/UpgradeDynaframe.sh"
 chmod +x /home/pi/UpgradeDynaframe.sh
+
