@@ -170,7 +170,7 @@ internal class SimpleHTTPServer
         // Track if we need to refresh the page. Set this to false
         bool ReloadSettings = false;
         bool ReloadDirectories = false;
-
+        bool ImageUploaded = true;
         // TODO: Clean this up. Need a consistent way to read in values
         // and cleanly set settings. For now having this ugly is a good
         // tradeoff to let me learn how to do it better in the future
@@ -206,7 +206,10 @@ internal class SimpleHTTPServer
                 //Upload Images
                 if (context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE")
                 {
-                    CommandProcessor.SaveFile(context.Request.ContentEncoding, CommandProcessor.GetBoundary(context.Request.ContentType), context.Request.InputStream, context.Request.QueryString.Get("Extension"));
+                    if (context.Request.ContentType != null)
+                    {
+                        ImageUploaded = CommandProcessor.SaveFile(context.Request.ContentEncoding, CommandProcessor.GetBoundary(context.Request.ContentType), context.Request.InputStream, context.Request.QueryString.Get("Extension"));
+                    }
                 }
                 else if (context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
                 {
@@ -390,7 +393,7 @@ internal class SimpleHTTPServer
                 context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE" ||
                     context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
         {
-            GetUploadPage();
+            GetUploadPage(ImageUploaded);
         }
         else
         {
@@ -453,7 +456,7 @@ internal class SimpleHTTPServer
                   context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE" ||
                     context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
             {
-                response = GetUploadPage();
+                response = GetUploadPage(ImageUploaded);
             }
             else
             {
@@ -479,7 +482,7 @@ internal class SimpleHTTPServer
         _serverThread.Start(cts.Token);
     }
 
-    public string GetUploadPage()
+    public string GetUploadPage(bool ImageUploaded)
     {
         TextReader reader = File.OpenText("./web/upload.htm");
         string page = reader.ReadToEnd();
@@ -494,6 +497,14 @@ internal class SimpleHTTPServer
         }
 
         page = page.Replace("<!-- IMAGE TABLE BODY -->", tr.ToString());
+        if (ImageUploaded)
+        {
+            page = page.Replace("<!-- ImageDisplay -->", "none");
+        }
+        else
+        {
+            page = page.Replace("<!-- ImageDisplay -->", "block");
+        }
         return page;
     }
 

@@ -12,7 +12,7 @@
 
 </head>
 <header id="header">
-    <div class="logo" style="text-align:left;"><img src="./images/logo.png" width="75" height="75" style="text-align:left;" /></div>
+    <div class="logo" style="text-align:left;"><img src="images/logo.png" width="75" height="75" style="text-align:left;" /></div>
     <nav class="title">
         <h9>Dynaframe</h9>
 
@@ -37,6 +37,7 @@
             <input type="file" name="file" id="file" accept="image/*" />
             <input type="submit" value="Upload">
         </form>
+        <label id="lblWarning" style="color:red;background-color:yellow;display:<!-- ImageDisplay -->">Image upload failed! Please try again</label>
         <br>
 
         <div>
@@ -53,20 +54,18 @@
             </table><br><br>
             <center>
                 <div class="d-grid gap-2 d-md-block">
-                    <a class="btn btn-primary btn-lg" href="default.htm">Back To Settings</a>
+                    <a class="btn btn-primary btn-lg" href="default.htm">Back</a>
                 </div>
             </center><br><br>
         </div>
         <script>// Onclick event for Upload
+            const form = document.forms.fileUploadForm;
 
-			const form = document.forms.fileUploadForm;
+            function handleSubmit(event) {
+                var ext = $("#file").val().split('.').pop();
+                document.getElementById("fileUploadForm").action = "default.htm?COMMAND=UTILITY_UPLOADFILE&Extension=" + ext;
+            }
 
-			function handleSubmit(event) {
-				var ext = $("#file").val().split('.').pop();
-				document.getElementById("fileUploadForm").action = "default.htm?COMMAND=UTILITY_UPLOADFILE&Extension=" + ext;
-			}
-
-			form.addEventListener('submit', handleSubmit);</script>
-        </script>
+            form.addEventListener('submit', handleSubmit);</script>
 </body>
 </html>

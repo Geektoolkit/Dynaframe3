@@ -208,11 +208,11 @@ namespace Dynaframe3
             return "--" + ctype.Split(';')[1].Split('=')[1];
         }
 
-        public static void SaveFile(Encoding enc, String boundary, Stream input, string fileExtension)
+        public static bool SaveFile(Encoding enc, String boundary, Stream input, string fileExtension)
         {
             Byte[] boundaryBytes = enc.GetBytes(boundary);
             Int32 boundaryLen = boundaryBytes.Length;
-
+            bool ImageUploaded = true;
             //var dirPath= AppSettings.Default.CurrentDirectory + "/uploads/image_" + DateTime.Now.ToString("ddMMyyhhmmss") + "." + fileExtension;
             var dirPath = AppDomain.CurrentDomain.BaseDirectory + "/web/uploads/image_" + DateTime.Now.ToString("ddMMyyhhmmss") + "." + fileExtension;
             //var dirPath = "/Users/rnewberger/Web/image4.jpg";
@@ -228,7 +228,9 @@ namespace Dynaframe3
                 {
                     if (len == 0)
                     {
-                        throw new Exception("Start Boundaray Not Found");
+                        ImageUploaded = false;
+                        File.Delete(dirPath);
+                        break;
                     }
 
                     startPos = IndexOf(buffer, len, boundaryBytes);
@@ -250,7 +252,9 @@ namespace Dynaframe3
                     {
                         if (len == 0)
                         {
-                            throw new Exception("Preamble not Found.");
+                            ImageUploaded = false;
+                            File.Delete(dirPath);
+                            break;
                         }
 
                         startPos = Array.IndexOf(buffer, enc.GetBytes("\n")[0], startPos);
@@ -279,7 +283,9 @@ namespace Dynaframe3
                     }
                     else if (len <= boundaryLen)
                     {
-                        throw new Exception("End Boundaray Not Found");
+                        ImageUploaded = false;
+                        File.Delete(dirPath);
+                        break;
                     }
                     else
                     {
@@ -289,6 +295,8 @@ namespace Dynaframe3
                     }
                 }
             }
+            ControlSlideshow("CONTROL_FORWARD");
+            return ImageUploaded;
         }
 
         private static Int32 IndexOf(Byte[] buffer, Int32 len, Byte[] boundaryBytes)
@@ -314,6 +322,7 @@ namespace Dynaframe3
         {
             var dirPath = AppDomain.CurrentDomain.BaseDirectory + "/web/uploads/" + fileName;
             File.Delete(dirPath);
+            ControlSlideshow("CONTROL_FORWARD");
         }
 
 
