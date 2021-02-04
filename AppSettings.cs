@@ -45,6 +45,8 @@ namespace Dynaframe3
             ListenerPort = 8000;                  // Default port for the WebUI to listen on
             IsSyncEnabled = false;                // Sync with other frames off by default
 
+            IgnoreFolders = ".lrlibrary,.photoslibrary"; // TODO: Expose this in the Advanced UI
+
 
         }
 
@@ -188,6 +190,11 @@ namespace Dynaframe3
         /// List of ip addresses which are used to send remote commands to control clients
         /// </summary>
         public List<string> RemoteClients { get; set; }
+
+        /// <summary>
+        /// List of folders, comma seperated, to ignore looking in
+        /// </summary>
+        public string IgnoreFolders { get; set; }
 
     }
 }

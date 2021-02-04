@@ -32,6 +32,20 @@ namespace Dynaframe3
         {
             playListItems.Clear();
 
+            // Filter folders here. The IgnoreFolders appsetting allows folders to be entered to be ignored/added
+
+            string[] folders = new string[] { ""};
+            if (AppSettings.Default.IgnoreFolders.Length > 0)
+            {
+                folders = AppSettings.Default.IgnoreFolders.Split(",");
+            }
+
+            foreach (string folderException in folders)
+            {
+                Folders = Folders.Except(Folders.Where(f => new DirectoryInfo(f).Name.StartsWith(folderException))).ToList();
+            }
+
+
             foreach (string Folder in Folders)
             {
                 if (!Directory.Exists(Folder))
@@ -47,7 +61,8 @@ namespace Dynaframe3
                     // Filter here
                     // Filter 1: MAC Computers create files that end in .jpg that start with "._"
                     files = files.Except(files.Where(f => new FileInfo(f).Name.StartsWith("._")));
-
+                   
+                    files = files.Except(files.Where(f => new FileInfo(f).Name.StartsWith("._")));
                     foreach (string file in files)
                     {
                         PlayListItem item = new PlayListItem();
