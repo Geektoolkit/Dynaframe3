@@ -241,9 +241,6 @@ namespace Dynaframe3
             // case 5: just return something to show
             Logger.LogComment("SYNC: (case 5) - NO matches found for path, DirectoryName, Filename, continuing on with current playlist..returning" + CurrentPlayListItem.Path);
             return CurrentPlayListItem.Path;
-
-
-            return "";
         }
 
     }

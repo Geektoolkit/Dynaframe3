@@ -667,7 +667,7 @@ namespace Dynaframe3
             {
                 server = new SimpleHTTPServer(current + "//web", AppSettings.Default.ListenerPort);
             }
-            catch (Exception exc)
+            catch (Exception)
             {
                 // This can happen if the port is in use. Wittypi for instance uses 8000.  If this happens, message the user and try 5053 to try to reduce
                 // the chances of a collision....and to give them a chance to pick one of thier own.
