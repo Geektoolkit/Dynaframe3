@@ -47,6 +47,12 @@ namespace Dynaframe3
 
             IgnoreFolders = ".lrlibrary,.photoslibrary"; // TODO: Expose this in the Advanced UI
 
+            ScreenStatus = true;                  // Default for Screen On / Off function
+            ShowInfoDateTime = false;             // Show Date Time in Infobar On / Off function
+            ShowInfoFileName = false;             // Show Filename in Infobar On / Off function
+            ShowInfoIP = false;                   // Show IP in Infobar On / Off function
+            HideInfoBar = false;                  // Hide Infobar On / Off function
+            DynaframeIP = "0.0.0.0";              // Dynaframe IP Address 
 
         }
 
@@ -73,6 +79,12 @@ namespace Dynaframe3
                         _appSettings.SearchDirectories.Add(SpecialDirectories.MyPictures);
                         _appSettings.CurrentPlayList.Clear();
                         foreach (string dir in Directory.GetDirectories(SpecialDirectories.MyPictures))
+                        {
+                            _appSettings.CurrentPlayList.Add(dir);
+                        }
+                        string dirPath = AppDomain.CurrentDomain.BaseDirectory + "web/uploads/";
+                        _appSettings.SearchDirectories.Add(dirPath);
+                        foreach (string dir in Directory.GetDirectories(dirPath))
                         {
                             _appSettings.CurrentPlayList.Add(dir);
                         }
@@ -122,7 +134,7 @@ namespace Dynaframe3
         /// List of directories which should be scanned for pictures
         /// </summary>
         public List<String> SearchDirectories { get; set; }
-        
+
         public List<string> CurrentPlayList { get; set; }
 
         /// <summary>
@@ -186,6 +198,37 @@ namespace Dynaframe3
 
         // Sync Settings
         public bool IsSyncEnabled { get; set; }
+
+        /// <summary>
+        /// Default for Screen On / Off function for buttons
+        /// </summary>
+        public bool ScreenStatus { get; set; }
+
+        /// <summary>
+        /// Show Date Time On / Off function for buttons
+        /// </summary>
+        public bool ShowInfoDateTime { get; set; }
+
+        /// <summary>
+        /// Show Infobar Filename On / Off function for buttons
+        /// </summary>
+        public bool ShowInfoFileName { get; set; }
+
+        /// <summary>
+        /// Show Infobar IP Address On / Off function for buttons
+        /// </summary>
+        public bool ShowInfoIP { get; set; }
+
+        /// <summary>
+        /// Hide Infobar On / Off function for buttons
+        /// </summary>
+        public bool HideInfoBar { get; set; }
+
+        /// <summary>
+        /// Dynaframe Current IP
+        /// </summary>
+        public string DynaframeIP { get; set; }
+
         /// <summary>
         /// List of ip addresses which are used to send remote commands to control clients
         /// </summary>

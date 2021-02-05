@@ -138,9 +138,9 @@ internal class SimpleHTTPServer
     /// </summary>
     public void Stop()
     {
-         cts.Cancel();
-         _listener.Abort(); // try to forcefully shut down the listener
-         cts.Dispose();
+        cts.Cancel();
+        _listener.Abort(); // try to forcefully shut down the listener
+        cts.Dispose();
         _serverThread.Abort(); // PNE fires!
     }
 
@@ -168,6 +168,11 @@ internal class SimpleHTTPServer
     private void Process(HttpListenerContext context)
     {
 
+        // Track if we need to refresh the page. Set this to false
+        //bool ReloadSettings = false; appear to be removed from master
+        //bool ReloadDirectories = false; appear to be removed from master
+        bool ImageUploaded = true;
+
         // TODO: Clean this up. Need a consistent way to read in values
         // and cleanly set settings. For now having this ugly is a good
         // tradeoff to let me learn how to do it better in the future
@@ -188,7 +193,7 @@ internal class SimpleHTTPServer
 
             refreshDirectories += Helpers.SetBoolAppSetting(context.Request.QueryString.Get("Shuffle"), "Shuffle");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("syncenabled"), "IsSyncEnabled");
-            
+
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("VideoVolume"), "VideoVolume");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("ExpandDirectoriesByDefault"), "ExpandDirectoriesByDefault");
 
@@ -199,7 +204,24 @@ internal class SimpleHTTPServer
             // setup commands
             if (context.Request.QueryString.Get("COMMAND") != null)
             {
-                CommandProcessor.ProcessCommand(context.Request.QueryString.Get("COMMAND"));
+
+                //Upload Images
+                if (context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE")
+                {
+                    if (context.Request.ContentType != null)
+                    {
+                        ImageUploaded = CommandProcessor.SaveFile(context.Request.ContentEncoding, CommandProcessor.GetBoundary(context.Request.ContentType), context.Request.InputStream, context.Request.QueryString.Get("Extension"));
+                    }
+                }
+                else if (context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
+                {
+                    CommandProcessor.DeleteFile(context.Request.QueryString.Get("FILENAME"));
+                }
+                else
+                {
+                    CommandProcessor.ProcessCommand(context.Request.QueryString.Get("COMMAND"));
+                }
+
                 refreshSettings++; // Any commands should invoke a settings refresh
             }
 
@@ -216,7 +238,7 @@ internal class SimpleHTTPServer
                 {
                     AppSettings.Default.RemoteClients.Add(context.Request.QueryString.Get("ClientIP"));
                 }
-                
+
                 SyncedFrame.SyncEngine.AddFrame(ip);
                 Logger.LogComment("Added Frame to be Synced...");
             }
@@ -362,13 +384,24 @@ internal class SimpleHTTPServer
             }
             Logger.LogComment("SimpleHTTPServer: saving appsettings");
             AppSettings.Default.Save();
-            
+
         }
 
 
 
         // return the default page back:
-        GetDefaultPage();
+
+        if (context.Request.QueryString.Get("COMMAND") == "PAGE_UPLOADFILE" ||
+                context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE" ||
+                    context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
+        {
+            GetUploadPage(ImageUploaded);
+        }
+        else
+        {
+            GetDefaultPage();
+        }
+
 
         string filename = context.Request.Url.AbsolutePath;
         filename = filename.Substring(1);
@@ -388,7 +421,8 @@ internal class SimpleHTTPServer
 
         filename = Path.Combine(_rootDirectory, filename);
 
-        if (File.Exists(filename))
+        //need to change 2nd condition later, need a more appropriate condition
+        if (File.Exists(filename) && !filename.Contains("upload.htm"))
         {
             try
             {
@@ -420,6 +454,17 @@ internal class SimpleHTTPServer
         else
         {
             string response = GetDefaultPage();
+            if (context.Request.QueryString.Get("COMMAND") == "PAGE_UPLOADFILE" ||
+                  context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE" ||
+                    context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
+            {
+                response = GetUploadPage(ImageUploaded);
+            }
+            else
+            {
+                response = GetDefaultPage();
+            }
+
             byte[] buffer = Encoding.ASCII.GetBytes(response);
             context.Response.OutputStream.Write(buffer, 0, buffer.Length);
             context.Response.OutputStream.Flush();
@@ -439,6 +484,32 @@ internal class SimpleHTTPServer
         _serverThread.Start(cts.Token);
     }
 
+    public string GetUploadPage(bool ImageUploaded)
+    {
+        TextReader reader = File.OpenText("./web/upload.htm");
+        string page = reader.ReadToEnd();
+
+        page = page.Replace("<!--VERSIONSTRING-->", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+
+        var filePaths = Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory + "/web/uploads/");
+        StringBuilder tr = new StringBuilder();
+        foreach (string filePath in filePaths)
+        {
+            tr.Append("<tr><td><img class='myImg' src='/uploads/" + Path.GetFileName(filePath) + "' style='width:80%; max-width:175px; max-height:175px'></td><td><a class='' href='upload.htm?COMMAND=UTILITY_DELETEFILE&FILENAME=" + Path.GetFileName(filePath) + "'>Delete</a></td></tr>");
+        }
+
+        page = page.Replace("<!-- IMAGE TABLE BODY -->", tr.ToString());
+        if (ImageUploaded)
+        {
+            page = page.Replace("<!-- ImageDisplay -->", "none");
+        }
+        else
+        {
+            page = page.Replace("<!-- ImageDisplay -->", "block");
+        }
+        return page;
+    }
+
     public string GetDefaultPage()
     {
         try
@@ -453,7 +524,7 @@ internal class SimpleHTTPServer
             // the first level directory folders to act as playlists
 
             string dirChoices = "<br>";
-           
+
             foreach (string dir in AppSettings.Default.SearchDirectories)
             {
                 // Top level directory:
@@ -475,10 +546,10 @@ internal class SimpleHTTPServer
                     }
 
                     dirChoices += "<li class='subdirectory'><input type='checkbox' " +
-                        cbChecked + " class='directorycb' id='cbDirectory' name='cbDirectory' value='" + 
+                        cbChecked + " class='directorycb' id='cbDirectory' name='cbDirectory' value='" +
                         encdirectory + "'>" + subdirectory + "</li>";
                 }
-                dirChoices += "</ul></li>";
+                dirChoices += "</ul></li><br>";
             }
 
             dirChoices += "</li></div>";
@@ -486,7 +557,7 @@ internal class SimpleHTTPServer
             dirChoices += "<br><br><br><div class ='settings'><h4>Search Directories: </h4>";
             foreach (string directory in AppSettings.Default.SearchDirectories)
             {
-                dirChoices += directory + "&nbsp&nbsp&nbsp<a href=?rem=" + directory + " class='remove'>Remove</a><br>";
+                dirChoices += directory + "&nbsp&nbsp&nbsp<a class='remove' onclick='func2()' href=?rem=" + directory + ">Remove</a><br>";
             }
             dirChoices += "</div><br>";
 
@@ -500,7 +571,7 @@ internal class SimpleHTTPServer
                 clients += "<br>" + client;
             }
             page = page.Replace("<!--CurrentClients-->", clients);
-            
+
 
             // Generate custom settings here
             page = page.Replace("<!--INFOBARFONTSIZE-->", "value=" + AppSettings.Default.InfoBarFontSize.ToString() + ">");
@@ -626,7 +697,7 @@ internal class SimpleHTTPServer
             // Video Player Audio Settings
 
             string videoplayasaudiofriendly = AppSettings.Default.VideoVolume ? "On" : "Off";
-            page = page.Replace("<!--VIDEOPLAYAUDIOCURRENTSETTING-->",          "(Current value: " + videoplayasaudiofriendly + " )");
+            page = page.Replace("<!--VIDEOPLAYAUDIOCURRENTSETTING-->", "(Current value: " + videoplayasaudiofriendly + " )");
             switch (videoplayasaudiofriendly.ToString())
             {
                 case "On":
@@ -662,7 +733,7 @@ internal class SimpleHTTPServer
             // Tree View Settings
 
             string expandcollaspedfriendly = AppSettings.Default.ExpandDirectoriesByDefault ? "Expanded" : "Toggleable";
-            page = page.Replace("<!--TREEVIEWCURRENTSETTING-->",                "(Current value: " + expandcollaspedfriendly + " )");
+            page = page.Replace("<!--TREEVIEWCURRENTSETTING-->", "(Current value: " + expandcollaspedfriendly + " )");
             switch (expandcollaspedfriendly)
             {
                 case "Expanded":
@@ -688,7 +759,7 @@ internal class SimpleHTTPServer
             // Write JSON to hidden field, This should be done to a new URL file, but this works for me now. 
 
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(AppSettings.Default, Newtonsoft.Json.Formatting.Indented);
-          
+
 
 
             page = page.Replace("<!--JSONSettings-->", json);
@@ -696,7 +767,7 @@ internal class SimpleHTTPServer
             return page;
         }
         catch (Exception exc)
-        { 
+        {
             // If anything happens, we have to return some data so the user knows what is going on)
             return "Fatal Error! Excpetion occurred.  Info: " + exc.ToString();
         }

@@ -23,7 +23,7 @@ namespace Dynaframe3
                 // This fires when we call thread.abort. This is a hack until I know
                 // how to get the cancellation token to fire in the httplistener
                 // To quote Dr. Banner "Well this is horrible". I know.
-                throw new Exception("Thankyou for using Dynaframe!");
+                throw new Exception("Thank you for using Dynaframe!");
             }
             return 0;
         }
