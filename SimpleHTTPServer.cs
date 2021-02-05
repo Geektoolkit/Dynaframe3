@@ -167,10 +167,12 @@ internal class SimpleHTTPServer
 
     private void Process(HttpListenerContext context)
     {
+
         // Track if we need to refresh the page. Set this to false
-        bool ReloadSettings = false;
-        bool ReloadDirectories = false;
+        //bool ReloadSettings = false; appear to be removed from master
+        //bool ReloadDirectories = false; appear to be removed from master
         bool ImageUploaded = true;
+
         // TODO: Clean this up. Need a consistent way to read in values
         // and cleanly set settings. For now having this ugly is a good
         // tradeoff to let me learn how to do it better in the future
