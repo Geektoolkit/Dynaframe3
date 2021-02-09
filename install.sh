@@ -50,7 +50,7 @@ rm -rf /home/pi/Dynaframe/images
 echo -e "${GREEN}Installing a few tools before we begin (unclutter/unzip) ${NC}"
 sudo apt-get install unzip
 sudo apt-get install unclutter
-#mkdir -p  /home/pi/Dynaframe
+mkdir -p  /home/pi/Dynaframe
 cd Dynaframe
 
 sudo chmod 777 .
