@@ -50,9 +50,9 @@ namespace Dynaframe3
             ScreenStatus = true;                  // Default for Screen On / Off function
             ShowInfoDateTime = false;             // Show Date Time in Infobar On / Off function
             ShowInfoFileName = false;             // Show Filename in Infobar On / Off function
-            ShowInfoIP = false;                   // Show IP in Infobar On / Off function
+            ShowInfoIP = "false";                   // Show IP in Infobar On / Off function
             HideInfoBar = false;                  // Hide Infobar On / Off function
-            DynaframeIP = "0.0.0.0";              // Dynaframe IP Address 
+            DynaframeIP = Helpers.GetIP();              // Dynaframe IP Address 
 
         }
 
@@ -217,7 +217,7 @@ namespace Dynaframe3
         /// <summary>
         /// Show Infobar IP Address On / Off function for buttons
         /// </summary>
-        public bool ShowInfoIP { get; set; }
+        public string ShowInfoIP { get; set; }
 
         /// <summary>
         /// Hide Infobar On / Off function for buttons

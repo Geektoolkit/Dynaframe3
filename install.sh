@@ -31,14 +31,26 @@ fi
 
 echo "Cleaning up before we begin..."
 
+#cd /home/pi/
+#rm -rf /home/pi/Dynaframe
 cd /home/pi/
-rm -rf /home/pi/Dynaframe
 rm -rf /home/pi/.config/autostart/dynaframe.desktop
+cd /home/pi/
+rm /home/pi/Dynaframe/*.*
+rm /home/pi/Dynaframe/Dynaframe
+rm /home/pi/Dynaframe/createdump
+rm /home/pi/Dynaframe/web/*.*
+rm -rf /home/pi/Dynaframe/web/css
+rm -rf /home/pi/Dynaframe/web/js
+rm -rf /home/pi/Dynaframe/web/images
+rm -rf /home/pi/Dynaframe/images
+
+
 
 echo -e "${GREEN}Installing a few tools before we begin (unclutter/unzip) ${NC}"
 sudo apt-get install unzip
 sudo apt-get install unclutter
-mkdir -p  /home/pi/Dynaframe
+#mkdir -p  /home/pi/Dynaframe
 cd Dynaframe
 
 sudo chmod 777 .
@@ -56,7 +68,7 @@ else
 fi
 
 echo -e "${GREEN}Unzipping Dynaframe2.zip ${NC}"
-unzip Dynaframe2.zip
+unzip -u Dynaframe2.zip
 echo -e "${GREEN}Adding Execution Permissions to Dynaframe ${NC}"
 sudo chmod +x Dynaframe
 sudo chmod +x run.sh

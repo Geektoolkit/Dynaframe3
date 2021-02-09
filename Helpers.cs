@@ -71,6 +71,44 @@ namespace Dynaframe3
         }
 
         /// <summary>
+        /// Gets the ip address of the system (only IP, not whole string).
+        /// </summary>
+        /// <returns></returns>
+        public static string GetIP()
+        {
+            string returnval = "";
+
+            NetworkInterface[] nets = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
+            if (nets.Length > 0)
+            {
+                foreach (NetworkInterface net in nets)
+                {
+                    try
+                    {
+                        var addresses = net.GetIPProperties().UnicastAddresses;
+
+
+                        for (int i = 0; i < addresses.Count; i++)
+                        {
+                            string ip = addresses[i].Address.ToString();
+                            // Filter out IPV6, local, loopback, etc.
+
+
+                            if ((!ip.StartsWith("169.")) && (!ip.StartsWith("127.")) && (!ip.Contains("::")))
+                                returnval += ip + ":8000 ";
+                        }
+                    }
+                    catch (Exception exc)
+                    {
+                        Logger.LogComment("Exception in GetIPString() : " + exc.ToString());
+                    }
+                }
+            }
+            return returnval.Trim();
+
+        }
+
+        /// <summary>
         /// Runs a process and exits. If there is a failure or exception, returns false
         /// </summary>
         /// <param name="process">Process path and name</param>

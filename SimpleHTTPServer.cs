@@ -200,6 +200,7 @@ internal class SimpleHTTPServer
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFormat"), "DateTimeFormat");
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("VideoStretch"), "VideoStretch");
+            refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("ShowInfoIP"), "ShowInfoIP");
 
             // setup commands
             if (context.Request.QueryString.Get("COMMAND") != null)
@@ -557,7 +558,14 @@ internal class SimpleHTTPServer
             dirChoices += "<br><br><br><div class ='settings'><h4>Search Directories: </h4>";
             foreach (string directory in AppSettings.Default.SearchDirectories)
             {
-                dirChoices += directory + "&nbsp&nbsp&nbsp<a class='remove' onclick='func2()' href=?rem=" + directory + ">Remove</a><br>";
+                if (directory != AppDomain.CurrentDomain.BaseDirectory + "web/uploads/")
+                {
+                    dirChoices += directory + "      <br><a class='btn btn-danger btn-sm' href=?rem=" + directory + "#tab2>Remove</a><br>";
+                }
+                else
+                {
+                    dirChoices += directory + "      <br><button type='button' class='btn btn-danger btn-sm' disabled>Remove</button><br>";
+                }
             }
             dirChoices += "</div><br>";
 
@@ -580,6 +588,7 @@ internal class SimpleHTTPServer
             page = page.Replace("<!--IPADDRESSTIME-->", "value=" + AppSettings.Default.NumberOfSecondsToShowIP.ToString() + ">");
             page = page.Replace("<!--DATETIMEFORMAT-->", "value='" + AppSettings.Default.DateTimeFormat + "'>");
             page = page.Replace("<!--DATETIMEFONTFAMILY-->", "value='" + AppSettings.Default.DateTimeFontFamily + "'>");
+            page = page.Replace("<!--ShowInfoIP-->", "value='" + AppSettings.Default.ShowInfoIP + "'>");
 
             // Fill in info from the app here
             page = page.Replace("<!--VERSIONSTRING-->", Assembly.GetExecutingAssembly().GetName().Version.ToString());
