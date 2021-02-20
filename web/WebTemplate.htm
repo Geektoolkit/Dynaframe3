@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Dynaframe | <!--VERSIONSTRING--></title>
+	<title>PassTheFrane | <!--VERSIONSTRING--></title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="./css/style.css">
 	<link href="./css/bootstrap.min.css" rel="stylesheet">
@@ -14,7 +14,7 @@
 <header id="header">
 	<div class="logo" style="text-align:left;"><img src="images/logo.png" width="75" height="75" style="text-align:left;" /></div>
 	<nav class="title">
-		<h9>Dynaframe</h9>
+		<h9>PassTheFrame</h9>
 
 	</nav>
 
@@ -81,10 +81,10 @@
 				<p style="font-size: 32px;">Controls</p>
 				<fieldset>
 					<form>
+						<input type="hidden" name="Default" />
 						<legend>Frame Controls</legend>
 						<div class="d-grid gap-2 d-md-block">
-							<a class="btn btn-primary btn-lg" href="default.htm?COMMAND=SCREENOFF">Turn Screen Off</a>
-							<a class="btn btn-primary btn-lg" href="default.htm?COMMAND=SCREENON">Turn Screen On</a>
+							<!--TurnScreenOnOff-->
 							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=REBOOT">Reboot</a>
 							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=REBOOT">Shutdown</a>
 							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=EXITAPP">Exit Dynaframe</a>
@@ -92,10 +92,9 @@
 							<fieldset>
 								<legend>Infobar Settings</legend>
 								<div class="d-grid gap-2 d-md-block">
-									<a class="btn btn-primary btn-lg" href="default.htm?COMMAND=INFOBAR_DATETIME">Show Date & Time</a>
-									<a class="btn btn-primary btn-lg" href="default.htm?COMMAND=INFOBAR_FILENAME">Show Filename</a>
-									<a class="btn btn-primary btn-lg" href="default.htm?COMMAND=INFOBAR_IP">Show IP</a>
-									<a class="btn btn-primary btn-lg" href="default.htm?COMMAND=INFOBAR_HIDDEN">Hide Infobar</a>
+									<!--ShowInfoDateTime-->
+									<!--ShowInfoFileName-->
+									<!--ShowInfoIP-->
 									<br><br>
 									<fieldset>
 										<legend>Slide Controls</legend>
@@ -138,6 +137,7 @@
 							</div><br>
 							<div class="form-row">
 								<div class="d-grid gap-2 d-md-block">
+									<input type="hidden" name="PlaylistsPageTab2" />
 									<input type="submit" class="btn btn-primary btn-lg" onclick="func2()" value="Save" />
 								</div>
 					</form>
@@ -164,8 +164,9 @@
 										<br>
 										<div class="form-row">
 											<div class="d-grid gap-2 d-md-block">
+												<input type="hidden" name="SyncPageTab3" />
 												<input type="submit" class="btn btn-primary btn-lg" onclick="func3()" value="Update Sync Settings">
-												<a class="btn btn-warning btn-lg" onclick="func3()" href="default.htm?tab=SyncSettings&CLEARSYNCLIST=#tab3" style="height:45px">Clear list</a>
+												<a class="btn btn-warning btn-lg" onclick="func3()" href="default.htm?SyncPageTab3=test&tab=SyncSettings&CLEARSYNCLIST=#tab3" style="height:45px">Clear list</a>
 											</div><br>
 											<div class="form-row">
 												<div class="form-label"><span><b>Current Clients:</b></span></div>
@@ -284,8 +285,11 @@
 							</div>
 						</div>
 
-						<br><br><br>
 
+
+
+						<br><br><br>
+						<input type="hidden" name="SettingPageTab4" />
 						<div class="d-grid gap-2 d-md-block">
 							<input type="submit" class="btn btn-primary btn-lg" onclick="func4()" value="Save"
 						</div>
@@ -318,6 +322,20 @@
 					alert("Coming Soon!");
 
 				}
+				$(document).ready(function () {
+
+					if (window.location.search.length > 0) {
+						if (window.location.search.indexOf("SettingPageTab4") != -1) {
+							window.location.href = "default.htm?#tab4";
+						} else if (window.location.search.indexOf("SyncPageTab3") != -1) {
+							window.location.href = "default.htm?#tab3";
+						} else if (window.location.search.indexOf("PlaylistsPageTab2") != -1) {
+							window.location.href = "default.htm?#tab2";
+						} else if (window.location.search.indexOf("Default") != -1) {
+							window.location.href = "default.htm?";
+						}
+					}
+				});
 				window.addEventListener("load", function () {
 					var hash;
 					hash = window.location.hash;
@@ -328,6 +346,8 @@
 
 					}
 				});</script>
+
+
 
 </body>
 </html>

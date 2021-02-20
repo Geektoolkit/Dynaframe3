@@ -37,22 +37,25 @@ namespace Dynaframe3
         {
             switch (InfobarValue)
             {
-                case "INFOBAR_DATETIME":
+                case "INFOBAR_DATETIME_Off":
                     {
                         AppSettings.Default.InfoBarState = AppSettings.InfoBar.DateTime;
                         break;
                     }
-                case "INFOBAR_FILENAME":
+                case "INFOBAR_FILENAME_Off":
                     {
                         AppSettings.Default.InfoBarState = AppSettings.InfoBar.FileInfo;
                         break;
                     }
+                case "INFOBAR_DATETIME_On":
+                case "INFOBAR_FILENAME_On":
+                case "INFOBAR_IP_On":
                 case "INFOBAR_HIDDEN":
                     {
                         AppSettings.Default.InfoBarState = AppSettings.InfoBar.OFF;
                         break;
                     }
-                case "INFOBAR_IP":
+                case "INFOBAR_IP_Off":
                     {
                         AppSettings.Default.InfoBarState = AppSettings.InfoBar.IP;
                         break;
@@ -145,14 +148,17 @@ namespace Dynaframe3
                         TurnOnScreen();
                         break;
                     }
-                case "INFOBAR_DATETIME":
-                case "INFOBAR_FILENAME":
+                case "INFOBAR_DATETIME_Off":
+                case "INFOBAR_DATETIME_On":
+                case "INFOBAR_FILENAME_Off":
+                case "INFOBAR_FILENAME_On":
                 case "INFOBAR_HIDDEN":
                     {
                         SetInfoBar(command);
                         break;
                     }
-                case "INFOBAR_IP":
+                case "INFOBAR_IP_Off":
+                case "INFOBAR_IP_On":
                     {
                         SetInfoBar(command);
                         break;

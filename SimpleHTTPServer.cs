@@ -167,12 +167,10 @@ internal class SimpleHTTPServer
 
     private void Process(HttpListenerContext context)
     {
-
         // Track if we need to refresh the page. Set this to false
-        //bool ReloadSettings = false; appear to be removed from master
-        //bool ReloadDirectories = false; appear to be removed from master
+        bool ReloadSettings = false;
+        bool ReloadDirectories = false;
         bool ImageUploaded = true;
-
         // TODO: Clean this up. Need a consistent way to read in values
         // and cleanly set settings. For now having this ugly is a good
         // tradeoff to let me learn how to do it better in the future
@@ -205,6 +203,54 @@ internal class SimpleHTTPServer
             // setup commands
             if (context.Request.QueryString.Get("COMMAND") != null)
             {
+                if (context.Request.QueryString.Get("COMMAND") == "INFOBAR_DATETIME_On" || context.Request.QueryString.Get("COMMAND") == "INFOBAR_DATETIME_Off")
+                {
+                    if (context.Request.QueryString.Get("on") == "false")
+                    {
+                        refreshSettings += Helpers.SetBoolAppSetting("on", "ShowInfoDateTime");
+                        refreshSettings += Helpers.SetBoolAppSetting("off", "ShowInfoFileName");
+                        refreshSettings += Helpers.SetStringAppSetting("false", "ShowInfoIP");
+                    }
+                    else
+                    {
+                        refreshSettings += Helpers.SetBoolAppSetting("off", "ShowInfoDateTime");
+                    }
+                }
+                if (context.Request.QueryString.Get("COMMAND") == "INFOBAR_FILENAME_On" || context.Request.QueryString.Get("COMMAND") == "INFOBAR_FILENAME_Off")
+                {
+                    if (context.Request.QueryString.Get("on") == "false")
+                    {
+                        refreshSettings += Helpers.SetBoolAppSetting("on", "ShowInfoFileName");
+                        refreshSettings += Helpers.SetBoolAppSetting("off", "ShowInfoDateTime");
+                        refreshSettings += Helpers.SetStringAppSetting("false", "ShowInfoIP");
+                    }
+                    else
+                    {
+                        refreshSettings += Helpers.SetBoolAppSetting("off", "ShowInfoFileName");
+                    }
+                }
+                if (context.Request.QueryString.Get("COMMAND") == "INFOBAR_IP_On" || context.Request.QueryString.Get("COMMAND") == "INFOBAR_IP_Off")
+                {
+                    if (context.Request.QueryString.Get("on") == "false")
+                    {
+                        refreshSettings += Helpers.SetStringAppSetting("true", "ShowInfoIP");
+                        refreshSettings += Helpers.SetBoolAppSetting("off", "ShowInfoDateTime");
+                        refreshSettings += Helpers.SetBoolAppSetting("off", "ShowInfoFileName");
+                    }
+                    else
+                    {
+                        refreshSettings += Helpers.SetStringAppSetting("false", "ShowInfoIP");
+                    }
+                }
+
+                if (context.Request.QueryString.Get("COMMAND") == "SCREENON")
+                {
+                    refreshSettings += Helpers.SetBoolAppSetting("on", "ScreenStatus");
+                }
+                else if (context.Request.QueryString.Get("COMMAND") == "SCREENOFF")
+                {
+                    refreshSettings += Helpers.SetBoolAppSetting("off", "ScreenStatus");
+                }
 
                 //Upload Images
                 if (context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE")
@@ -588,7 +634,9 @@ internal class SimpleHTTPServer
             page = page.Replace("<!--IPADDRESSTIME-->", "value=" + AppSettings.Default.NumberOfSecondsToShowIP.ToString() + ">");
             page = page.Replace("<!--DATETIMEFORMAT-->", "value='" + AppSettings.Default.DateTimeFormat + "'>");
             page = page.Replace("<!--DATETIMEFONTFAMILY-->", "value='" + AppSettings.Default.DateTimeFontFamily + "'>");
-            page = page.Replace("<!--ShowInfoIP-->", "value='" + AppSettings.Default.ShowInfoIP + "'>");
+
+            //page = page.Replace("<!--ShowInfoIP-->", "value='" + AppSettings.Default.ShowInfoIP + "'>");
+
 
             // Fill in info from the app here
             page = page.Replace("<!--VERSIONSTRING-->", Assembly.GetExecutingAssembly().GetName().Version.ToString());
@@ -756,6 +804,41 @@ internal class SimpleHTTPServer
             }
 
 
+            // Control Button Control
+
+            if (AppSettings.Default.ShowInfoDateTime == true)
+            {
+                page = page.Replace("<!--ShowInfoDateTime-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=INFOBAR_DATETIME_On&on=true\">Hide Date & Time</a>");
+            }
+            else
+            {
+                page = page.Replace("<!--ShowInfoDateTime-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=INFOBAR_DATETIME_Off&on=false\">Show Date & Time</a>");
+            }
+            if (AppSettings.Default.ShowInfoFileName == true)
+            {
+                page = page.Replace("<!--ShowInfoFileName-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=INFOBAR_FILENAME_On&on=true\">Hide Filename</a>");
+            }
+            else
+            {
+                page = page.Replace("<!--ShowInfoFileName-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=INFOBAR_FILENAME_Off&on=false\">Show Filename</a>");
+            }
+            if (AppSettings.Default.ShowInfoIP == "true")
+            {
+                page = page.Replace("<!--ShowInfoIP-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=INFOBAR_IP_On&on=true\">Hide IP</a>");
+            }
+            else
+            {
+                page = page.Replace("<!--ShowInfoIP-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=INFOBAR_IP_Off&on=false\">Show IP</a>");
+            }
+
+            if (AppSettings.Default.ScreenStatus == true)
+            {
+                page = page.Replace("<!--TurnScreenOnOff-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=SCREENOFF \">Turn Screen Off</a>");
+            }
+            else
+            {
+                page = page.Replace("<!--TurnScreenOnOff-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=SCREENON \">Turn Screen On</a>");
+            }
 
 
             // Expand Directory
@@ -768,7 +851,6 @@ internal class SimpleHTTPServer
             // Write JSON to hidden field, This should be done to a new URL file, but this works for me now. 
 
             string json = Newtonsoft.Json.JsonConvert.SerializeObject(AppSettings.Default, Newtonsoft.Json.Formatting.Indented);
-
 
 
             page = page.Replace("<!--JSONSettings-->", json);
