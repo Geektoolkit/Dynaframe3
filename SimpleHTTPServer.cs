@@ -252,6 +252,18 @@ internal class SimpleHTTPServer
                     refreshSettings += Helpers.SetBoolAppSetting("off", "ScreenStatus");
                 }
 
+                
+
+                if (context.Request.QueryString.Get("COMMAND") == "CONTROL_PAUSE_On")
+                {
+                    refreshSettings += Helpers.SetBoolAppSetting("on", "SlideShowPaused");
+                }
+                else if (context.Request.QueryString.Get("COMMAND") == "CONTROL_PAUSE_Off")
+                {
+                    refreshSettings += Helpers.SetBoolAppSetting("off", "SlideShowPaused");
+                }
+
+
                 //Upload Images
                 if (context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE")
                 {
@@ -840,6 +852,14 @@ internal class SimpleHTTPServer
                 page = page.Replace("<!--TurnScreenOnOff-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=SCREENON \">Turn Screen On</a>");
             }
 
+            if (AppSettings.Default.SlideShowPaused == true)
+            {
+                page = page.Replace("<!--SlideShowOnOff-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=CONTROL_PAUSE_Off \">Paused</a>");
+            }
+            else
+            {
+                page = page.Replace("<!--SlideShowOnOff-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=CONTROL_PAUSE_On \">Playing</a>");
+            }
 
             // Expand Directory
 

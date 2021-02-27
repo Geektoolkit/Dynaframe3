@@ -95,7 +95,7 @@ namespace Dynaframe3
                         });
                         break;
                     }
-                case "CONTROL_PAUSE":
+                case "CONTROL_PAUSE_On":
                     {
                         Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                         {
@@ -103,6 +103,18 @@ namespace Dynaframe3
                         });
                         break;
                     }
+
+                case "CONTROL_PAUSE_Off":
+                    {
+                        Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            handleMainWindow.Pause();
+                        });
+                        break;
+                    }
+
+
+
                 case "CONTROL_FORWARD":
                     {
                         Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
@@ -165,7 +177,8 @@ namespace Dynaframe3
                     }
                 case "CONTROL_FIRST":
                 case "CONTROL_BACKWARD":
-                case "CONTROL_PAUSE":
+                case "CONTROL_PAUSE_On":
+                case "CONTROL_PAUSE_Off":
                 case "CONTROL_FORWARD":
                     {
                         ControlSlideshow(command);

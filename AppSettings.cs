@@ -50,9 +50,10 @@ namespace Dynaframe3
             ScreenStatus = true;                  // Default for Screen On / Off function
             ShowInfoDateTime = false;             // Show Date Time in Infobar On / Off function
             ShowInfoFileName = false;             // Show Filename in Infobar On / Off function
-            ShowInfoIP = "false";                   // Show IP in Infobar On / Off function
+            ShowInfoIP = "false";                 // Show IP in Infobar On / Off function
             HideInfoBar = false;                  // Hide Infobar On / Off function
-            DynaframeIP = Helpers.GetIP();              // Dynaframe IP Address 
+            DynaframeIP = Helpers.GetIP();        // Dynaframe IP Address
+            SlideShowPaused = false;              // Pause Slideshow on / off
 
         }
 
@@ -195,8 +196,7 @@ namespace Dynaframe3
         /// </summary>
         public int ListenerPort { get; set; }
 
-
-        // Sync Settings
+                // Sync Settings
         public bool IsSyncEnabled { get; set; }
 
         /// <summary>
@@ -230,6 +230,11 @@ namespace Dynaframe3
         public string DynaframeIP { get; set; }
 
         /// <summary>
+        /// On / Off for slideshow paused
+        /// </summary>
+        public bool SlideShowPaused { get; set; }
+
+        /// <summary>
         /// List of ip addresses which are used to send remote commands to control clients
         /// </summary>
         public List<string> RemoteClients { get; set; }
@@ -238,6 +243,5 @@ namespace Dynaframe3
         /// List of folders, comma seperated, to ignore looking in
         /// </summary>
         public string IgnoreFolders { get; set; }
-
     }
 }
