@@ -252,6 +252,29 @@ internal class SimpleHTTPServer
                     refreshSettings += Helpers.SetBoolAppSetting("off", "ScreenStatus");
                 }
 
+                
+
+                if (context.Request.QueryString.Get("COMMAND") == "CONTROL_PAUSE_On")
+                {
+                    refreshSettings += Helpers.SetBoolAppSetting("on", "SlideShowPaused");
+                }
+                else if (context.Request.QueryString.Get("COMMAND") == "CONTROL_PAUSE_Off")
+                {
+                    refreshSettings += Helpers.SetBoolAppSetting("off", "SlideShowPaused");
+                }
+
+
+
+                if (context.Request.QueryString.Get("COMMAND") == "SHUFFLE_On")
+                {
+                    refreshSettings += Helpers.SetBoolAppSetting("on", "Shuffle");
+                }
+                else if (context.Request.QueryString.Get("COMMAND") == "SHUFFLE_Off")
+                {
+                    refreshSettings += Helpers.SetBoolAppSetting("off", "Shuffle");
+                }
+
+
                 //Upload Images
                 if (context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE")
                 {
@@ -839,6 +862,25 @@ internal class SimpleHTTPServer
             {
                 page = page.Replace("<!--TurnScreenOnOff-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=SCREENON \">Turn Screen On</a>");
             }
+
+            if (AppSettings.Default.SlideShowPaused == true)
+            {
+                page = page.Replace("<!--SlideShowOnOff-->", "<a class=\"btn btn-danger btn-lg\"href=\"default.htm?COMMAND=CONTROL_PAUSE_Off \">Paused</a>");
+            }
+            else
+            {
+                page = page.Replace("<!--SlideShowOnOff-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=CONTROL_PAUSE_On \">Playing</a>");
+            }
+
+            if (AppSettings.Default.Shuffle == true)
+            {
+                page = page.Replace("<!--ShuffleOnOff-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=SHUFFLE_Off \">Shuffle On</a>");
+            }
+            else
+            {
+                page = page.Replace("<!--ShuffleOnOff-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=SHUFFLE_On \">Shuffle Off</a>");
+            }
+
 
 
             // Expand Directory
