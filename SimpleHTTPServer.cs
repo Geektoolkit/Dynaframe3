@@ -538,7 +538,7 @@ internal class SimpleHTTPServer
             }
             else if (context.Request.RawUrl == "/AppData.htm")
             {
-                response = GetAppDataPage();
+                response = GetAppDataPage(); 
             }
             else
             {
