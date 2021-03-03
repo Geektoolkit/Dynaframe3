@@ -467,6 +467,12 @@ internal class SimpleHTTPServer
         {
             GetUploadPage(ImageUploaded);
         }
+
+        else if (context.Request.RawUrl == "/AppData.htm")
+        {
+            GetAppDataPage();
+        }
+
         else
         {
             GetDefaultPage();
@@ -492,7 +498,7 @@ internal class SimpleHTTPServer
         filename = Path.Combine(_rootDirectory, filename);
 
         //need to change 2nd condition later, need a more appropriate condition
-        if (File.Exists(filename) && !filename.Contains("upload.htm"))
+        if (File.Exists(filename) && !filename.Contains("upload.htm") && context.Request.RawUrl != "/AppData.htm")
         {
             try
             {
@@ -529,6 +535,10 @@ internal class SimpleHTTPServer
                     context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
             {
                 response = GetUploadPage(ImageUploaded);
+            }
+            else if (context.Request.RawUrl == "/AppData.htm")
+            {
+                response = GetAppDataPage(); 
             }
             else
             {
@@ -579,6 +589,12 @@ internal class SimpleHTTPServer
         }
         return page;
     }
+
+    public string GetAppDataPage()
+    {
+        return Newtonsoft.Json.JsonConvert.SerializeObject(AppSettings.Default, Newtonsoft.Json.Formatting.Indented);
+    }
+
 
     public string GetDefaultPage()
     {
