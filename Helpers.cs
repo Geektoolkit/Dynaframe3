@@ -13,10 +13,12 @@ namespace Dynaframe3
     public static class Helpers
     {
         // Fisher Yates shuffle - source: https://stackoverflow.com/questions/273313/randomize-a-listt/4262134#4262134
+        // Modified on 3/11 based on A380Coding's feedback. Long lists aren't getting as well shuffled (thousands of images) towards the end with
+        // the original algo.
         public static IList<T> Shuffle<T>(this IList<T> list, Random rnd)
         {
             for (var i = list.Count; i > 0; i--)
-                list.Swap(0, rnd.Next(0, i));
+                list.Swap(i, rnd.Next(list.Count-1));
             return list;
         }
 
