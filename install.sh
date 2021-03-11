@@ -39,11 +39,13 @@ cd /home/pi/
 rm /home/pi/Dynaframe/*.*
 rm /home/pi/Dynaframe/Dynaframe
 rm /home/pi/Dynaframe/createdump
+rm -rf /home/pi/Dynaframe/web/ico
 rm /home/pi/Dynaframe/web/*.*
 rm -rf /home/pi/Dynaframe/web/css
 rm -rf /home/pi/Dynaframe/web/js
 rm -rf /home/pi/Dynaframe/web/images
 rm -rf /home/pi/Dynaframe/images
+
 
 
 
