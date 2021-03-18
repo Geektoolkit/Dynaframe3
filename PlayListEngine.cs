@@ -230,7 +230,7 @@ namespace Dynaframe3
             testpath = CurrentPlayListItems.Where(p => p.Path.ToUpper().Contains(new FileInfo(path).Directory.Name.ToUpper()) && new FileInfo(p.Path).Name.ToUpper() == new FileInfo(path).Name.ToUpper()).FirstOrDefault();
             if (testpath != null)
             {
-                Logger.LogComment("SYNC: (case 2) Folder/Filename found! Returning: " + testpath);
+                Logger.LogComment("SYNC: (case 2) Folder/Filename found! Returning: " + testpath.Path);
                 return testpath.Path;
             }
 
@@ -238,7 +238,7 @@ namespace Dynaframe3
             testpath = CurrentPlayListItems.Where(p => new FileInfo(p.Path).Name.ToUpper() == new FileInfo(path).Name.ToUpper()).FirstOrDefault();
             if (testpath != null)
             {
-                Logger.LogComment("SYNC: (case 3) Filename only found! Returning: " + testpath);
+                Logger.LogComment("SYNC: (case 3) Filename only found! Returning: " + testpath.Path);
                 return testpath.Path;
             }
 

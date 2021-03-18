@@ -17,7 +17,7 @@ namespace Dynaframe3
         // the original algo.
         public static IList<T> Shuffle<T>(this IList<T> list, Random rnd)
         {
-            for (var i = list.Count; i > 0; i--)
+            for (var i = list.Count-1; i > 0; i--)
                 list.Swap(i, rnd.Next(list.Count-1));
             return list;
         }
