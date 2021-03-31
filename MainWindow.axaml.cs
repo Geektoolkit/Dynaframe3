@@ -438,7 +438,7 @@ namespace Dynaframe3
                                 tb.Opacity = 1;
                                 FileInfo f = new FileInfo(playListEngine.CurrentPlayListItem.Path);
                                 string fData = f.Name;
-                                // IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(f.FullName);
+                                IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(f.FullName);
 
                                 tb.Text = f.Name;
                                 break;
@@ -481,10 +481,17 @@ namespace Dynaframe3
                 try
                 {
                     Logger.LogComment("Beginning to load next file: " + path);
-                    
-                    bitmapNew = new Bitmap(path);
 
-                    backImage.Source = bitmapNew;
+                    if (path.Contains(".gif"))
+                    {
+                       
+                        
+                    }
+                    else
+                    {
+                        bitmapNew = new Bitmap(path);
+                        backImage.Source = bitmapNew;
+                    }
                     backImage.Opacity = 1;
                     frontImage.Opacity = 0;
                     mainWindow.WindowState = WindowState.FullScreen;             

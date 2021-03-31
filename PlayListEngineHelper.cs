@@ -44,7 +44,7 @@ namespace Dynaframe3
         /// <returns></returns>
         public static string[] GetSupportedImageExtensions()
         {
-            return new string[] { ".JPG", ".JPEG", ".PNG", ".BMP" };
+            return new string[] { ".JPG", ".JPEG", ".JFIF", ".PNG", ".BMP",".GIF" };
         }
 
         /// <summary>

@@ -102,7 +102,7 @@
 						<div class="d-grid gap-2 d-md-block">
 							<!--TurnScreenOnOff-->
 							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=REBOOT">Reboot</a>
-							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=REBOOT">Shutdown</a>
+							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=SHUTDOWN">Shutdown</a>
 							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=EXITAPP">Exit Dynaframe</a>
 							<br><br>
 							<fieldset>
@@ -277,8 +277,8 @@
 						<div class="form-row">
 							<div class="form-label"><span><b>Play Audio with Video</b></span></div>
 							<div class="form-input">
-								<input type="radio" name="VideoVolume" value="on"  <!--VIDEOPLAYAUDIOON--> id="VideoVolume" /><label for="shuffle">On</label>
-								<input type="radio" name="VideoVolume" value="off" <!--VIDEOPLAYAUDIOOFF--> id="VideoVolume"/><label for="shuffle">Off</label>
+								<input type="radio" name="VideoVolume" value="on"  <!--VIDEOPLAYAUDIOON--> id="VideoVolume" /><label for="VideoVolume">On</label>
+								<input type="radio" name="VideoVolume" value="off" <!--VIDEOPLAYAUDIOOFF--> id="VideoVolume"/><label for="VideoVolume">Off</label>
 							</div>
 						</div>
 						<br>
@@ -290,7 +290,15 @@
 								<input type="radio" name="ExpandDirectoriesByDefault" value="off" <!--TREEVIEWOFF--> id="ExpandDirectoriesByDefault" /><label for="ExpandDirectoriesByDefault">Toggleable</label>
 							</div>
 						</div>
-
+						<br />
+						<!-- Logging Enable/Disable -->
+						<div class="form-row">
+							<div class="form-label"><span><b>Logging</b> Enable to help with debugging</span></div>
+							<div class="form-input">
+								<input type="radio" name="EnableLogging" value="on" <!--LOGGINGON--> id="EnableLogging" /><label for="AllowLogging">Enable</label>
+								<input type="radio" name="EnableLogging" value="off" <!--LOGGINGOFF--> id="EnableLogging" /><label for="AllowLogging">Disable</label>
+							</div>
+						</div>
 
 
 

@@ -16,11 +16,12 @@ namespace Dynaframe3
     /// </summary>
     public class AppSettings
     {
+        // marked as private to prevent outside classes from creating new.
         private AppSettings()
         {
             ReloadSettings = true;
             RefreshDirctories = true;
-            // marked as private to prevent outside classes from creating new.
+
             Shuffle = false;
             VideoVolume = false;
 
@@ -54,7 +55,7 @@ namespace Dynaframe3
             HideInfoBar = false;                  // Hide Infobar On / Off function
             DynaframeIP = Helpers.GetIP();        // Dynaframe IP Address
             SlideShowPaused = false;              // Pause Slideshow on / off
-
+            EnableLogging = true;                 // Enables logging...should be set to false by default at some point.
         }
 
         private static string _jsonSource;
@@ -243,5 +244,11 @@ namespace Dynaframe3
         /// List of folders, comma seperated, to ignore looking in
         /// </summary>
         public string IgnoreFolders { get; set; }
+
+        /// <summary>
+        /// Allows the enabling or disabling of logging. Defaulting to disabled, this can be turned on
+        /// to help troubleshoot issues.
+        /// </summary>
+        public bool EnableLogging { get; set; }
     }
 }

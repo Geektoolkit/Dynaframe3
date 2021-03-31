@@ -167,9 +167,6 @@ internal class SimpleHTTPServer
 
     private void Process(HttpListenerContext context)
     {
-        // Track if we need to refresh the page. Set this to false
-        bool ReloadSettings = false;
-        bool ReloadDirectories = false;
         bool ImageUploaded = true;
         // TODO: Clean this up. Need a consistent way to read in values
         // and cleanly set settings. For now having this ugly is a good
@@ -179,6 +176,12 @@ internal class SimpleHTTPServer
         {
             int refreshDirectories = 0; // track if a directory change is made. 0 = no change.
             int refreshSettings = 0;    // track i fa setting change is made. 0 = no change.
+
+            if (context.Request.QueryString.Get("debug") != null)
+            {
+                
+                return;
+            }
 
             Logger.LogComment("SIMPLEHTTPSERVER: Checking query string for values to edit..");
             // Set in App Settings takes the querystring and the Appsettings.Default value name
@@ -194,6 +197,7 @@ internal class SimpleHTTPServer
 
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("VideoVolume"), "VideoVolume");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("ExpandDirectoriesByDefault"), "ExpandDirectoriesByDefault");
+            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("EnableLogging"), "EnableLogging");
 
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFormat"), "DateTimeFormat");
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
@@ -472,7 +476,6 @@ internal class SimpleHTTPServer
         {
             GetAppDataPage();
         }
-
         else
         {
             GetDefaultPage();
@@ -498,7 +501,7 @@ internal class SimpleHTTPServer
         filename = Path.Combine(_rootDirectory, filename);
 
         //need to change 2nd condition later, need a more appropriate condition
-        if (File.Exists(filename) && !filename.Contains("upload.htm") && context.Request.RawUrl != "/AppData.htm")
+        if (File.Exists(filename) && !filename.Contains("upload.htm") && context.Request.RawUrl != "/AppData.htm" && context.Request.RawUrl != "/Log.htm" && context.Request.RawUrl !="/ico/favicon-32x32.png")
         {
             try
             {
@@ -538,7 +541,11 @@ internal class SimpleHTTPServer
             }
             else if (context.Request.RawUrl == "/AppData.htm")
             {
-                response = GetAppDataPage(); 
+                response = GetAppDataPage();
+            }
+            else if (context.Request.RawUrl == "/Log.htm")
+            {
+                response = GetLogPage();
             }
             else
             {
@@ -588,6 +595,23 @@ internal class SimpleHTTPServer
             page = page.Replace("<!-- ImageDisplay -->", "block");
         }
         return page;
+    }
+
+    /// <summary>
+    /// Returns a 'hidden' page to enable easy viewing of the log file
+    /// </summary>
+    /// <returns></returns>
+    public string GetLogPage()
+    {
+        TextReader reader = File.OpenText("./web/Log.htm");
+        string page = reader.ReadToEnd();
+
+        page = page.Replace("<!--VERSIONSTRING-->", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+
+        page = page.Replace("<!--LOG-->", Logger.GetLogAsHTML());
+
+        return page;
+         
     }
 
     public string GetAppDataPage()
@@ -823,9 +847,6 @@ internal class SimpleHTTPServer
                     break;
             }
 
-
-
-
             // Tree View Settings
 
             string expandcollaspedfriendly = AppSettings.Default.ExpandDirectoriesByDefault ? "Expanded" : "Toggleable";
@@ -841,6 +862,21 @@ internal class SimpleHTTPServer
                     page = page.Replace("<!--TREEVIEWON-->", "");
                     break;
             }
+
+            // Logging on/off Settings
+            string loggingenabledfriendly = AppSettings.Default.EnableLogging ? "Enable" : "Disable";
+            switch (loggingenabledfriendly)
+            {
+                case "Enable":
+                    page = page.Replace("<!--LOGGINGON-->", "checked");
+                    page = page.Replace("<!--LOGGINGONOFF-->", "");
+                    break;
+                case "Disable":
+                    page = page.Replace("<!--LOGGINGOFF-->", "checked");
+                    page = page.Replace("<!--LOGGINGON-->", "");
+                    break;
+            }
+
 
 
             // Control Button Control
@@ -896,7 +932,6 @@ internal class SimpleHTTPServer
             {
                 page = page.Replace("<!--ShuffleOnOff-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=SHUFFLE_On \">Shuffle Off</a>");
             }
-
 
 
             // Expand Directory

@@ -7,15 +7,46 @@ namespace Dynaframe3
 {
     static public class Logger
     {
+
+        public static List<string> memoryLog = new List<string>();
+        static int MaxLogLength = 1000; // arbitrary for now
+
         static public void LogComment(string comment)
         {
-            string date = DateTime.Now.ToString("g");
-            string logComment = date + ":" + comment;
+            // Note: Appsettings determins if this actually logs or not. Defaults to 'off'.
+            if (AppSettings.Default.EnableLogging)
+            {
+                string date = DateTime.Now.ToString("g");
+                string logComment = date + ":" + comment;
 
-            Console.WriteLine(logComment);
+                Console.WriteLine(logComment);
+                Debug.WriteLine(logComment);
+                memoryLog.Add(logComment);
+                if (memoryLog.Count > 1000)
+                {
+                    memoryLog.RemoveRange(0, memoryLog.Count - MaxLogLength);
+                }
+            }
 
-            Debug.WriteLine(logComment);
+        }
+        /// <summary>
+        /// Returns the log in a webpage friendly format. We can add color syntax in the future using this.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetLogAsHTML()
+        {
+            // if disabled help the user out
+            if (!AppSettings.Default.EnableLogging)
+            {
+                return "Logging is currently disabled! Please enable logging to continue...";
+            }
 
+            string returnVal = "";
+            foreach (string str in memoryLog)
+            {
+                returnVal += str + "\r\n";
+            }
+            return returnVal;
         }
     }
 }

@@ -191,7 +191,7 @@ namespace Dynaframe3
                     }
                 case "SHUTDOWN":
                     {
-                        Helpers.RunProcess("shutdown", "");
+                        Helpers.RunProcess("shutdown", "now");
                         break;
                     }
                 case "EXITAPP":
