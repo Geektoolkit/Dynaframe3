@@ -1,0 +1,3 @@
+[submodule "external/avaloniagif"]
+	path = external/avaloniagif
+	url = https://github.com/jmacato/AvaloniaGif
