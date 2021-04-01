@@ -42,9 +42,9 @@ namespace Dynaframe3
             }
 
             string returnVal = "";
-            foreach (string str in memoryLog)
+            for(int i = memoryLog.Count -1; i > 0; i--)
             {
-                returnVal += str + "\r\n";
+                returnVal += memoryLog[i] + "\r\n";
             }
             return returnVal;
         }

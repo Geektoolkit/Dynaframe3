@@ -119,6 +119,7 @@ namespace Dynaframe3
             }
 
             Logger.LogComment("New List generated! Contains: " + CurrentPlayListItems.Count + " items. Shuffle setting is: " + AppSettings.Default.Shuffle);
+
             // extra logging for now 
             Logger.LogComment("----------------------Begin Playlist Dump----------------");
             try

@@ -630,7 +630,7 @@ namespace Dynaframe3
                     catch (Exception exc)
                     {
                         Debug.WriteLine("Tried and failed to kill video process..." + exc.ToString());
-                        Logger.LogComment("Tried and failed to kill video process. Excpetion: " + exc.ToString());
+                        Logger.LogComment("Tried and failed to kill video process. Exception: " + exc.ToString());
                     }
                 }
 
@@ -638,8 +638,9 @@ namespace Dynaframe3
                 {
                     // OMXPlayer processes can be a bit tricky. to kill them we use
                     // killall - 9 omxplayer.bin
+                    // -q quiets this down in case omxplayer isn't running
 
-                    Helpers.RunProcess("killall", "-9 omxplayer.bin");
+                    Helpers.RunProcess("killall", "-q -9 omxplayer.bin");
                     videoProcess = null;
 
                 }
