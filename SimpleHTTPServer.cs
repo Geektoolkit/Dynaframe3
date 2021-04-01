@@ -869,7 +869,7 @@ internal class SimpleHTTPServer
             {
                 case "Enable":
                     page = page.Replace("<!--LOGGINGON-->", "checked");
-                    page = page.Replace("<!--LOGGINGONOFF-->", "");
+                    page = page.Replace("<!--LOGGINGOFF-->", "");
                     break;
                 case "Disable":
                     page = page.Replace("<!--LOGGINGOFF-->", "checked");
