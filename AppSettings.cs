@@ -39,6 +39,7 @@ namespace Dynaframe3
 
             InfoBarFontSize = 50;
             SlideshowTransitionTime = 30000;      // milliseconds between slides
+            DisableSlideshowDurationVideo = false;// Disable the slideshow duration for videos
             FadeTransitionTime = 1600;            // milliseconds for fades
             ImageStretch = Stretch.UniformToFill; // Default image stretch
             VideoStretch = "Fill";                // Used for OMXPlayer
@@ -90,7 +91,6 @@ namespace Dynaframe3
                         {
                             _appSettings.CurrentPlayList.Add(dir);
                         }
-
                     }
                 }
 
@@ -156,6 +156,8 @@ namespace Dynaframe3
         /// Time to show each slide
         /// </summary>
         public int SlideshowTransitionTime { get; set; }
+
+        public bool DisableSlideshowDurationVideo { get; set; }
 
         public string DateTimeFormat { get; set; }
         // Font used for the clock/infobar

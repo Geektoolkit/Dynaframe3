@@ -211,6 +211,7 @@ namespace Dynaframe3
             Logger.LogComment("Current App Settings");
             Logger.LogComment("FadeTransition: " + AppSettings.Default.FadeTransitionTime);
             Logger.LogComment("SlideshowTransitionTime: " + AppSettings.Default.SlideshowTransitionTime);
+            Logger.LogComment("DisableSlideshowDurationVideo: " + AppSettings.Default.DisableSlideshowDurationVideo);
             Logger.LogComment("FontSize: " + AppSettings.Default.InfoBarFontSize);
             Logger.LogComment("FontFamily: " + AppSettings.Default.DateTimeFontFamily);
             Logger.LogComment("DateTimeFormat: " + AppSettings.Default.DateTimeFormat);

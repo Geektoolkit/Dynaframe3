@@ -93,9 +93,13 @@ internal class SimpleHTTPServer
         #endregion
     };
     private Thread _serverThread;
+
     private string _rootDirectory;
+    
     private HttpListener _listener;
+    
     private int _port;
+    
     private CancellationTokenSource cts;
 
     public int Port
@@ -191,14 +195,14 @@ internal class SimpleHTTPServer
             refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("ipaddresstime"), "NumberOfSecondsToShowIP");
             refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("transitiontime"), "FadeTransitionTime");
 
-
             refreshDirectories += Helpers.SetBoolAppSetting(context.Request.QueryString.Get("Shuffle"), "Shuffle");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("syncenabled"), "IsSyncEnabled");
 
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("VideoVolume"), "VideoVolume");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("ExpandDirectoriesByDefault"), "ExpandDirectoriesByDefault");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("EnableLogging"), "EnableLogging");
-
+            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("DisableSlideshowDurationVideo"), "DisableSlideshowDurationVideo");
+            
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFormat"), "DateTimeFormat");
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("VideoStretch"), "VideoStretch");
@@ -461,8 +465,6 @@ internal class SimpleHTTPServer
 
         }
 
-
-
         // return the default page back:
 
         if (context.Request.QueryString.Get("COMMAND") == "PAGE_UPLOADFILE" ||
@@ -689,7 +691,6 @@ internal class SimpleHTTPServer
             }
             page = page.Replace("<!--CurrentClients-->", clients);
 
-
             // Generate custom settings here
             page = page.Replace("<!--INFOBARFONTSIZE-->", "value=" + AppSettings.Default.InfoBarFontSize.ToString() + ">");
             page = page.Replace("<!--SLIDESHOWDURATION-->", "value=" + AppSettings.Default.SlideshowTransitionTime.ToString() + ">");
@@ -877,10 +878,21 @@ internal class SimpleHTTPServer
                     break;
             }
 
-
+            // Set the disable slideshow duration for video setting
+            string disableSlideShowDuration = AppSettings.Default.DisableSlideshowDurationVideo ? "Enable" : "Disable";
+            switch (disableSlideShowDuration)
+            {
+                case "Enable":
+                    page = page.Replace("<!--SLIDESHOWFORVIDEOOFF-->", "checked");
+                    page = page.Replace("<!--SLIDESHOWFORVIDEOON-->", "");
+                    break;
+                case "Disable":
+                    page = page.Replace("<!--SLIDESHOWFORVIDEOON-->", "checked");
+                    page = page.Replace("<!--SLIDESHOWFORVIDEOOFF-->", "");
+                    break;
+            }
 
             // Control Button Control
-
             if (AppSettings.Default.ShowInfoDateTime == true)
             {
                 page = page.Replace("<!--ShowInfoDateTime-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=INFOBAR_DATETIME_On&on=true\">Hide Date & Time</a>");

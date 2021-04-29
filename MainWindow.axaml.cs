@@ -39,6 +39,9 @@ namespace Dynaframe3
         Panel mainPanel;
         Process videoProcess; // handle to the video Player
 
+        private TagLib.File videoFileMetaData;
+        private DateTime? videoTimeStarted;
+
         // Engines
         internal PlayListEngine playListEngine;
 
@@ -57,9 +60,10 @@ namespace Dynaframe3
         // Track state of the engine. Lastupdated we set back in time so that the first
         // frame fires as soon as it can.
         DateTime lastUpdated = DateTime.Now.Subtract(TimeSpan.FromDays(1976));
-        DateTime timeStarted = DateTime.Now;
-        public bool IsPaused = false;
 
+        DateTime timeStarted = DateTime.Now;
+
+        public bool IsPaused = false;
 
         Transform rotationTransform;
 
@@ -87,7 +91,6 @@ namespace Dynaframe3
             DoubleTransition panelTransition = new DoubleTransition();
             panelTransition.Duration = TimeSpan.FromMilliseconds(1200);
             panelTransition.Property = Panel.OpacityProperty;
-
 
             fadeTransition = new DoubleTransition();
             fadeTransition.Easing = new QuadraticEaseIn();
@@ -156,15 +159,12 @@ namespace Dynaframe3
             slideTimer.Start();
             Timer_Tick(null, null);
             Logger.LogComment("Initialized");
-
-
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
         {
             ((ClassicDesktopStyleApplicationLifetime)Avalonia.Application.Current.ApplicationLifetime).Shutdown(0);
         }
-
 
         public void GoToNextImage()
         {
@@ -174,6 +174,7 @@ namespace Dynaframe3
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
+
         public void GoToPreviousImage()
         {
             tb.Transitions.Clear();
@@ -182,6 +183,7 @@ namespace Dynaframe3
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
+
         public void GoToFirstImage()
         {
             tb.Transitions.Clear();
@@ -191,6 +193,7 @@ namespace Dynaframe3
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
+
         public void Pause()
         {
             if (IsPaused)
@@ -316,6 +319,15 @@ namespace Dynaframe3
             }
 
             UpdateInfoBar();
+
+            // As long as this counts do not go to the next PlayListItem
+            if (playListEngine.CurrentPlayListItem?.ItemType == PlayListItemType.Video
+                && AppSettings.Default.DisableSlideshowDurationVideo
+                && IsVideoFileStillRunning()
+            )
+            {
+                return;
+            }
 
             //
             //  This is the main check for if we need to switch frames. First we check to see if the 
@@ -540,6 +552,7 @@ namespace Dynaframe3
                 backImage.Opacity = 0;
             });
         }
+
         private void PlayVideoFile(string path)
         {
             Logger.LogComment("Entering PlayVideoFile");
@@ -578,6 +591,11 @@ namespace Dynaframe3
             videoProcess.StartInfo = pInfo;
             Logger.LogComment("Starting player...");
             videoProcess.Start();
+            
+            // Create the meta data object for the video file
+            videoFileMetaData = TagLib.File.Create(path);
+            videoTimeStarted = DateTime.Now;
+            
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 mainPanel.Opacity = 0;
@@ -602,8 +620,8 @@ namespace Dynaframe3
                     // TODO: Add a setting for this
                     break;
                 }
-               
             }
+
             Logger.LogComment("Video has exited!");
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -622,6 +640,7 @@ namespace Dynaframe3
                     {
                         videoProcess.CloseMainWindow();
                         videoProcess = null;
+                        this.videoFileMetaData.Dispose();
                     }
                     catch (InvalidOperationException)
                     {
@@ -642,17 +661,16 @@ namespace Dynaframe3
 
                     Helpers.RunProcess("killall", "-q -9 omxplayer.bin");
                     videoProcess = null;
-
                 }
                 else
                 {
-                    videoProcess.Close();
-                    videoProcess.Dispose();
+                    videoProcess?.Close();
+                    videoProcess?.Dispose();
                     videoProcess = null;
                 }
             }
             catch (Exception)
-            { 
+            {
                 // Swallow. This may no longer be there depending on what kills it (OMX player will exit if the video
                 // completes for instance
             }
@@ -667,7 +685,8 @@ namespace Dynaframe3
             Logger.LogComment("GetFiles called!");
             playListEngine.GetPlayListItems();
             return true;
-        }   
+        }
+
         public void SetupWebServer()
         {
             string current = System.IO.Directory.GetCurrentDirectory();
@@ -746,7 +765,17 @@ namespace Dynaframe3
             mainPanel.RenderTransform = rotationTransform;
             mainWindow.InvalidateMeasure();
             AppSettings.Default.OXMOrientnation = "--orientation " + degrees.ToString();
+        }
 
+        private bool IsVideoFileStillRunning()
+        {
+            if (!videoTimeStarted.HasValue || videoFileMetaData == null)
+            {
+                // Currently there is no video running
+                return false;
+            }
+
+            return DateTime.Now.Subtract(videoTimeStarted.Value).TotalMilliseconds < videoFileMetaData.Properties.Duration.TotalMilliseconds;
         }
     }
 }

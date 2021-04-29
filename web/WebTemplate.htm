@@ -211,6 +211,12 @@
 							<div class="form-input"><input type="text" name="slideshowduration" placeholder="30000" <!--SLIDESHOWDURATION--></div>
 						</div>
 						<br>
+						<div class="form-input">
+							<div class="form-label"><span><b>Play videos without slideshow duration between slides</b></span></div>
+							<input type="radio" name="DisableSlideshowDurationVideo" value="on" <!--SLIDESHOWFORVIDEOOFF--> id="DisableSlideshowDurationVideo" /><label for="DisableSlideShow">Enable</label>
+							<input type="radio" name="DisableSlideshowDurationVideo" value="off" <!--SLIDESHOWFORVIDEOON--> id="DisableSlideshowDurationVideo" /><label for="DisableSlideShow">Disable</label>
+						</div>
+						<br>
 						<div class="form-row">
 							<div class="form-label"><span><b>Transition duration during fades </b>(ms)</span></div>
 							<div class="form-input"><input type="text" name="transitiontime" placeholder="1600" <!--TRANSITIONTIME--></div>
@@ -222,8 +228,6 @@
 							<div class="form-input"><input type="text" name="ipaddresstime" placeholder="15" <!--IPADDRESSTIME--></div>
 						</div>
 						<br>
-
-
 						<div class="form-row">
 							<div class="form-label"><span><b>Date & Time Format</b><a href="https://www.c-sharpcorner.com/blogs/date-and-time-format-in-c-sharp-programming1" target="_blank">(examples here)</a></span></div>
 							<div class="form-input"><input type="text" name="DateTimeFormat" width="300" placeholder="H:mm tt" <!--DATETIMEFORMAT--></div>
@@ -305,7 +309,7 @@
 						<br><br><br>
 						<input type="hidden" name="SettingPageTab4" />
 						<div class="d-grid gap-2 d-md-block">
-							<input type="submit" class="btn btn-primary btn-lg" onclick="func4()" value="Save"
+							<input type="submit" class="btn btn-primary btn-lg" onclick="func4()" value="Save" />
 						</div>
 					</form>
 				</div>
