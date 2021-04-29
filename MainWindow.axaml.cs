@@ -638,9 +638,11 @@ namespace Dynaframe3
                 {
                     try
                     {
+                        videoFileMetaData.Dispose();
+                        videoFileMetaData = null;
+                        videoTimeStarted = null;
                         videoProcess.CloseMainWindow();
                         videoProcess = null;
-                        this.videoFileMetaData.Dispose();
                     }
                     catch (InvalidOperationException)
                     {
