@@ -258,7 +258,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="extensions\" />
     <Folder Include="web\images\" />
     <Folder Include="web\css\" />
     <Folder Include="web\js\" />
