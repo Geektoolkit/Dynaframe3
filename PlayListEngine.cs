@@ -21,16 +21,16 @@ namespace Dynaframe3
         /// This is the current playlist which is being shown/used
         /// </summary>
         public List<PlayListItem> CurrentPlayListItems { get; set; }
-        List<PlayListItem> playListItems;
+        //List<PlayListItem> playListItems;
 
         public PlayListEngine()
         {
             CurrentPlayListItems = new List<PlayListItem>();
-            playListItems = new List<PlayListItem>();
         }
-        public List<PlayListItem> GetPlayListItems(List<string> Folders, SearchOption searchOptions)
+        public void GetPlayListItems(List<string> Folders, SearchOption searchOptions)
         {
-            playListItems.Clear();
+            // Temp list to hold items from this call that are retrieved from folders...
+            List<PlayListItem> playListItems = new List<PlayListItem>();
 
             // Filter folders here. The IgnoreFolders appsetting allows folders to be entered to be ignored/added
 
@@ -40,12 +40,13 @@ namespace Dynaframe3
                 folders = AppSettings.Default.IgnoreFolders.Split(",");
             }
 
+            // First remove ignore folders from Folders array which is passed in
             foreach (string folderException in folders)
             {
                 Folders = Folders.Except(Folders.Where(f => new DirectoryInfo(f).Name.StartsWith(folderException))).ToList();
             }
 
-
+            // Now go through each folder and fill playlist items with items from them
             foreach (string Folder in Folders)
             {
                 if (!Directory.Exists(Folder))
@@ -81,34 +82,39 @@ namespace Dynaframe3
 
             CurrentPlayListItems.AddRange(playListItems);
 
-            if (CurrentPlayListItems.Count > 0)
-            {
-                CurrentPlayListItem = CurrentPlayListItems.First();
-            }
-
-            return playListItems;
         }
 
         /// <summary>
         /// Overload to simplify the API, uses the default 'current playlist' from settings
         /// </summary>
         /// <returns></returns>
-        public List<PlayListItem> GetPlayListItems()
+        public void GetPlayListItems()
         {
             // Logic notes:
             // 1) SearchDirectories tracks the top level directories
             // 2) Appsettings.default.currentplaylist tracks subdirectories under top level
+            // This calls GetPlaylistItems(overloads) which
+            //  - Creates a temp list of items
+            //  - goes through a passed in folder list
+            //  - adds files from each folder to the temp playlist
+            //  - adds the temp playlist to the main playlist called "CurrentplaylistItems"
+
+            Logger.LogComment("GetPlayListItems: Clearing item list..");
             CurrentPlayListItems.Clear();
-            List<PlayListItem> items = GetPlayListItems(AppSettings.Default.CurrentPlayList, SearchOption.AllDirectories)
-                .Concat(GetPlayListItems(AppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly)).ToList();
+
+            Logger.LogComment("GetPlayListItems: Getting playlist Items...");
+            GetPlayListItems(AppSettings.Default.CurrentPlayList, SearchOption.AllDirectories);
+            GetPlayListItems(AppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly);
 
             if (AppSettings.Default.Shuffle)
             {
                 Random r = new Random((int)DateTime.Now.Ticks);
+                Logger.LogComment("GetPlayListItems: Shuffle is on...shuffling items....");
                 CurrentPlayListItems = Helpers.Shuffle<PlayListItem>(CurrentPlayListItems, r).ToList();
             }
             else
             {
+                Logger.LogComment("GetPlayListItems: Shuffle is off. Sorting items...");
                 // Sort the list here:
                 CurrentPlayListItems.Sort((y, z) => new FileInfo(y.Path).Name.CompareTo(new FileInfo(z.Path).Name));
 
@@ -117,8 +123,6 @@ namespace Dynaframe3
 
 
             }
-
-            Logger.LogComment("New List generated! Contains: " + CurrentPlayListItems.Count + " items. Shuffle setting is: " + AppSettings.Default.Shuffle);
 
             // extra logging for now 
             Logger.LogComment("----------------------Begin Playlist Dump----------------");
@@ -132,11 +136,10 @@ namespace Dynaframe3
             catch (Exception)
             {
                 // Collection was modified, basically timing issue. ignore.
+                Logger.LogComment("GetPlayListItems: timing issue caught...list modified while enumerating through it...");
             }
 
             Logger.LogComment("------------------- END PLAYLIST DUMP-------------------");
-
-            return items;
 
         }
 
@@ -145,7 +148,14 @@ namespace Dynaframe3
         /// </summary>
         public void GoToNext()
         {
+            // Note: This method has given me alot of grief, so there is extensive logging
+            // to assist in debugging.  If we ever 'hang' hopefully this method can tell us why since
+            // it is so critical to the frame moving forward to the next image.
+
+            Logger.LogComment("GoToNext: called");
+
             int index = CurrentPlayListItems.IndexOf(CurrentPlayListItem);
+
             PlayListItem instructions = new PlayListItem() { ItemType = PlayListItemType.Image, Path = Environment.CurrentDirectory + "/images/Instructions.png" };
 
 
@@ -153,17 +163,23 @@ namespace Dynaframe3
             {
                 Logger.LogComment("ERROR: GoToNext was unable to find current item in playlist!");
                 GetPlayListItems();  // TODO: Investigate if this is a terrible idea...
+                index = 0;
             }
+            
+            Logger.LogComment("GoToNext: Current Index Value is: " + index);
+
             // If at the end of the list...return the first one
             if (index == CurrentPlayListItems.Count - 1)
             {
                 Logger.LogComment("Reached end of the list! (or no items found)");
                 GetPlayListItems(); // refresh the list. This will help with shuffled lists possibly. May make this a setting.
-                if (playListItems.Count == 0)
+                if (CurrentPlayListItems.Count == 0)
                 {
+                    Logger.LogComment("GoToNext: No images found...so going to show instructions...");
                     CurrentPlayListItems.Add(instructions);
                 }
                 CurrentPlayListItem = CurrentPlayListItems.First();
+                Logger.LogComment("GoToNext: CurrentPlayListItem is: " + CurrentPlayListItem.Path);
             }
             else
             {
@@ -171,7 +187,11 @@ namespace Dynaframe3
                 {
                     CurrentPlayListItems.RemoveAll(f=> f.Path == instructions.Path);
                 }
-                CurrentPlayListItem = CurrentPlayListItems[index + 1];
+                index++;
+                Logger.LogComment("GoToNext: Valid Playlist seems to be detected...Loading next item at index: " + index);
+
+                CurrentPlayListItem = CurrentPlayListItems[index];
+                Logger.LogComment("GoToNext: Next Playlist Item will be: " + CurrentPlayListItem.Path);
             }
         }
 
@@ -207,6 +227,7 @@ namespace Dynaframe3
         /// <returns>a full path to a file</returns>
         public string ConvertFileNameToLocal(string path)
         {
+            Logger.LogComment("ConvertFileNameToLocal (For frame syncing) Entering. Path passed in was: " + path);
             // Note: Path is from a remote machine
             // Formula is:
             // 1) If an exact match is found..return that.

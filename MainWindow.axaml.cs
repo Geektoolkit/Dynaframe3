@@ -26,6 +26,7 @@ using Microsoft.VisualBasic.FileIO;
 using System.Collections.Generic;
 using SkiaSharp;
 using MetadataExtractor;
+using Avalonia.Rendering.SceneGraph;
 
 namespace Dynaframe3
 {
@@ -52,7 +53,7 @@ namespace Dynaframe3
         /// </summary>
         // Timer which controls 'slides'
         // set to a low number to force a quick 'first slide' to appear
-        System.Timers.Timer slideTimer = new System.Timers.Timer(500);
+        System.Timers.Timer slideTimer = new System.Timers.Timer { AutoReset = false, Interval = 500 };
 
         // Track state of the engine. Lastupdated we set back in time so that the first
         // frame fires as soon as it can.
@@ -284,35 +285,59 @@ namespace Dynaframe3
         {
             if (IsPaused)
             {
+                Logger.LogComment("Timer_Tick: Currently paused..Updating the infobar...");
                 UpdateInfoBar();
                 // Note: Do not stop the timer...we need it to 'recheck'
+                slideTimer.Start();
                 return;
             }
 
             if (AppSettings.Default.ReloadSettings)
             {
-                slideTimer.Stop();
-                Logger.LogComment("Reload settings was true");
-                AppSettings.Default.ReloadSettings = false;
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                try
                 {
-                    RefreshSettings();
-                });
-                slideTimer.Start();
+                    Logger.LogComment("Timer_Tick: Reload settings was true... loading settings");
+                    AppSettings.Default.ReloadSettings = false;
+                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        RefreshSettings();
+                    });
+                }
+                catch (Exception exc)
+                {
+                    Logger.LogComment("Timer_Tick: Exception reloading settings..." + exc.ToString());
+                }
+
             }
 
             // Check to see if the directories flag was modified
             if (AppSettings.Default.RefreshDirctories)
             {
-                slideTimer.Stop();
-                Logger.LogComment("Refresh Directories was true");
-                AppSettings.Default.RefreshDirctories = false;
-                Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                try
                 {
+
+                    Logger.LogComment("Timer_Tick: Refresh Directories was true. Updating..");
+                    //
+                    // HACKHACK: We have to wait here while the filelist updates..if we move on we end up in a bad
+                    // timing mess...the UI thread will try to continue with the file list being incorrect.
+                    // 
+                    //
+                    AppSettings.Default.RefreshDirctories = false;
+                    System.Threading.Thread.Sleep(5000);
                     GetFiles();
-                });
+                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        Logger.LogComment("Timer_Tick: GetFiles is called. Should update next image...");
+                        
+                    });
+                }
+                catch (Exception exc)
+                {
+                    Logger.LogComment("Exception refreshing directories! " + exc.ToString());
+                }
                 lastUpdated = lastUpdated.Subtract(TimeSpan.FromMilliseconds(AppSettings.Default.SlideshowTransitionTime));
-                slideTimer.Start();
+                Logger.LogComment("Timer_Tick: Exiting Refreshing Directories");
+
             }
 
             UpdateInfoBar();
@@ -325,11 +350,9 @@ namespace Dynaframe3
             //
             if ((DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime))
             {
-                slideTimer.Stop(); // Stop the timer so we don't collide withourself while we process getting an image to display...
                 lastUpdated = DateTime.Now;
                 playListEngine.GoToNext();
                 Logger.LogComment("Next file is: " + playListEngine.CurrentPlayListItem.Path);
-                slideTimer.Start();
 
                 // sync frame call
                 if ((AppSettings.Default.IsSyncEnabled) &&(SyncedFrame.SyncEngine.syncedFrames.Count > 0))
@@ -373,6 +396,8 @@ namespace Dynaframe3
                     Logger.LogComment("ERROR: Exception processing file.." + exc.ToString());
                 }
             }
+            slideTimer.Start(); // start next iterations...this prevents reentry...
+
         }
         public void PlayFile(string path)
         {
@@ -492,6 +517,7 @@ namespace Dynaframe3
                         bitmapNew = new Bitmap(path);
                         backImage.Source = bitmapNew;
                     }
+                    Logger.LogComment("PlayImageFile: fading in bottom image....");
                     backImage.Opacity = 1;
                     frontImage.Opacity = 0;
                     mainWindow.WindowState = WindowState.FullScreen;             
@@ -500,7 +526,7 @@ namespace Dynaframe3
                 }
                 catch (Exception exc)
                 {
-                    Logger.LogComment("ERROR: Exception: " + exc.ToString());
+                    Logger.LogComment("PlayImageFile ERROR! - Exception: " + exc.ToString());
                     // We couldn't find a file...try a directory refresh to 
                     // try to heal things. this could be a network share
                     // dropped offline, a thumbdrive got removed, or a file
@@ -509,6 +535,7 @@ namespace Dynaframe3
                     // an image, then just move on so we don't reset the playlist.
                     if (!File.Exists(path))
                     {
+                        Logger.LogComment("PlayImageFile (ERRORPATH) - Calling Refresh Directories...");
                         AppSettings.Default.RefreshDirctories = true;
                     }
                 }
@@ -520,7 +547,7 @@ namespace Dynaframe3
                 Thread.Sleep(AppSettings.Default.FadeTransitionTime);
             }
 
-
+            Logger.LogComment("PlayImageFile: fading out top image.");
             // At this point the 'bottom' image is opaque showing the new image
             // We set the top to that image, and fade it in
             // we temporarily clear the transiton out so it's instant
@@ -539,10 +566,11 @@ namespace Dynaframe3
                 }
                 backImage.Opacity = 0;
             });
+            Logger.LogComment("PlayImageFile: imageSwap Complete.");
         }
         private void PlayVideoFile(string path)
         {
-            Logger.LogComment("Entering PlayVideoFile");
+            Logger.LogComment("Entering PlayVideoFile with Path: " + path);
             ProcessStartInfo pInfo = new ProcessStartInfo();
             pInfo.WindowStyle = ProcessWindowStyle.Maximized;
 
@@ -570,13 +598,13 @@ namespace Dynaframe3
                 pInfo.FileName = "wmplayer.exe";
                 pInfo.Arguments = "\"" + path + "\"";
                 pInfo.Arguments += " /fullscreen";
-                Console.WriteLine("Looking for media in: " + pInfo.Arguments);
+                Logger.LogComment("Looking for media in: " + pInfo.Arguments);
             }
 
 
             videoProcess = new Process();
             videoProcess.StartInfo = pInfo;
-            Logger.LogComment("Starting player...");
+            Logger.LogComment("PlayVideoFile: Starting player...");
             videoProcess.Start();
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -585,13 +613,14 @@ namespace Dynaframe3
            
             // Give video player time to start, then fade out to reveal it...
             System.Threading.Thread.Sleep(1100);
+            Logger.LogComment("PlayVideoFile: Fading Foreground to reveal video player.");
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 mainWindow.Opacity = 0;
             });
 
             int timer = 0;
-            Logger.LogComment("Entering Timerloop");
+            Logger.LogComment("PlayVideoFile: Entering Timerloop");
             while ((videoProcess != null) && (!videoProcess.HasExited))
             {
                 timer += 1;
@@ -604,7 +633,7 @@ namespace Dynaframe3
                 }
                
             }
-            Logger.LogComment("Video has exited!");
+            Logger.LogComment("PlayVideoFile: Video has exited!");
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
                 mainPanel.Opacity = 1;
@@ -614,6 +643,7 @@ namespace Dynaframe3
 
         private void KillVideoPlayer()
         {
+            Logger.LogComment("KillVideoPlayer - Entering Method.");
             try
             {
                 if (videoProcess != null)
@@ -664,7 +694,7 @@ namespace Dynaframe3
         /// <returns></returns>
         private bool GetFiles()
         {
-            Logger.LogComment("GetFiles called!");
+            Logger.LogComment("GetFiles(): Calling playlistEngine.GetPlayListItems()");
             playListEngine.GetPlayListItems();
             return true;
         }   
@@ -674,6 +704,7 @@ namespace Dynaframe3
             try
             {
                 server = new SimpleHTTPServer(current + "//web", AppSettings.Default.ListenerPort);
+                Logger.LogComment("SetupWebServer: Successfully setup webserver on default port :" + AppSettings.Default.ListenerPort);
             }
             catch (Exception)
             {

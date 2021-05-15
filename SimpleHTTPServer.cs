@@ -14,6 +14,7 @@ using Microsoft.VisualBasic.FileIO;
 using Dynaframe3;
 using System.Runtime.InteropServices;
 using System.Reflection;
+using System.Web;
 
 internal class SimpleHTTPServer
 {
@@ -141,7 +142,7 @@ internal class SimpleHTTPServer
         cts.Cancel();
         _listener.Abort(); // try to forcefully shut down the listener
         cts.Dispose();
-        _serverThread.Abort(); // PNE fires!
+         //_serverThread.Abort(); // PNE fires!  // .net 5.0 this may no longer be necessary
     }
 
     private void Listen(object obj)
@@ -183,7 +184,11 @@ internal class SimpleHTTPServer
                 return;
             }
 
+            Logger.LogComment("*************************************************************");
+            Logger.LogComment("SIMPLEHTTPSERVER: Incoming Web Request...");
             Logger.LogComment("SIMPLEHTTPSERVER: Checking query string for values to edit..");
+            Logger.LogComment("Requested URL is: " + context.Request.RawUrl);
+            Logger.LogComment("*************************************************************");
             // Set in App Settings takes the querystring and the Appsettings.Default value name
             refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("rotation"), "Rotation");
             refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("infobarfontsize"), "InfoBarFontSize");
@@ -290,6 +295,13 @@ internal class SimpleHTTPServer
                 else if (context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
                 {
                     CommandProcessor.DeleteFile(context.Request.QueryString.Get("FILENAME"));
+                }
+                else if (context.Request.QueryString.Get("COMMAND") == "REBOOT")
+                {
+                    // If we don't redirect them away, then they'll keep rebooting...
+                    context.Response.Redirect("http://" + Helpers.GetIP() + ":8000");
+                    System.Threading.Thread.Sleep(1000);
+                    CommandProcessor.ProcessCommand(context.Request.QueryString.Get("COMMAND"));
                 }
                 else
                 {
@@ -415,7 +427,7 @@ internal class SimpleHTTPServer
 
 
             string directoryToAdd = context.Request.QueryString.Get("directoryAdd");
-            if (directoryToAdd != null)
+            if (!String.IsNullOrEmpty(directoryToAdd))
             {
                 // We use search directories to add things like NAS drives and usb drives to the system.
                 // This checks to make sure it exists when they're adding it, and that it isn't already in the list..
@@ -431,7 +443,7 @@ internal class SimpleHTTPServer
             string subdirectorytoadd = context.Request.QueryString.Get("cbDirectory");
             if (subdirectorytoadd != null)
             {
-                Logger.LogComment("SIMPLEHTTPSERVER: Adding directory: " + subdirectorytoadd);
+                Logger.LogComment("SIMPLEHTTPSERVER: Adding directory: " + HttpUtility.HtmlDecode(subdirectorytoadd));
                 AppSettings.Default.CurrentPlayList.Clear();
                 // We use search directories to add things like NAS drives and usb drives to the system.
                 // This checks to make sure it exists when they're adding it, and that it isn't already in the list..
@@ -448,6 +460,9 @@ internal class SimpleHTTPServer
 
             }
             #endregion
+
+            Logger.LogComment("Processed web request. Refreshdirectories Value was: " + refreshDirectories);
+            Logger.LogComment("Processed web request. RefreshSettings Value is: " + refreshSettings);
             if (refreshDirectories > 0)
             {
                 AppSettings.Default.RefreshDirctories = true;

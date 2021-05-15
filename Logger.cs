@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.Collections.Specialized;
 
 namespace Dynaframe3
 {
@@ -42,11 +43,19 @@ namespace Dynaframe3
             }
 
             string returnVal = "";
-            for(int i = memoryLog.Count -1; i > 0; i--)
+            for (int i = memoryLog.Count - 1; i > 0; i--)
             {
                 returnVal += memoryLog[i] + "\r\n";
             }
             return returnVal;
+        }
+
+        public static void LogNameValueCollection(NameValueCollection collection)
+        {
+            for (int i = 0; i < collection.Count; i++)
+            {
+                LogComment("Key: " + collection.Keys[i] + " Value: " + collection.GetValues(i).ToString());
+            }
         }
     }
 }
