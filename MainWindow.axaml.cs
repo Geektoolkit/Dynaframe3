@@ -93,7 +93,7 @@ namespace Dynaframe3
             fadeTransition = new DoubleTransition();
             fadeTransition.Easing = new QuadraticEaseIn();
             fadeTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
-            fadeTransition.Property = Image.OpacityProperty;
+            fadeTransition.Property = UserControl.OpacityProperty;
 
             mainWindow = this.FindControl<Window>("mainWindow");
             mainWindow.Transitions = new Transitions();
@@ -144,7 +144,7 @@ namespace Dynaframe3
             DoubleTransition transition2 = new DoubleTransition();
             transition2.Easing = new QuadraticEaseIn();
             transition2.Duration = TimeSpan.FromMilliseconds(1600);
-            transition2.Property = BlurBoxImage.OpacityProperty;
+            transition2.Property = UserControl.OpacityProperty;
 
             frontImage.Transitions = new Transitions();
             frontImage.Transitions.Add(fadeTransition);
