@@ -16,6 +16,8 @@ namespace Dynaframe3
     public partial class BlurBoxImage : UserControl
     {
         public string imagePath = "";
+        public Stretch Stretch = Stretch.None;
+
         public BlurBoxImage()
         {
             InitializeComponent();
@@ -35,16 +37,18 @@ namespace Dynaframe3
         class CustomDrawOp : ICustomDrawOperation
         {
             private readonly FormattedText _noSkia;
-            public SKBitmap bitmap1 = null;
-            public SKBitmap bitmap2 = null;
-            public SKBitmap temp = null;
+            public SKBitmap sourceBitmap = null;
+            public SKBitmap blurredbitmap = null;
+            public SKBitmap scaledBitmap = null;
             public string imagePath = "";
+            public Stretch imageStretch;
 
-            public CustomDrawOp(Rect bounds, FormattedText noSkia, string imagePath)
+            public CustomDrawOp(Rect bounds, FormattedText noSkia, string imagePath, Stretch imageStretch)
             {
                 _noSkia = noSkia;
                 Bounds = bounds;
                 this.imagePath = imagePath;
+                this.imageStretch = imageStretch;
             }
 
             public void Dispose()
@@ -59,15 +63,74 @@ namespace Dynaframe3
             public void Render(IDrawingContextImpl context)
             {
                 SKImageInfo info = new SKImageInfo((int)Bounds.Width, (int)Bounds.Height);
+
                 SKPaint paint = new SKPaint();
 
-                if (bitmap1 == null)
+                if (sourceBitmap == null)
                 {
-                    bitmap1 = SKBitmap.Decode(imagePath);
-                    bitmap2 = SKBitmap.Decode(imagePath);
-                    temp = new SKBitmap(info);
-
+                    sourceBitmap = SKBitmap.Decode(imagePath);
+                    blurredbitmap = new SKBitmap(info);
                 }
+
+
+                // Calculate stretch
+                SKImageInfo stretchInfo;
+
+                switch (imageStretch)
+                {
+                    case Stretch.None:
+                        {
+                            stretchInfo = new SKImageInfo(sourceBitmap.Width, sourceBitmap.Height);
+                            break;
+                        }
+                    case Stretch.Fill:
+                        {
+                            stretchInfo = new SKImageInfo((int)Bounds.Width, (int)Bounds.Height);
+                            break;
+                        }
+                    case Stretch.Uniform:
+                        {
+                            float scaleFactor = 1;
+ 
+                            scaleFactor = (float)(Bounds.Height / sourceBitmap.Height);
+                            if (sourceBitmap.Width * scaleFactor <= Bounds.Width)
+                            {
+                                stretchInfo = new SKImageInfo((int)(scaleFactor * sourceBitmap.Width), (int)(scaleFactor * sourceBitmap.Height));
+                            }
+                            else
+                            {
+                                scaleFactor = (float)(Bounds.Width / sourceBitmap.Width);
+                                stretchInfo = new SKImageInfo((int)(scaleFactor * sourceBitmap.Width), (int)(scaleFactor * sourceBitmap.Height));
+                            }
+
+                            break;
+                        }
+                    case Stretch.UniformToFill:
+                        {
+                            float scaleFactor = 1;
+                            scaleFactor = (float)(Bounds.Height / sourceBitmap.Height);
+                            if (sourceBitmap.Width * scaleFactor > Bounds.Width)
+                            {
+                                stretchInfo = new SKImageInfo((int)(scaleFactor * sourceBitmap.Width), (int)(scaleFactor * sourceBitmap.Height));
+                            }
+                            else
+                            {
+                                scaleFactor = (float)(Bounds.Width / sourceBitmap.Width);
+                                stretchInfo = new SKImageInfo((int)(scaleFactor * sourceBitmap.Width), (int)(scaleFactor * sourceBitmap.Height));
+                            }
+                            break;
+                        }
+                    default:
+                        {
+                            stretchInfo = new SKImageInfo(sourceBitmap.Width, sourceBitmap.Height);
+                            break;
+                        }
+                }
+                if (scaledBitmap == null)
+                {
+                    scaledBitmap = new SKBitmap(stretchInfo);
+                }
+
                 var canvas = (context as ISkiaDrawingContextImpl)?.SkCanvas;
                 if (canvas == null)
                     context.DrawText(Brushes.Black, new Point(), _noSkia.PlatformImpl);
@@ -75,18 +138,23 @@ namespace Dynaframe3
                 {
 
                     canvas.Clear();
-                    float x = (float)(Bounds.Width - bitmap2.Width) / 2;
-                    float y = (float)(Bounds.Height - bitmap2.Height) / 2;
+
+                    // Get Center Coordinates
+                    float x = (float)(Bounds.Width - scaledBitmap.Width) / 2;
+                    float y = (float)(Bounds.Height - scaledBitmap.Height) / 2;
 
 
+                    // scale blur
+                    sourceBitmap.ScalePixels(blurredbitmap, SKFilterQuality.High);
 
-                    bitmap2.ScalePixels(temp, SKFilterQuality.High);
+                    // scale main image
+                    sourceBitmap.ScalePixels(scaledBitmap, SKFilterQuality.High);
 
                     // blur temp
                     paint.ImageFilter = SKImageFilter.CreateBlur(40, 40);
 
-                    canvas.DrawBitmap(temp, 0, 0, paint);
-                    canvas.DrawBitmap(bitmap2, x, y);
+                    canvas.DrawBitmap(blurredbitmap, 0, 0, paint);
+                    canvas.DrawBitmap(scaledBitmap, x, y);
                 }
             }
             static int Animate(int d, int from, int to)
@@ -101,7 +169,10 @@ namespace Dynaframe3
             {
                 Text = "Current rendering API is not Skia"
             };
-            context.Custom(new CustomDrawOp(new Rect(0, 0, Bounds.Width, Bounds.Height), noSkia, imagePath));
+            context.Custom(new CustomDrawOp(new Rect(0, 0, Bounds.Width, Bounds.Height), noSkia, imagePath, Stretch));
+
+
+
             Dispatcher.UIThread.InvokeAsync(InvalidateVisual, DispatcherPriority.Background);
         }
 

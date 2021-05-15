@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:custom="using:Dynaframe3"
         mc:Ignorable="d"
         x:Class="Dynaframe3.MainWindow"
         TransparencyLevelHint="Transparent"
@@ -9,8 +10,8 @@
         Name="mainWindow"
         >
   <Panel Name="mainPanel">
-    <Image Name="Back"   Opacity="0"/>
-    <Image Name="Front"  Opacity="1"/>
+    <custom:BlurBoxImage Name="Back"   Opacity="0"/>
+    <custom:BlurBoxImage Name="Front"  Opacity="1"/>
     <!-- Future work-->
     <!--Panel Name="SubPanel" Height="60"  VerticalAlignment="Bottom"  HorizontalAlignment="Left" Margin="30" Width="200">
       <Rectangle Fill="Black" Opacity=".2" Height="30"></Rectangle -->

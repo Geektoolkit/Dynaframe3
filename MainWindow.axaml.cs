@@ -32,8 +32,8 @@ namespace Dynaframe3
 {
     public class MainWindow : Window
     {
-        Image frontImage;
-        Image backImage;
+        BlurBoxImage frontImage;
+        BlurBoxImage backImage;
         TextBlock tb;
         Bitmap bitmapNew;
         Window mainWindow;
@@ -121,8 +121,8 @@ namespace Dynaframe3
             tb.Transitions.Add(fadeTransition);
             tb.Padding = new Thickness(30);
 
-            frontImage = this.FindControl<Image>("Front");
-            backImage = this.FindControl<Image>("Back");
+            frontImage = this.FindControl<BlurBoxImage>("Front");
+            backImage = this.FindControl<BlurBoxImage>("Back");
 
             string intro;
             if ((AppSettings.Default.Rotation == 0) || AppSettings.Default.Rotation == 180)
@@ -136,7 +136,7 @@ namespace Dynaframe3
 
             bitmapNew = new Bitmap(intro);
 
-            frontImage.Source = bitmapNew;
+            frontImage.imagePath = intro;
 
             frontImage.Stretch = AppSettings.Default.ImageStretch;
             backImage.Stretch = AppSettings.Default.ImageStretch;
@@ -144,7 +144,7 @@ namespace Dynaframe3
             DoubleTransition transition2 = new DoubleTransition();
             transition2.Easing = new QuadraticEaseIn();
             transition2.Duration = TimeSpan.FromMilliseconds(1600);
-            transition2.Property = Image.OpacityProperty;
+            transition2.Property = BlurBoxImage.OpacityProperty;
 
             frontImage.Transitions = new Transitions();
             frontImage.Transitions.Add(fadeTransition);
@@ -515,7 +515,7 @@ namespace Dynaframe3
                     else
                     {
                         bitmapNew = new Bitmap(path);
-                        backImage.Source = bitmapNew;
+                        backImage.imagePath = path;
                     }
                     Logger.LogComment("PlayImageFile: fading in bottom image....");
                     backImage.Opacity = 1;
@@ -556,7 +556,7 @@ namespace Dynaframe3
                 try
                 {
                     frontImage.Transitions.Clear();
-                    frontImage.Source = backImage.Source;
+                    frontImage.imagePath = backImage.imagePath;
                     frontImage.Opacity = 1;
                     frontImage.Transitions.Add(fadeTransition);
                 }
