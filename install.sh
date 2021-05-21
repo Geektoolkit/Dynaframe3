@@ -11,7 +11,7 @@ echo "Version is: $version"
 if [ -z "$1" ]
 then
   echo -e  "${CYAN}No version passed in...using default${NC}"
-  version="2.19"
+  version="2.21"
 fi
 
 

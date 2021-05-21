@@ -1,5 +1,8 @@
-﻿using System;
+﻿using MetadataExtractor;
+using MetadataExtractor.Formats.Exif;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -49,7 +52,7 @@ namespace Dynaframe3
             // Now go through each folder and fill playlist items with items from them
             foreach (string Folder in Folders)
             {
-                if (!Directory.Exists(Folder))
+                if (!System.IO.Directory.Exists(Folder))
                 {
                     Logger.LogComment("ERROR: Selected Playlist Folder Missing: " + Folder);
                     continue;
@@ -126,11 +129,24 @@ namespace Dynaframe3
 
             // extra logging for now 
             Logger.LogComment("----------------------Begin Playlist Dump----------------");
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             try
             {
                 for (int i = 0; i < CurrentPlayListItems.Count; i++)
                 {
                     Logger.LogComment(CurrentPlayListItems[i].ItemType + ":" + CurrentPlayListItems[i].Path);
+                    if (CurrentPlayListItem.ItemType == PlayListItemType.Image)
+                    {
+                        IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(CurrentPlayListItem.Path);
+                        var subIfdDirectory = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
+                        var dateTime = subIfdDirectory?.GetDescription(ExifDirectoryBase.TagDateTimeOriginal);
+                        if (dateTime != null)
+                        {
+                            Logger.LogComment("Datetime: Datetime: " + dateTime);
+                        }
+
+                    }
                 }
             }
             catch (Exception)
@@ -138,9 +154,10 @@ namespace Dynaframe3
                 // Collection was modified, basically timing issue. ignore.
                 Logger.LogComment("GetPlayListItems: timing issue caught...list modified while enumerating through it...");
             }
-
-            Logger.LogComment("------------------- END PLAYLIST DUMP-------------------");
-
+            sw.Stop();
+           
+            Logger.LogComment("------------------- END PLAYLIST DUMP  Took: " + sw.ElapsedMilliseconds + " ms.  -----------------");
+            
         }
 
         /// <summary>
@@ -167,17 +184,20 @@ namespace Dynaframe3
             }
             
             Logger.LogComment("GoToNext: Current Index Value is: " + index);
+            Logger.LogComment("CurrentPlayListItem Count is: " + CurrentPlayListItems.Count);
 
-            // If at the end of the list...return the first one
-            if (index == CurrentPlayListItems.Count - 1)
+            if (CurrentPlayListItems.Count == 0)
             {
+                Logger.LogComment("GoToNext: No images found...so going to show instructions...");
+                CurrentPlayListItems.Add(instructions);
+                CurrentPlayListItem = CurrentPlayListItems.First();
+                index = 0;
+            }
+            else if (index == CurrentPlayListItems.Count - 1) 
+            {
+                // If at the end of the list...return the first one
                 Logger.LogComment("Reached end of the list! (or no items found)");
                 GetPlayListItems(); // refresh the list. This will help with shuffled lists possibly. May make this a setting.
-                if (CurrentPlayListItems.Count == 0)
-                {
-                    Logger.LogComment("GoToNext: No images found...so going to show instructions...");
-                    CurrentPlayListItems.Add(instructions);
-                }
                 CurrentPlayListItem = CurrentPlayListItems.First();
                 Logger.LogComment("GoToNext: CurrentPlayListItem is: " + CurrentPlayListItem.Path);
             }

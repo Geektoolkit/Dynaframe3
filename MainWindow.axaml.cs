@@ -27,25 +27,20 @@ using System.Collections.Generic;
 using SkiaSharp;
 using MetadataExtractor;
 using Avalonia.Rendering.SceneGraph;
+using Dynaframe3.TransitionTypes;
 
 namespace Dynaframe3
 {
     public class MainWindow : Window
     {
-        BlurBoxImage frontImage;
-        BlurBoxImage backImage;
+        CrossFadeTransition crossFadeTransition;
         TextBlock tb;
-        Bitmap bitmapNew;
         Window mainWindow;
         Panel mainPanel;
         Process videoProcess; // handle to the video Player
 
         // Engines
         internal PlayListEngine playListEngine;
-
-        // Transitions used for animating the fades
-        DoubleTransition fadeTransition;
-
         internal SimpleHTTPServer server;
 
         /// <summary>
@@ -61,6 +56,8 @@ namespace Dynaframe3
         DateTime timeStarted = DateTime.Now;
         public bool IsPaused = false;
 
+        // used for fading in/out fronttext
+        DoubleTransition fadeTransition;
 
         Transform rotationTransform;
 
@@ -81,14 +78,17 @@ namespace Dynaframe3
             this.Closed += MainWindow_Closed;
 
             // setup transitions and animations
+            // For mainWindow fades
             DoubleTransition windowTransition = new DoubleTransition();
             windowTransition.Duration = TimeSpan.FromMilliseconds(2000);
             windowTransition.Property = Window.OpacityProperty;
 
+            // For mainPanel fades
             DoubleTransition panelTransition = new DoubleTransition();
             panelTransition.Duration = TimeSpan.FromMilliseconds(1200);
             panelTransition.Property = Panel.OpacityProperty;
 
+            crossFadeTransition = this.FindControl<CrossFadeTransition>("CrossFadeImage");
 
             fadeTransition = new DoubleTransition();
             fadeTransition.Easing = new QuadraticEaseIn();
@@ -121,8 +121,6 @@ namespace Dynaframe3
             tb.Transitions.Add(fadeTransition);
             tb.Padding = new Thickness(30);
 
-            frontImage = this.FindControl<BlurBoxImage>("Front");
-            backImage = this.FindControl<BlurBoxImage>("Back");
 
             string intro;
             if ((AppSettings.Default.Rotation == 0) || AppSettings.Default.Rotation == 180)
@@ -134,30 +132,15 @@ namespace Dynaframe3
                 intro = Environment.CurrentDirectory + "/images/vertbackground.jpg";
             }
 
-            bitmapNew = new Bitmap(intro);
-
-            frontImage.imagePath = intro;
-
-            frontImage.Stretch = AppSettings.Default.ImageStretch;
-            backImage.Stretch = AppSettings.Default.ImageStretch;
-
-            DoubleTransition transition2 = new DoubleTransition();
-            transition2.Easing = new QuadraticEaseIn();
-            transition2.Duration = TimeSpan.FromMilliseconds(1600);
-            transition2.Property = UserControl.OpacityProperty;
-
-            frontImage.Transitions = new Transitions();
-            frontImage.Transitions.Add(fadeTransition);
-            backImage.Transitions = new Transitions();
-            backImage.Transitions.Add(transition2);
+            crossFadeTransition.SetImage(intro,0);
+            crossFadeTransition.SetImageStretch(AppSettings.Default.ImageStretch);
 
             slideTimer.Elapsed += Timer_Tick;
 
             AppSettings.Default.ReloadSettings = true;
             slideTimer.Start();
             Timer_Tick(null, null);
-            Logger.LogComment("Initialized");
-
+            Logger.LogComment("Dynaframe Initialized...");
 
         }
 
@@ -166,29 +149,34 @@ namespace Dynaframe3
             ((ClassicDesktopStyleApplicationLifetime)Avalonia.Application.Current.ApplicationLifetime).Shutdown(0);
         }
 
-
+        /// <summary>
+        /// Goes to the next image immediately. We add a default 500ms delay to try to keep the fade aesthetic
+        /// </summary>
         public void GoToNextImage()
         {
             tb.Transitions.Clear();
             playListEngine.GoToNext();
-            PlayImageFile(true, playListEngine.CurrentPlayListItem.Path);
+            PlayImageFile(500, playListEngine.CurrentPlayListItem.Path);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
+        /// <summary>
+        /// Goes back to the previous image. used for keyboard shortcuts or API calls. Keeps a small delay
+        /// </summary>
         public void GoToPreviousImage()
         {
             tb.Transitions.Clear();
             playListEngine.GoToPrevious();
-            PlayImageFile(true, playListEngine.CurrentPlayListItem.Path);
+            PlayImageFile(500, playListEngine.CurrentPlayListItem.Path);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
         public void GoToFirstImage()
         {
             tb.Transitions.Clear();
-            GetFiles();
+            playListEngine.GetPlayListItems();
             AppSettings.Default.RefreshDirctories = false;
-            PlayImageFile(true, playListEngine.CurrentPlayListItem.Path);
+            PlayImageFile(500, playListEngine.CurrentPlayListItem.Path);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
@@ -323,8 +311,7 @@ namespace Dynaframe3
                     // 
                     //
                     AppSettings.Default.RefreshDirctories = false;
-                    System.Threading.Thread.Sleep(5000);
-                    GetFiles();
+                    playListEngine.GetPlayListItems();
                     Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         Logger.LogComment("Timer_Tick: GetFiles is called. Should update next image...");
@@ -383,12 +370,13 @@ namespace Dynaframe3
                     }
                     else
                     {
-                        PlayImageFile(false, playListEngine.CurrentPlayListItem.Path);
+                        PlayImageFile(AppSettings.Default.FadeTransitionTime, playListEngine.CurrentPlayListItem.Path);
                         KillVideoPlayer(); // if a video is playing, get rid of it now that we've swapped images
                     }
                 }
-                catch (InvalidOperationException)
+                catch (InvalidOperationException exc)
                 {
+                    Logger.LogComment("IOE Exception: " + exc.ToString());
                     // We expect this if a process is no longer around
                 }
                 catch (Exception exc)
@@ -409,9 +397,6 @@ namespace Dynaframe3
             // var response = await httpClient.GetAsync(bitmapPath, HttpCompletionOption.ResponseContentRead);
             // var stream = await response.Content.ReadAsStreamAsync();
             // bitmap = new Bitmap(stream);
-            //
-            //
-
            
             PlayListItemType type = PlayListEngineHelper.GetPlayListItemTypeFromPath(path);
             try
@@ -424,7 +409,7 @@ namespace Dynaframe3
                 }
                 else
                 {
-                    PlayImageFile(false, path);
+                    PlayImageFile(AppSettings.Default.FadeTransitionTime, path);
                     KillVideoPlayer(); // if a video is playing, get rid of it now that we've swapped images
                 }
             }
@@ -494,79 +479,11 @@ namespace Dynaframe3
                 } // end if
             });
         }
-        public  void PlayImageFile(bool fast, string path)
+        public  void PlayImageFile(int millisecondsDelay, string path)
         {
-            Logger.LogComment("PlayImageFile() called with Fast=" + fast.ToString() + " and path: " + path);
-           
-           // Step 1: Set the background image to the new one
-           // fade the top out, revealing the bottom
-           Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                mainWindow.Opacity = 1;
-                try
-                {
-                    Logger.LogComment("Beginning to load next file: " + path);
-
-                    if (path.Contains(".gif"))
-                    {
-                       
-                        
-                    }
-                    else
-                    {
-                        bitmapNew = new Bitmap(path);
-                        backImage.imagePath = path;
-                    }
-                    Logger.LogComment("PlayImageFile: fading in bottom image....");
-                    backImage.Opacity = 1;
-                    frontImage.Opacity = 0;
-                    mainWindow.WindowState = WindowState.FullScreen;             
-                    
-
-                }
-                catch (Exception exc)
-                {
-                    Logger.LogComment("PlayImageFile ERROR! - Exception: " + exc.ToString());
-                    // We couldn't find a file...try a directory refresh to 
-                    // try to heal things. this could be a network share
-                    // dropped offline, a thumbdrive got removed, or a file
-                    // was deleted.
-                    // Update: Only do this if the path wasn't there. If we failed to read
-                    // an image, then just move on so we don't reset the playlist.
-                    if (!File.Exists(path))
-                    {
-                        Logger.LogComment("PlayImageFile (ERRORPATH) - Calling Refresh Directories...");
-                        AppSettings.Default.RefreshDirctories = true;
-                    }
-                }
-            });
-
-            // We sleep on this thread to let the transition occur fully
-            if (!fast)
-            {
-                Thread.Sleep(AppSettings.Default.FadeTransitionTime);
-            }
-
-            Logger.LogComment("PlayImageFile: fading out top image.");
-            // At this point the 'bottom' image is opaque showing the new image
-            // We set the top to that image, and fade it in
-            // we temporarily clear the transiton out so it's instant
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                try
-                {
-                    frontImage.Transitions.Clear();
-                    frontImage.imagePath = backImage.imagePath;
-                    frontImage.Opacity = 1;
-                    frontImage.Transitions.Add(fadeTransition);
-                }
-                catch (Exception exc)
-                {
-                    tb.Text = "Error: " + exc.Message;
-                }
-                backImage.Opacity = 0;
-            });
-            Logger.LogComment("PlayImageFile: imageSwap Complete.");
+            Logger.LogComment("PlayImageFile() called with Delay=" + millisecondsDelay + " and path: " + path);
+            crossFadeTransition.SetImage(path, AppSettings.Default.FadeTransitionTime);
+            Logger.LogComment("PlayImageFile: New Image now set");
         }
         private void PlayVideoFile(string path)
         {
@@ -688,16 +605,6 @@ namespace Dynaframe3
             }
         }
 
-        /// <summary>
-        /// The main method which gets new files from the playlist.
-        /// </summary>
-        /// <returns></returns>
-        private bool GetFiles()
-        {
-            Logger.LogComment("GetFiles(): Calling playlistEngine.GetPlayListItems()");
-            playListEngine.GetPlayListItems();
-            return true;
-        }   
         public void SetupWebServer()
         {
             string current = System.IO.Directory.GetCurrentDirectory();
@@ -729,13 +636,13 @@ namespace Dynaframe3
             tb.FontSize = AppSettings.Default.InfoBarFontSize;
 
             // update stretch if changed
-            frontImage.Stretch = AppSettings.Default.ImageStretch;
-            backImage.Stretch = AppSettings.Default.ImageStretch;
+            crossFadeTransition.SetImageStretch(AppSettings.Default.ImageStretch);
 
             RotateMainPanel();
 
             // update any fade settings
             fadeTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
+            crossFadeTransition.SetTransitions();
         }
         /// <summary>
         /// Rotates the Main Panel to match the orientation specified in appsettings
