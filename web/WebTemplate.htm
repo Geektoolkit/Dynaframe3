@@ -147,17 +147,22 @@
 							<!-- DIRECTORIES -->
 						</div><br>
 
-						<div class="form-row">
-							<div class='settings'>
-								<h4>Add Directory</h4>
-								<div class="form-input"><input type="text" name="directoryAdd" width="300" placeholder="/home/pi/pics" /></div>
-							</div><br>
-							<div class="form-row">
-								<div class="d-grid gap-2 d-md-block">
-									<input type="hidden" name="PlaylistsPageTab2" />
-									<input type="submit" class="btn btn-primary btn-lg" onclick="func2()" value="Save" />
-								</div>
-					</form>
+							  <div class="form-row">
+							  	<div class='settings'>
+							  		<h4>Add Directory</h4>
+							  		<div class="form-input"><input type="text" name="directoryAdd" width="300" placeholder="/home/pi/pics" /></div>
+							  	</div><br>
+							  	<div class='settings'>
+							  		<h4>Tag Filters</h4>
+							  		<p>This will filter images to only ones that include these tags. Leave blank to include all please leave blank </p>
+							  		<div class="form-input"><input type="text" name="InclusiveTagFilters" width="300" placeholder="<!--CURRENTTAGFILTER-->" /></div>
+							  	</div><br>
+							  	<div class="form-row">
+							  		<div class="d-grid gap-2 d-md-block">
+							  			<input type="hidden" name="PlaylistsPageTab2" />
+							  			<input type="submit" class="btn btn-primary btn-lg" onclick="func2()" value="Save" />
+							  		</div>
+</form>
 				</div>
 			</section>
 
@@ -291,6 +296,21 @@
 							</div>
 						</div>
 						<br />
+						<!--Blurbox Options-->
+						<div class="form-row">
+							<div class="form-label"><span><b>Blurbox XSigma Value </b>(0 to disable)</span></div>
+							<div class="form-input"><input type="text" name="BlurBoxSigmaX" <!--BLURBOXSIGMAX--></div>
+						</div><br />
+						<div class="form-row">
+							<div class="form-label"><span><b>Blurbox YSigma Value </b>(0 to disable)</span></div>
+							<div class="form-input"><input type="text" name="BlurBoxSigmaY" <!--BLURBOXSIGMAY--></div>
+						</div><br />
+						<div class="form-row">
+							<div class="form-label"><span><b>Blurbox Margin Value </b>(0 to disable)</span></div>
+							<div class="form-input"><input type="text" name="BlurBoxMargin" <!--BLURBOXMARGIN--></div>
+						</div>
+						<br />
+
 						<!-- Logging Enable/Disable -->
 						<div class="form-row">
 							<div class="form-label"><span><b>Logging</b> Enable to help with debugging</span></div>

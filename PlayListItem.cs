@@ -9,6 +9,13 @@ namespace Dynaframe3
     {
         public string Path { get; set; }
         public PlayListItemType ItemType { get; set; }
+        public string Title { get; set; }
+        public string Keywords { get; set; }
+        public string Software { get; set; }
+        public string Artist { get; set; }
+        public string Comment { get; set; }
+
+
 
         /// <summary>
         /// Returns true if the path and itemtime are equal

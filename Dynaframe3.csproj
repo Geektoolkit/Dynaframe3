@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
     <AssemblyName>Dynaframe</AssemblyName>
     <Version>2.21</Version>
     <Authors>Joe Farro</Authors>

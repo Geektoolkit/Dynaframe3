@@ -28,7 +28,7 @@ namespace Dynaframe3.ImagePresenters
         public string ImageString { get; set; }
         public BlurBoxImage()
         {
-            ClipToBounds = true;
+            ClipToBounds = false;
             InitializeComponent();
             ImageString = "";
             backgroundImage = this.FindControl<Image>("backgroundImage");
@@ -37,8 +37,11 @@ namespace Dynaframe3.ImagePresenters
             // Frontloading some allocations
             blurInfo = new SKImageInfo(640, 480);
             blurredbitmap = new SKBitmap(blurInfo);
+
             blurPaint = new SKPaint();
-            blurPaint.ImageFilter = SKImageFilter.CreateBlur(20, 20);
+            blurPaint.ImageFilter = SKImageFilter.CreateBlur(AppSettings.Default.BlurBoxSigmaX, AppSettings.Default.BlurBoxSigmaY);
+
+            backgroundImage.Margin = new Thickness(AppSettings.Default.BlurBoxMargin);
         }
 
         /// <summary>
@@ -67,6 +70,8 @@ namespace Dynaframe3.ImagePresenters
         public void UpdateImage(string newImagePath)
         {
             ImageString = newImagePath;
+            backgroundImage.Margin = new Thickness(AppSettings.Default.BlurBoxMargin);
+            blurPaint.ImageFilter = SKImageFilter.CreateBlur(AppSettings.Default.BlurBoxSigmaX, AppSettings.Default.BlurBoxSigmaY);
             ShowBitmapWithBlurbox();
         }
 
@@ -77,23 +82,18 @@ namespace Dynaframe3.ImagePresenters
             bitmap.ScalePixels(blurredbitmap, SKFilterQuality.Medium);
 
             SKCanvas canvas = new SKCanvas(blurredbitmap);
-            canvas.DrawBitmap(blurredbitmap, new SKPoint(0, 0), blurPaint);
+            canvas.DrawBitmap(blurredbitmap, new SKPoint(0,0), blurPaint);
 
             SKData data = SKImage.FromBitmap(blurredbitmap).Encode(SKEncodedImageFormat.Jpeg, 100);
 
             bitmapData = new Bitmap(data.AsStream());
-            backgroundImage.Source = null;
-            foregroundImage.Source = null;
 
             backgroundImage.Source = bitmapData;
             foregroundImage.Source = new Bitmap(ImageString);
 
             bitmap.Dispose();
-            //blurredbitmap.Dispose();
             canvas.Dispose();
-            //blurPaint.Dispose();
             data.Dispose();
-            
         }
     }
 }

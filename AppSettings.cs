@@ -56,6 +56,13 @@ namespace Dynaframe3
             DynaframeIP = Helpers.GetIP();        // Dynaframe IP Address
             SlideShowPaused = false;              // Pause Slideshow on / off
             EnableLogging = true;                 // Enables logging...should be set to false by default at some point.
+
+            // Tag settings
+            InclusiveTagFilters = "";             // Semicolon delimited list of images to include. Blank string means 'all'
+            // Blurbox Settings
+            BlurBoxSigmaX = 10;                   // See BlurboxImage.axaml.cs for usage
+            BlurBoxSigmaY = 10;                   // Used in line: blurPaint.ImageFilter = SKImageFilter.CreateBlur(50, 50);
+            BlurBoxMargin = -500;                 // Set to negative to scale the background image
         }
 
         private static string _jsonSource;
@@ -144,7 +151,7 @@ namespace Dynaframe3
         /// </summary>
         public int InfoBarFontSize { get; set; }
 
-        public enum InfoBar { Clock, FileInfo, DateTime, Error, IP, OFF, InitialIP }
+        public enum InfoBar { Clock, FileInfo, DateTime, Error, IP, OFF, InitialIP, ExifData }
         public InfoBar InfoBarState { get; set; }
 
         /// <summary>
@@ -245,10 +252,29 @@ namespace Dynaframe3
         /// </summary>
         public string IgnoreFolders { get; set; }
 
+        public string InclusiveTagFilters { get; set; }
+
         /// <summary>
         /// Allows the enabling or disabling of logging. Defaulting to disabled, this can be turned on
         /// to help troubleshoot issues.
         /// </summary>
         public bool EnableLogging { get; set; }
+
+        // BLURBOX Settings
+
+        /// <summary>
+        /// SigmaX amount of blur applied for an SKPaint blur effect
+        /// </summary>
+        public float BlurBoxSigmaX { get; set; }
+
+        /// <summary>
+        /// SigmaY amount of blur applied for an SKPaint blur effect
+        /// </summary>
+        public float BlurBoxSigmaY { get; set; }
+
+        /// <summary>
+        /// The margin the blurbox should use when displayed. Setting this to negative can scale the background to hide text/edges.
+        /// </summary>
+        public double BlurBoxMargin { get; set; }
     }
 }

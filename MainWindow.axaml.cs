@@ -176,6 +176,13 @@ namespace Dynaframe3
             tb.Transitions.Clear();
             playListEngine.GetPlayListItems();
             AppSettings.Default.RefreshDirctories = false;
+            Logger.LogComment("Going to sleep while loading playlist...");
+            while (playListEngine.PlaylistState == PlayListEngine.PlaylistStates.Loading)
+            {
+                Thread.Sleep(100);
+            }
+            Logger.LogComment("Waking up and continuing playing files..");
+
             PlayImageFile(500, playListEngine.CurrentPlayListItem.Path);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
@@ -234,6 +241,10 @@ namespace Dynaframe3
             if (e.Key == Avalonia.Input.Key.I)
             {
                 AppSettings.Default.InfoBarState = AppSettings.InfoBar.IP;
+            }
+            if (e.Key == Avalonia.Input.Key.E)
+            {
+                AppSettings.Default.InfoBarState = AppSettings.InfoBar.ExifData;
             }
             if (e.Key == Avalonia.Input.Key.C)
             {
@@ -312,6 +323,14 @@ namespace Dynaframe3
                     //
                     AppSettings.Default.RefreshDirctories = false;
                     playListEngine.GetPlayListItems();
+
+                    Logger.LogComment("Going to sleep while loading playlist...");
+                    while (playListEngine.PlaylistState == PlayListEngine.PlaylistStates.Loading)
+                    {
+                        Thread.Sleep(100);
+                    }
+                    Logger.LogComment("Waking up and continuing playing files..");
+
                     Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         Logger.LogComment("Timer_Tick: GetFiles is called. Should update next image...");
@@ -462,6 +481,12 @@ namespace Dynaframe3
                         case (AppSettings.InfoBar.OFF):
                             {
                                 tb.Opacity = 0;
+                                break;
+                            }
+                        case (AppSettings.InfoBar.ExifData):
+                            {
+                                tb.Opacity = 1;
+                                tb.Text = playListEngine.CurrentPlayListItem.Title + "\r\n" + playListEngine.CurrentPlayListItem.Artist;
                                 break;
                             }
                         default:

@@ -166,6 +166,45 @@ namespace Dynaframe3
             }
             return 0;
         }
+        /// <summary>
+        /// Parses out a value as an int and sets it based on the query string. 
+        /// </summary>
+        /// <param name="querystring"></param>
+        /// <param name="property"></param>
+        /// <returns>0 if a value was not found, 1 if a value was set</returns>
+        public static int SetFloatAppSetting(string querystring, string property)
+        {
+            if (querystring != null)
+            {
+                float i = 0;
+                if (float.TryParse(querystring, out i))
+                {
+                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, i);
+                }
+                return 1;
+            }
+            return 0;
+        }
+        /// <summary>
+        /// Parses out a value as an int and sets it based on the query string. 
+        /// </summary>
+        /// <param name="querystring"></param>
+        /// <param name="property"></param>
+        /// <returns>0 if a value was not found, 1 if a value was set</returns>
+        public static int SetDoubleAppSetting(string querystring, string property)
+        {
+            if (querystring != null)
+            {
+                double i = 0;
+                if (double.TryParse(querystring, out i))
+                {
+                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, i);
+                }
+                return 1;
+            }
+            return 0;
+        }
+
 
         /// <summary>
         /// Takes in a string value and returns a 0/1 based on if a setting was found

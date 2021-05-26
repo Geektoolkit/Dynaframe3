@@ -196,6 +196,8 @@ internal class SimpleHTTPServer
             refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("ipaddresstime"), "NumberOfSecondsToShowIP");
             refreshSettings += Helpers.SetIntAppSetting(context.Request.QueryString.Get("transitiontime"), "FadeTransitionTime");
 
+            // Tag Settings
+            Helpers.SetStringAppSetting(context.Request.QueryString.Get("InclusiveTagFilters"), "InclusiveTagFilters");
 
             refreshDirectories += Helpers.SetBoolAppSetting(context.Request.QueryString.Get("Shuffle"), "Shuffle");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("syncenabled"), "IsSyncEnabled");
@@ -208,6 +210,11 @@ internal class SimpleHTTPServer
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("VideoStretch"), "VideoStretch");
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("ShowInfoIP"), "ShowInfoIP");
+            
+            Helpers.SetFloatAppSetting(context.Request.QueryString.Get("BlurBoxSigmaX"), "BlurBoxSigmaX");
+            Helpers.SetFloatAppSetting(context.Request.QueryString.Get("BlurBoxSigmaY"), "BlurBoxSigmaY");
+            Helpers.SetDoubleAppSetting(context.Request.QueryString.Get("BlurBoxMargin"), "BlurBoxMargin");
+            
 
             // setup commands
             if (context.Request.QueryString.Get("COMMAND") != null)
@@ -694,7 +701,7 @@ internal class SimpleHTTPServer
             dirChoices += "</div><br>";
 
             page = page.Replace("<!-- DIRECTORIES -->", dirChoices);
-
+            page = page.Replace("<!--CURRENTTAGFILTER-->", AppSettings.Default.InclusiveTagFilters);
 
             // Sync Client list
             string clients = "";
@@ -712,6 +719,9 @@ internal class SimpleHTTPServer
             page = page.Replace("<!--IPADDRESSTIME-->", "value=" + AppSettings.Default.NumberOfSecondsToShowIP.ToString() + ">");
             page = page.Replace("<!--DATETIMEFORMAT-->", "value='" + AppSettings.Default.DateTimeFormat + "'>");
             page = page.Replace("<!--DATETIMEFONTFAMILY-->", "value='" + AppSettings.Default.DateTimeFontFamily + "'>");
+            page = page.Replace("<!--BLURBOXSIGMAX-->", "value='" + AppSettings.Default.BlurBoxSigmaX + "'>");
+            page = page.Replace("<!--BLURBOXSIGMAY-->", "value='" + AppSettings.Default.BlurBoxSigmaY + "'>");
+            page = page.Replace("<!--BLURBOXMARGIN-->", "value='" + AppSettings.Default.BlurBoxMargin + "'>");
 
             //page = page.Replace("<!--ShowInfoIP-->", "value='" + AppSettings.Default.ShowInfoIP + "'>");
 

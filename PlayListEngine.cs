@@ -1,5 +1,7 @@
 ﻿using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
+using MetadataExtractor.Formats.Iptc;
+using MetadataExtractor.Formats.Xmp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -25,6 +27,9 @@ namespace Dynaframe3
         /// </summary>
         public List<PlayListItem> CurrentPlayListItems { get; set; }
         //List<PlayListItem> playListItems;
+
+        public enum PlaylistStates { Loading, Loaded }
+        public PlaylistStates PlaylistState = PlaylistStates.Loaded;
 
         public PlayListEngine()
         {
@@ -101,14 +106,57 @@ namespace Dynaframe3
             //  - goes through a passed in folder list
             //  - adds files from each folder to the temp playlist
             //  - adds the temp playlist to the main playlist called "CurrentplaylistItems"
-
+            PlaylistState = PlaylistStates.Loading;
             Logger.LogComment("GetPlayListItems: Clearing item list..");
             CurrentPlayListItems.Clear();
 
             Logger.LogComment("GetPlayListItems: Getting playlist Items...");
-            GetPlayListItems(AppSettings.Default.CurrentPlayList, SearchOption.AllDirectories);
-            GetPlayListItems(AppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly);
+            GetPlayListItems(AppSettings.Default.CurrentPlayList, SearchOption.AllDirectories);         // This gets images in subfolders
+            GetPlayListItems(AppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly);     // This gets the images in the 'root' folder. TODO: Make optional.
 
+            List<PlayListItem> filteredList = new List<PlayListItem>();
+            // Filter playlist items based on tags
+            for (int i = 0; i < CurrentPlayListItems.Count; i++)
+            {
+                IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(CurrentPlayListItems[i].Path);
+                MetadataExtractor.Directory? dir = directories.Where(d => d.Name == "Exif IFD0").FirstOrDefault();
+                if (dir != null)
+                {
+                    CurrentPlayListItems[i].Title = GetTagByName("Windows XP Title", dir);
+                    CurrentPlayListItems[i].Artist = GetTagByName("Windows XP Author", dir);
+                    CurrentPlayListItems[i].Comment = GetTagByName("Windows XP Comment", dir);
+                    CurrentPlayListItems[i].Software = GetTagByName("Software", dir);
+                    CurrentPlayListItems[i].Keywords = GetTagByName("Windows XP Keywords", dir);
+                }
+
+                if (AppSettings.Default.InclusiveTagFilters != "")
+                {
+                    // Filters enabled...start filtering!
+                    string[] filters = AppSettings.Default.InclusiveTagFilters.Split(';');
+                    foreach (string filter in filters)
+                    {
+                        if ((CurrentPlayListItems[i].Keywords != null) && (CurrentPlayListItems[i].Keywords.Contains(filter)))
+                        {
+                            if (!filteredList.Contains(CurrentPlayListItems[i]))
+                            {
+                                filteredList.Add(CurrentPlayListItems[i]);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (AppSettings.Default.InclusiveTagFilters != "")
+            {
+                Logger.LogComment("List filtered to tags: " + AppSettings.Default.InclusiveTagFilters);
+                Logger.LogComment("Original List: " + CurrentPlayListItems.Count);
+                Logger.LogComment("Filtered List: " + filteredList.Count);
+                CurrentPlayListItems.Clear();
+                CurrentPlayListItems = filteredList;
+            }
+                
+
+            // List filtered, now sort it.
             if (AppSettings.Default.Shuffle)
             {
                 Random r = new Random((int)DateTime.Now.Ticks);
@@ -136,16 +184,14 @@ namespace Dynaframe3
                 for (int i = 0; i < CurrentPlayListItems.Count; i++)
                 {
                     Logger.LogComment(CurrentPlayListItems[i].ItemType + ":" + CurrentPlayListItems[i].Path);
-                    if (CurrentPlayListItem.ItemType == PlayListItemType.Image)
+                    if (CurrentPlayListItems[i].ItemType == PlayListItemType.Image)
                     {
-                        IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(CurrentPlayListItem.Path);
-                        var subIfdDirectory = directories.OfType<ExifSubIfdDirectory>().FirstOrDefault();
-                        var dateTime = subIfdDirectory?.GetDescription(ExifDirectoryBase.TagDateTimeOriginal);
-                        if (dateTime != null)
-                        {
-                            Logger.LogComment("Datetime: Datetime: " + dateTime);
-                        }
-
+                        Logger.LogComment("--------Tag dump-------------"); 
+                        Logger.LogComment("Title: " + CurrentPlayListItems[i].Title);
+                        Logger.LogComment("Artist: " + CurrentPlayListItems[i].Artist);
+                        Logger.LogComment("Comment: " + CurrentPlayListItems[i].Comment);
+                        Logger.LogComment("Keywords: " + CurrentPlayListItems[i].Keywords);
+                        Logger.LogComment("--------END END-------------");
                     }
                 }
             }
@@ -157,9 +203,18 @@ namespace Dynaframe3
             sw.Stop();
            
             Logger.LogComment("------------------- END PLAYLIST DUMP  Took: " + sw.ElapsedMilliseconds + " ms.  -----------------");
-            
+            PlaylistState = PlaylistStates.Loaded;
         }
 
+        public string GetTagByName(string tagName, MetadataExtractor.Directory dir)
+        {
+           Tag?val =  dir.Tags.Where(t => t.Name == tagName).FirstOrDefault();
+            if (val != null)
+            {
+                return val.Description;
+            }
+            return "";
+        }
         /// <summary>
         /// Goes to Next Playlist Item. Will rebuild Playlist if nothing is found.
         /// </summary>
