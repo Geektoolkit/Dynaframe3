@@ -89,7 +89,7 @@ namespace Dynaframe3.TransitionTypes
                     BackgroundImage.Transitions.Clear();
                     ForegroundImage.Opacity = 1;
                     BackgroundImage.Opacity = 0;
-                    BackgroundImage.UpdateImage(null);
+                    //BackgroundImage.UpdateImage(null);
                     SetTransitions();
                 }
                 catch (Exception exc)

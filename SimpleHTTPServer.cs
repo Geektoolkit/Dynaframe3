@@ -169,9 +169,21 @@ internal class SimpleHTTPServer
     private void Process(HttpListenerContext context)
     {
         bool ImageUploaded = true;
-        // TODO: Clean this up. Need a consistent way to read in values
-        // and cleanly set settings. For now having this ugly is a good
-        // tradeoff to let me learn how to do it better in the future
+
+        if (context.Request.HttpMethod == "POST")
+        {
+            string text;
+            using (var reader = new StreamReader(context.Request.InputStream,
+                                                 context.Request.ContentEncoding))
+            {
+                text = reader.ReadToEnd();
+                if (!String.IsNullOrEmpty(text))
+                {
+                   string command = text.Split('=')[1];
+                   CommandProcessor.ProcessCommand(command);
+                }  
+            }
+        }
 
         if (context.Request.QueryString.Count > 0)
         {
@@ -205,6 +217,7 @@ internal class SimpleHTTPServer
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("VideoVolume"), "VideoVolume");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("ExpandDirectoriesByDefault"), "ExpandDirectoriesByDefault");
             Helpers.SetBoolAppSetting(context.Request.QueryString.Get("EnableLogging"), "EnableLogging");
+            Helpers.SetBoolAppSetting(context.Request.QueryString.Get("PlaybackFullVideo"), "PlaybackFullVideo");
 
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFormat"), "DateTimeFormat");
             refreshSettings += Helpers.SetStringAppSetting(context.Request.QueryString.Get("DateTimeFontFamily"), "DateTimeFontFamily");
@@ -302,13 +315,6 @@ internal class SimpleHTTPServer
                 else if (context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
                 {
                     CommandProcessor.DeleteFile(context.Request.QueryString.Get("FILENAME"));
-                }
-                else if (context.Request.QueryString.Get("COMMAND") == "REBOOT")
-                {
-                    // If we don't redirect them away, then they'll keep rebooting...
-                    context.Response.Redirect("http://" + Helpers.GetIP() + ":8000");
-                    System.Threading.Thread.Sleep(1000);
-                    CommandProcessor.ProcessCommand(context.Request.QueryString.Get("COMMAND"));
                 }
                 else
                 {
@@ -431,7 +437,6 @@ internal class SimpleHTTPServer
                 }
 
             }
-
 
             string directoryToAdd = context.Request.QueryString.Get("directoryAdd");
             if (!String.IsNullOrEmpty(directoryToAdd))
@@ -886,6 +891,17 @@ internal class SimpleHTTPServer
                     page = page.Replace("<!--TREEVIEWOFF-->", "checked");
                     page = page.Replace("<!--TREEVIEWON-->", "");
                     break;
+            }
+            // Video Playback Mode Settings
+            if (AppSettings.Default.PlaybackFullVideo)
+            {
+                page = page.Replace("<!--VIDEOPLAYBACKOBEY-->", "");
+                page = page.Replace("<!--VIDEOPLAYBACKIGNORE-->", "checked");
+            }
+            else
+            {
+                page = page.Replace("<!--VIDEOPLAYBACKOBEY-->", "checked");
+                page = page.Replace("<!--VIDEOPLAYBACKIGNORE-->", "");
             }
 
             // Logging on/off Settings

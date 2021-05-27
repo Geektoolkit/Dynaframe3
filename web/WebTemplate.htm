@@ -100,9 +100,6 @@
 						<input type="hidden" name="Default" />
 						<legend>Frame Controls</legend>
 						<div class="d-grid gap-2 d-md-block">
-							<!--TurnScreenOnOff-->
-							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=REBOOT">Reboot</a>
-							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=SHUTDOWN">Shutdown</a>
 							<a class="btn btn-warning btn-lg" href="default.htm?COMMAND=EXITAPP">Exit Dynaframe</a>
 							<br><br>
 							<fieldset>
@@ -132,10 +129,28 @@
 
 
 
-</form>
+					</form>
+					<br /><br />
+					<fieldset>
+						<legend>Reboot/Shutdown commands</legend>
+						<form method="post" action="default.htm">
+							<div class="d-grid gap-2 d-md-block">
+								<input type="hidden" name="COMMAND" value="REBOOT" />
+								<input type="submit" class="btn btn-warning btn-lg" value="Reboot Frame">
+							</div>
+						</form>
+						<br />
+						<form method="post" action="default.htm">
+							<div class="d-grid gap-2 d-md-block">
+								<input type="hidden" name="COMMAND" value="SHUTDOWN" />
+								<input type="submit" class="btn btn-warning btn-lg" value="Shutdown Frame">
+							</div>
+						</form>
+					</fieldset>
+					
 					<br><br>
 
-			</section>
+</section>
 
 			<!-- playlists -->
 			<section>
@@ -287,6 +302,15 @@
 							</div>
 						</div>
 						<br>
+						<!-- Video playback mode - Sets VideoPlaybackMode accordingly-->
+						<div class="form-row">
+							<div class="form-label"><span><b>Video Playback Duration</b> Should videos play back fully or obey transition time?</span></div>
+							<div class="form-input">
+								<input type="radio" name="PlaybackFullVideo" value="off" <!--VIDEOPLAYBACKOBEY--> id="PlaybackFullVideo" /><label for="SetVideoPlaybackMode">Obey Transition Time</label>
+								<input type="radio" name="PlaybackFullVideo" value="on" <!--VIDEOPLAYBACKIGNORE--> id="PlaybackFullVideo" /><label for="SetVideoPlaybackMode">Always Play full video</label>
+							</div>
+						</div>
+
 						<!--Directory expansion-->
 						<div class="form-row">
 							<div class="form-label"><span><b>Directory Tree style</b> Expanded by default, or Toggleable</span></div>
@@ -298,15 +322,15 @@
 						<br />
 						<!--Blurbox Options-->
 						<div class="form-row">
-							<div class="form-label"><span><b>Blurbox XSigma Value </b>(0 to disable)</span></div>
+							<div class="form-label"><span><b>Blurbox XSigma Value </b></span></div>
 							<div class="form-input"><input type="text" name="BlurBoxSigmaX" <!--BLURBOXSIGMAX--></div>
 						</div><br />
 						<div class="form-row">
-							<div class="form-label"><span><b>Blurbox YSigma Value </b>(0 to disable)</span></div>
+							<div class="form-label"><span><b>Blurbox YSigma Value </b></span></div>
 							<div class="form-input"><input type="text" name="BlurBoxSigmaY" <!--BLURBOXSIGMAY--></div>
 						</div><br />
 						<div class="form-row">
-							<div class="form-label"><span><b>Blurbox Margin Value </b>(0 to disable)</span></div>
+							<div class="form-label"><span><b>Blurbox Margin Value </b></span></div>
 							<div class="form-input"><input type="text" name="BlurBoxMargin" <!--BLURBOXMARGIN--></div>
 						</div>
 						<br />

@@ -39,9 +39,13 @@ namespace Dynaframe3
 
             InfoBarFontSize = 50;
             SlideshowTransitionTime = 30000;      // milliseconds between slides
-            FadeTransitionTime = 1600;            // milliseconds for fades
+            FadeTransitionTime = 10000;            // milliseconds for fades
             ImageStretch = Stretch.UniformToFill; // Default image stretch
+
+            // Video Settings
             VideoStretch = "Fill";                // Used for OMXPlayer
+            PlaybackFullVideo = false;            // This means videos will obey transition time by default
+
             ExpandDirectoriesByDefault = false;   // WebUI setting to expand the trees
             ListenerPort = 8000;                  // Default port for the WebUI to listen on
             IsSyncEnabled = false;                // Sync with other frames off by default
@@ -60,9 +64,9 @@ namespace Dynaframe3
             // Tag settings
             InclusiveTagFilters = "";             // Semicolon delimited list of images to include. Blank string means 'all'
             // Blurbox Settings
-            BlurBoxSigmaX = 10;                   // See BlurboxImage.axaml.cs for usage
-            BlurBoxSigmaY = 10;                   // Used in line: blurPaint.ImageFilter = SKImageFilter.CreateBlur(50, 50);
-            BlurBoxMargin = -500;                 // Set to negative to scale the background image
+            BlurBoxSigmaX = 30;                   // See BlurboxImage.axaml.cs for usage
+            BlurBoxSigmaY = 30;                   // Used in line: blurPaint.ImageFilter = SKImageFilter.CreateBlur(50, 50);
+            BlurBoxMargin = -400;                 // Set to negative to scale the background image
         }
 
         private static string _jsonSource;
@@ -187,6 +191,11 @@ namespace Dynaframe3
         /// </summary>
         public string VideoStretch { get; set; }
 
+        /// <summary>
+        /// This controls how video playback is handled. If true the full video is always played, else transition time is obeyed
+        /// </summary>
+  
+        public bool PlaybackFullVideo { get; set; }
 
         /// <summary>
         ///  Control if we should reload settings on the page (for layout/rendering)

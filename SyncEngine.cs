@@ -39,6 +39,7 @@ namespace Dynaframe3
 
             public static void SyncFrames(string imageUrl)
             {
+                Logger.LogComment("SyncFrames enabled...sending sync signals..");
                 Parallel.For(0, syncedFrames.Count, i =>
                 {
                     string host = "http://" + syncedFrames[i].hostname + ":" + AppSettings.Default.ListenerPort;

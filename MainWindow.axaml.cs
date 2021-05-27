@@ -37,7 +37,6 @@ namespace Dynaframe3
         TextBlock tb;
         Window mainWindow;
         Panel mainPanel;
-        Process videoProcess; // handle to the video Player
 
         // Engines
         internal PlayListEngine playListEngine;
@@ -121,6 +120,8 @@ namespace Dynaframe3
             tb.Transitions.Add(fadeTransition);
             tb.Padding = new Thickness(30);
 
+            VideoPlayer.MainPanelHandle = this.mainPanel;
+            VideoPlayer.MainWindowHandle = this.mainWindow;
 
             string intro;
             if ((AppSettings.Default.Rotation == 0) || AppSettings.Default.Rotation == 180)
@@ -156,7 +157,7 @@ namespace Dynaframe3
         {
             tb.Transitions.Clear();
             playListEngine.GoToNext();
-            PlayImageFile(500, playListEngine.CurrentPlayListItem.Path);
+            PlayFile(playListEngine.CurrentPlayListItem.Path, 500);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
@@ -167,7 +168,7 @@ namespace Dynaframe3
         {
             tb.Transitions.Clear();
             playListEngine.GoToPrevious();
-            PlayImageFile(500, playListEngine.CurrentPlayListItem.Path);
+            PlayFile(playListEngine.CurrentPlayListItem.Path, 500);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
@@ -183,7 +184,7 @@ namespace Dynaframe3
             }
             Logger.LogComment("Waking up and continuing playing files..");
 
-            PlayImageFile(500, playListEngine.CurrentPlayListItem.Path);
+            PlayFile(playListEngine.CurrentPlayListItem.Path, 500);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
@@ -347,90 +348,63 @@ namespace Dynaframe3
             }
 
             UpdateInfoBar();
-
-            //
-            //  This is the main check for if we need to switch frames. First we check to see if the 
-            //  amount of time that has transpired is over our tranistion time. If so, we check:
-            //  1) Are we syncing to other frames? if so send those signals
-            //  2) Is it an audio or video? Call appropriate play method based on that.
-            //
-            if ((DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime))
+            bool GoToNext = false;
+            if ((playListEngine.CurrentPlayListItem!= null) && (playListEngine.CurrentPlayListItem.ItemType == PlayListItemType.Video))
             {
+                if (!VideoPlayer.CheckStatus(false))
+                {
+                    // Video exited before we expected it to! Recover gracefully
+                    GoToNext = true;
+                }
+            }
+
+
+            // check transpired time against transition time...
+            if ((DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > AppSettings.Default.SlideshowTransitionTime) || GoToNext == true)
+            {
+                // See if a video is playing...
+                if (VideoPlayer.CheckStatus(true))
+                {
+                    // Video is still playing, tick off the next timer interval for now.
+                    slideTimer.Start();
+                    return;
+                }
                 lastUpdated = DateTime.Now;
                 playListEngine.GoToNext();
                 Logger.LogComment("Next file is: " + playListEngine.CurrentPlayListItem.Path);
 
                 // sync frame call
-                if ((AppSettings.Default.IsSyncEnabled) &&(SyncedFrame.SyncEngine.syncedFrames.Count > 0))
+                if ((AppSettings.Default.IsSyncEnabled) && (SyncedFrame.SyncEngine.syncedFrames.Count > 0))
                 {
-                    Logger.LogComment("SyncFrames enabled...sending sync signals..");
-                    // We have frames to sync! Send this off to them:
-                    try
-                    {
-                        SyncedFrame.SyncEngine.SyncFrames(playListEngine.CurrentPlayListItem.Path);
-                    }
-                    catch(Exception exc)
-                    {
-                        // This is a 'backstop' to catch any nastiness from networking. The whole network blind call to
-                        // an IP thing is risky, and I've seen an instance where the try/catch in syncframes failed.
-                        // Adding this to try to catch that if it happens and to understand why. Also to not 
-                        // bring down the entire app due to network flakiness.
-                        Logger.LogComment("ERROR: Excpetion trying to sync frames, caught in mainWindow. Excpetion: " + exc.ToString());
-                    }
+                    SyncedFrame.SyncEngine.SyncFrames(playListEngine.CurrentPlayListItem.Path);
                 }
-
-                try
-                {
-                    // TODO: Try to 'peek' at next file, if video, then slow down more
-                    if (playListEngine.CurrentPlayListItem.ItemType == PlayListItemType.Video)
-                    {
-                        KillVideoPlayer();
-                        PlayVideoFile(playListEngine.CurrentPlayListItem.Path);
-                    }
-                    else
-                    {
-                        PlayImageFile(AppSettings.Default.FadeTransitionTime, playListEngine.CurrentPlayListItem.Path);
-                        KillVideoPlayer(); // if a video is playing, get rid of it now that we've swapped images
-                    }
-                }
-                catch (InvalidOperationException exc)
-                {
-                    Logger.LogComment("IOE Exception: " + exc.ToString());
-                    // We expect this if a process is no longer around
-                }
-                catch (Exception exc)
-                {
-                    Logger.LogComment("ERROR: Exception processing file.." + exc.ToString());
-                }
+                PlayFile(playListEngine.CurrentPlayListItem.Path);
             }
             slideTimer.Start(); // start next iterations...this prevents reentry...
 
         }
         public void PlayFile(string path)
         {
-            // Externally exposed API to allow for frame syncing or automation scenarios.
-            // note: The file that we try to play may not exist, if not, we should look at the folder and try to
-            // find it, if that doesn't exist then show randome file from playlist
-            //
-            // Future use from Avalonia Gitter: How to load an image from network path..
-            // var response = await httpClient.GetAsync(bitmapPath, HttpCompletionOption.ResponseContentRead);
-            // var stream = await response.Content.ReadAsStreamAsync();
-            // bitmap = new Bitmap(stream);
-           
+            PlayFile(path, AppSettings.Default.FadeTransitionTime);
+        }
+
+        public void PlayFile(string path, int transitionTime)
+        {
+            Logger.LogComment("PlayFile() called with TransitionTime=" + transitionTime + " and path: " + path);
             PlayListItemType type = PlayListEngineHelper.GetPlayListItemTypeFromPath(path);
+            VideoPlayer.KillVideoPlayer(); // Kill this...if this is called from gotonext / gotoprevious it can cause bad effects.
             try
             {
                 // TODO: Try to 'peek' at next file, if video, then slow down more
                 if (type == PlayListItemType.Video)
                 {
-                    KillVideoPlayer();
-                    PlayVideoFile(path);
+                    VideoPlayer.PlayVideo(path);
                 }
                 else
                 {
-                    PlayImageFile(AppSettings.Default.FadeTransitionTime, path);
-                    KillVideoPlayer(); // if a video is playing, get rid of it now that we've swapped images
+                    crossFadeTransition.SetImage(path, AppSettings.Default.FadeTransitionTime);
                 }
+                Logger.LogComment("Media is now set.");
             }
             catch (InvalidOperationException)
             {
@@ -442,6 +416,8 @@ namespace Dynaframe3
             }
 
         }
+
+
         private void UpdateInfoBar()
         {
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
@@ -504,131 +480,7 @@ namespace Dynaframe3
                 } // end if
             });
         }
-        public  void PlayImageFile(int millisecondsDelay, string path)
-        {
-            Logger.LogComment("PlayImageFile() called with Delay=" + millisecondsDelay + " and path: " + path);
-            crossFadeTransition.SetImage(path, AppSettings.Default.FadeTransitionTime);
-            Logger.LogComment("PlayImageFile: New Image now set");
-        }
-        private void PlayVideoFile(string path)
-        {
-            Logger.LogComment("Entering PlayVideoFile with Path: " + path);
-            ProcessStartInfo pInfo = new ProcessStartInfo();
-            pInfo.WindowStyle = ProcessWindowStyle.Maximized;
 
-            // TODO: Parameterize omxplayer settings
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Logger.LogComment("Linux Detected, setting up OMX Player");
-                pInfo.FileName = "omxplayer";
-                Logger.LogComment("Setting up Appsettings...");
-                pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode " + AppSettings.Default.VideoStretch + " ";
-
-                // Append volume command argument
-                if (!AppSettings.Default.VideoVolume)
-                {
-                    pInfo.Arguments += "--vol -6000 ";
-                }
-
-                pInfo.Arguments += "\"" + path + "\""; 
-                Logger.LogComment("DF Playing: " + path);
-                Logger.LogComment("OMXPLayer args: " + pInfo.Arguments);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                pInfo.UseShellExecute = true;
-                pInfo.FileName = "wmplayer.exe";
-                pInfo.Arguments = "\"" + path + "\"";
-                pInfo.Arguments += " /fullscreen";
-                Logger.LogComment("Looking for media in: " + pInfo.Arguments);
-            }
-
-
-            videoProcess = new Process();
-            videoProcess.StartInfo = pInfo;
-            Logger.LogComment("PlayVideoFile: Starting player...");
-            videoProcess.Start();
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                mainPanel.Opacity = 0;
-            });
-           
-            // Give video player time to start, then fade out to reveal it...
-            System.Threading.Thread.Sleep(1100);
-            Logger.LogComment("PlayVideoFile: Fading Foreground to reveal video player.");
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                mainWindow.Opacity = 0;
-            });
-
-            int timer = 0;
-            Logger.LogComment("PlayVideoFile: Entering Timerloop");
-            while ((videoProcess != null) && (!videoProcess.HasExited))
-            {
-                timer += 1;
-                System.Threading.Thread.Sleep(300);
-                if (timer > 400)
-                {
-                    // timeout to not 'hang'
-                    // TODO: Add a setting for this
-                    break;
-                }
-               
-            }
-            Logger.LogComment("PlayVideoFile: Video has exited!");
-            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                mainPanel.Opacity = 1;
-                mainWindow.Opacity = 1;
-            });
-        }
-
-        private void KillVideoPlayer()
-        {
-            Logger.LogComment("KillVideoPlayer - Entering Method.");
-            try
-            {
-                if (videoProcess != null)
-                {
-                    try
-                    {
-                        videoProcess.CloseMainWindow();
-                        videoProcess = null;
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // expected if the process isn't there.
-                    }
-                    catch (Exception exc)
-                    {
-                        Debug.WriteLine("Tried and failed to kill video process..." + exc.ToString());
-                        Logger.LogComment("Tried and failed to kill video process. Exception: " + exc.ToString());
-                    }
-                }
-
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    // OMXPlayer processes can be a bit tricky. to kill them we use
-                    // killall - 9 omxplayer.bin
-                    // -q quiets this down in case omxplayer isn't running
-
-                    Helpers.RunProcess("killall", "-q -9 omxplayer.bin");
-                    videoProcess = null;
-
-                }
-                else
-                {
-                    videoProcess.Close();
-                    videoProcess.Dispose();
-                    videoProcess = null;
-                }
-            }
-            catch (Exception)
-            { 
-                // Swallow. This may no longer be there depending on what kills it (OMX player will exit if the video
-                // completes for instance
-            }
-        }
 
         public void SetupWebServer()
         {
