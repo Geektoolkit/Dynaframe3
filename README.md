@@ -2,6 +2,8 @@
 Dynamic Photo and Video Slideshow system for SBC (such as Raspberry pi)
 
 Video Demo, how to install, and intro here: https://youtu.be/XEaUsaNEzjY
+There are other related videos on the same channel.
+There are user written tutorials in Show and Tell under Discussions
 
 Note: Please see the releases section for the latest release. The below command will install 2.13 which I consider stable, but there are more features in later releases if you'd like to try them. To remove a release just delete the folder using "sudo rm -rf Dynaframe" and rerun the install script.
 
