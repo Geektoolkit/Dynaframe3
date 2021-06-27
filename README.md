@@ -26,8 +26,10 @@ Adding memory to the GPU and slowing down the time between transitions (as well 
 
 Additional steps to clean up some things:
 1) To get rid of the mouse cursor, you'll want to install unclutter.  sudo apt-get install unclutter, and then run: unclutter -idle 0
-2) To prevent screen blanking, please run: sudo raspi-config, and then turn off screen blanking in the menus there (I believe it's under advanced)
-I'm working on getting these into the setup scripts.
+2) To prevent screen blanking, please run: sudo raspi-config, and then turn off screen blanking in the menus there under Display Options I'm working on getting these into the setup scripts.
+
+
+
 
 Welcome to Dynaframe!  Dynaframe was designed to be a simple photo and video slideshow viewer.  I wanted to have something that could do slideshows but also show 'plotagraphs', which are essentially animated images.  I use an app on iOS called 'Werble' which made some really cool ones, but there wasn't a good way to show them off.
 
