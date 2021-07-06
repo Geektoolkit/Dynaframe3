@@ -47,9 +47,15 @@ namespace Dynaframe3
                         AppSettings.Default.InfoBarState = AppSettings.InfoBar.FileInfo;
                         break;
                     }
+                case "INFOBAR_EXIF_ON":
+                    {
+                        AppSettings.Default.InfoBarState = AppSettings.InfoBar.ExifData;
+                        break;
+                    }
                 case "INFOBAR_DATETIME_On":
                 case "INFOBAR_FILENAME_On":
                 case "INFOBAR_IP_On":
+                case "INFOBAR_EXIF_OFF":
                 case "INFOBAR_HIDDEN":
                     {
                         AppSettings.Default.InfoBarState = AppSettings.InfoBar.OFF;
@@ -165,6 +171,8 @@ namespace Dynaframe3
                 case "INFOBAR_FILENAME_Off":
                 case "INFOBAR_FILENAME_On":
                 case "INFOBAR_HIDDEN":
+                case "INFOBAR_EXIF_ON":
+                case "INFOBAR_EXIF_OFF":
                     {
                         SetInfoBar(command);
                         break;

@@ -138,6 +138,16 @@ namespace Dynaframe3
 
             slideTimer.Elapsed += Timer_Tick;
 
+            Stopwatch sw = new Stopwatch();
+            
+            Logger.LogComment("Initializing database..");
+            sw.Start();
+            playListEngine.InitializeDatabase();
+            playListEngine.RebuildPlaylist();
+
+            sw.Stop();
+            Logger.LogComment("Database initialized. Took: " + sw.ElapsedMilliseconds + " ms." );
+
             AppSettings.Default.ReloadSettings = true;
             slideTimer.Start();
             Timer_Tick(null, null);
@@ -157,7 +167,7 @@ namespace Dynaframe3
         {
             tb.Transitions.Clear();
             playListEngine.GoToNext();
-            PlayFile(playListEngine.CurrentPlayListItem.Path, 500);
+            PlayFile(playListEngine.CurrentMediaFile.Path, 500);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
@@ -168,23 +178,16 @@ namespace Dynaframe3
         {
             tb.Transitions.Clear();
             playListEngine.GoToPrevious();
-            PlayFile(playListEngine.CurrentPlayListItem.Path, 500);
+            PlayFile(playListEngine.CurrentMediaFile.Path, 500);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
         public void GoToFirstImage()
         {
             tb.Transitions.Clear();
-            playListEngine.GetPlayListItems();
-            AppSettings.Default.RefreshDirctories = false;
-            Logger.LogComment("Going to sleep while loading playlist...");
-            while (playListEngine.PlaylistState == PlayListEngine.PlaylistStates.Loading)
-            {
-                Thread.Sleep(100);
-            }
-            Logger.LogComment("Waking up and continuing playing files..");
+            playListEngine.GoToFirstFile();
+            PlayFile(playListEngine.GetCurrentFile().Path, 500);
 
-            PlayFile(playListEngine.CurrentPlayListItem.Path, 500);
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
@@ -234,6 +237,10 @@ namespace Dynaframe3
                 }
             }
 
+            if (e.Key == Avalonia.Input.Key.D)
+            {
+                playListEngine.DumpPlaylistToLog();
+            }
 
             if (e.Key == Avalonia.Input.Key.F)
             {
@@ -309,47 +316,16 @@ namespace Dynaframe3
                 }
 
             }
-
-            // Check to see if the directories flag was modified
             if (AppSettings.Default.RefreshDirctories)
             {
-                try
-                {
-
-                    Logger.LogComment("Timer_Tick: Refresh Directories was true. Updating..");
-                    //
-                    // HACKHACK: We have to wait here while the filelist updates..if we move on we end up in a bad
-                    // timing mess...the UI thread will try to continue with the file list being incorrect.
-                    // 
-                    //
-                    AppSettings.Default.RefreshDirctories = false;
-                    playListEngine.GetPlayListItems();
-
-                    Logger.LogComment("Going to sleep while loading playlist...");
-                    while (playListEngine.PlaylistState == PlayListEngine.PlaylistStates.Loading)
-                    {
-                        Thread.Sleep(100);
-                    }
-                    Logger.LogComment("Waking up and continuing playing files..");
-
-                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        Logger.LogComment("Timer_Tick: GetFiles is called. Should update next image...");
-                        
-                    });
-                }
-                catch (Exception exc)
-                {
-                    Logger.LogComment("Exception refreshing directories! " + exc.ToString());
-                }
-                lastUpdated = lastUpdated.Subtract(TimeSpan.FromMilliseconds(AppSettings.Default.SlideshowTransitionTime));
-                Logger.LogComment("Timer_Tick: Exiting Refreshing Directories");
-
+                AppSettings.Default.RefreshDirctories = false;
+                playListEngine.InitializeDatabase();
+                playListEngine.RebuildPlaylist();
             }
 
             UpdateInfoBar();
             bool GoToNext = false;
-            if ((playListEngine.CurrentPlayListItem!= null) && (playListEngine.CurrentPlayListItem.ItemType == PlayListItemType.Video))
+            if ((playListEngine.CurrentMediaFile != null) && (playListEngine.CurrentMediaFile.Type == "Video"))
             {
                 if (!VideoPlayer.CheckStatus(false))
                 {
@@ -371,14 +347,14 @@ namespace Dynaframe3
                 }
                 lastUpdated = DateTime.Now;
                 playListEngine.GoToNext();
-                Logger.LogComment("Next file is: " + playListEngine.CurrentPlayListItem.Path);
+                Logger.LogComment("Next file is: " + playListEngine.CurrentMediaFile.Path);
 
                 // sync frame call
                 if ((AppSettings.Default.IsSyncEnabled) && (SyncedFrame.SyncEngine.syncedFrames.Count > 0))
                 {
-                    SyncedFrame.SyncEngine.SyncFrames(playListEngine.CurrentPlayListItem.Path);
+                    SyncedFrame.SyncEngine.SyncFrames(playListEngine.CurrentMediaFile.Path);
                 }
-                PlayFile(playListEngine.CurrentPlayListItem.Path);
+                PlayFile(playListEngine.CurrentMediaFile.Path);
             }
             slideTimer.Start(); // start next iterations...this prevents reentry...
 
@@ -396,13 +372,13 @@ namespace Dynaframe3
             try
             {
                 // TODO: Try to 'peek' at next file, if video, then slow down more
-                if (type == PlayListItemType.Video)
+                if (playListEngine.CurrentMediaFile.Type == "Video")
                 {
                     VideoPlayer.PlayVideo(path);
                 }
                 else
                 {
-                    crossFadeTransition.SetImage(path, AppSettings.Default.FadeTransitionTime);
+                    crossFadeTransition.SetImage(path, transitionTime);
                 }
                 Logger.LogComment("Media is now set.");
             }
@@ -441,7 +417,7 @@ namespace Dynaframe3
                         case (AppSettings.InfoBar.FileInfo):
                             {
                                 tb.Opacity = 1;
-                                FileInfo f = new FileInfo(playListEngine.CurrentPlayListItem.Path);
+                                FileInfo f = new FileInfo(playListEngine.CurrentMediaFile.Path);
                                 string fData = f.Name;
                                 IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(f.FullName);
 
@@ -462,7 +438,7 @@ namespace Dynaframe3
                         case (AppSettings.InfoBar.ExifData):
                             {
                                 tb.Opacity = 1;
-                                tb.Text = playListEngine.CurrentPlayListItem.Title + "\r\n" + playListEngine.CurrentPlayListItem.Artist;
+                                tb.Text = playListEngine.CurrentMediaFile.Title + "\r\n" + playListEngine.CurrentMediaFile.Author;
                                 break;
                             }
                         default:

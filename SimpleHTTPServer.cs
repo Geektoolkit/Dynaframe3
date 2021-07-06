@@ -245,6 +245,20 @@ internal class SimpleHTTPServer
                         refreshSettings += Helpers.SetBoolAppSetting("off", "ShowInfoDateTime");
                     }
                 }
+                if (context.Request.QueryString.Get("COMMAND") == "INFOBAR_EXIF_ON" || context.Request.QueryString.Get("COMMAND") == "INFOBAR_EXIF_OFF")
+                {
+                    if (context.Request.QueryString.Get("on") == "false")
+                    {
+                        
+                        refreshSettings += Helpers.SetBoolAppSetting("on", "ShowEXIFData");
+                        refreshSettings += Helpers.SetBoolAppSetting("off", "ShowInfoFileName");
+                        refreshSettings += Helpers.SetStringAppSetting("false", "ShowInfoIP");
+                    }
+                    else
+                    {
+                        refreshSettings += Helpers.SetBoolAppSetting("off", "ShowEXIFData");
+                    }
+                }
                 if (context.Request.QueryString.Get("COMMAND") == "INFOBAR_FILENAME_On" || context.Request.QueryString.Get("COMMAND") == "INFOBAR_FILENAME_Off")
                 {
                     if (context.Request.QueryString.Get("on") == "false")
@@ -945,6 +959,15 @@ internal class SimpleHTTPServer
             else
             {
                 page = page.Replace("<!--ShowInfoIP-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=INFOBAR_IP_Off&on=false\">Show IP</a>");
+            }
+
+            if (AppSettings.Default.ShowEXIFData == true)
+            {
+                page = page.Replace("<!--ShowInfoEXIF-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=INFOBAR_EXIF_OFF&on=true\">Hide EXIF Data</a>");
+            }
+            else
+            {
+                page = page.Replace("<!--ShowInfoEXIF-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=INFOBAR_EXIF_ON&on=false\">Show EXIF Data</a>");
             }
 
             if (AppSettings.Default.ScreenStatus == true)

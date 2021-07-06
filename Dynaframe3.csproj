@@ -4,14 +4,14 @@
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>Dynaframe</AssemblyName>
-    <Version>2.23</Version>
+    <Version>2.24</Version>
     <Authors>Joe Farro</Authors>
     <Company>Geektoolkit</Company>
     <Product>Dynaframe</Product>
     <Description>Dynaframe is a dynamic photo application which can show images and videos as slideshows. It features a web frontend, home automation integration, and more.</Description>
-    <AssemblyVersion>2.22.0.0</AssemblyVersion>
+    <AssemblyVersion>2.24.0.0</AssemblyVersion>
     <Configurations>Release;Debug</Configurations>
-    <FileVersion>2.23.0.0</FileVersion>
+    <FileVersion>2.24.0.0</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType></DebugType>
@@ -48,6 +48,7 @@
     <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0" />
     <PackageReference Include="Avalonia.Skia.Desktop" Version="0.5.2-build3633-alpha" />
     <PackageReference Include="MetadataExtractor" Version="2.4.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.7" />
@@ -55,6 +56,9 @@
     <PackageReference Include="Avalonia" Version="0.10.0" />
   </ItemGroup>
   <ItemGroup>
+    <None Update="dynaframe.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="images\2.mov">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -258,6 +262,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Data\" />
     <Folder Include="Scripts\" />
     <Folder Include="web\images\" />
     <Folder Include="web\css\" />
