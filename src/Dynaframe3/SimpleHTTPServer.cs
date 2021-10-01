@@ -15,6 +15,8 @@ using Dynaframe3;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using System.Web;
+using Dynaframe3.Server;
+using Microsoft.Extensions.Hosting;
 
 internal class SimpleHTTPServer
 {
@@ -140,7 +142,7 @@ internal class SimpleHTTPServer
     public void Stop()
     {
         cts.Cancel();
-        _listener.Abort(); // try to forcefully shut down the listener
+        //_listener.Abort(); // try to forcefully shut down the listener
         cts.Dispose();
          //_serverThread.Abort(); // PNE fires!  // .net 5.0 this may no longer be necessary
     }
@@ -148,22 +150,26 @@ internal class SimpleHTTPServer
     private void Listen(object obj)
     {
         CancellationToken ct = (CancellationToken)obj;
-        _listener = new HttpListener();
-        _listener.Prefixes.Add("http://*:" + _port.ToString() + "/");
-        _listener.Start();
+        //_listener = new HttpListener();
+        //_listener.Prefixes.Add("http://*:" + _port.ToString() + "/");
+        //_listener.Start();
+        var host = Program.CreateHostBuilder(Array.Empty<string>()).Build();
+        var task = host.RunAsync(ct);
 
         while (!ct.IsCancellationRequested)
         {
-            try
-            {
-                HttpListenerContext context = _listener.GetContext();
-                Process(context);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine("Exception from httplistener: " + ex.ToString());
-            }
+            //try
+            //{
+            //    HttpListenerContext context = _listener.GetContext();
+            //    Process(context);
+            //}
+            //catch (Exception ex)
+            //{
+            //    Debug.WriteLine("Exception from httplistener: " + ex.ToString());
+            //}
+            Thread.Sleep(100);
         }
+        task.ConfigureAwait(false).GetAwaiter().GetResult();
     }
 
     private void Process(HttpListenerContext context)

@@ -150,8 +150,8 @@ namespace Dynaframe3
                 }
                 else
                 {
-                    videoProcess.Close();
-                    videoProcess.Dispose();
+                    videoProcess?.Close();
+                    videoProcess?.Dispose();
                     videoProcess = null;
                 }
             }
