@@ -22,7 +22,7 @@ namespace Dynaframe3
 
             public static void Initialize()
             {
-                foreach (string ip in AppSettings.Default.RemoteClients)
+                foreach (string ip in ServerAppSettings.Default.RemoteClients)
                 {
                     SyncedFrame syncFrame = new SyncedFrame() { hostname = ip, offsetdelay = 0 };
                     syncedFrames.Add(syncFrame);
@@ -42,7 +42,7 @@ namespace Dynaframe3
                 Logger.LogComment("SyncFrames enabled...sending sync signals..");
                 Parallel.For(0, syncedFrames.Count, i =>
                 {
-                    string host = "http://" + syncedFrames[i].hostname + ":" + AppSettings.Default.ListenerPort;
+                    string host = "http://" + syncedFrames[i].hostname + ":" + ServerAppSettings.Default.ListenerPort;
                     string command = "?SETFILE=" + imageUrl;
                     string uri = host + command;
                     Logger.LogComment("SyncEngine - SyncFrames: Sending: " + uri);
@@ -64,7 +64,7 @@ namespace Dynaframe3
                         {
                             // We have a bad hostame in the list...a bad uri will neverwork
                             // and so lets try to clean it out to keep things from going sideways..
-                            AppSettings.Default.RemoteClients.Remove(syncedFrames[i].hostname);
+                            ServerAppSettings.Default.RemoteClients.Remove(syncedFrames[i].hostname);
                         }
                         catch (Exception)
                         {

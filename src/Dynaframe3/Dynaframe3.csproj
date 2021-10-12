@@ -1,10 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
 	<OutputType>WinExe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <AssemblyName>Dynaframe</AssemblyName>
+    <AssemblyName>Dynaframe123</AssemblyName>
     <Version>2.24</Version>
     <Authors>Joe Farro</Authors>
     <Company>Geektoolkit</Company>
@@ -21,6 +21,7 @@
 	  <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0" />
 	  <PackageReference Include="Avalonia.Skia.Desktop" Version="0.5.2-build3633-alpha" />
 	  <PackageReference Include="MetadataExtractor" Version="2.4.3" />
+	  <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="5.0.10" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="5.0.7" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
 	  <PackageReference Include="Avalonia" Version="0.10.0" />
@@ -66,9 +67,6 @@
 		<None Update="dynaframe.db">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="images\2.mov">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 		<None Update="Properties\launchSettings.json">
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
@@ -90,18 +88,6 @@
 		</None>
 		<None Update="web\upload.htm">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="web\images\logo.png">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="images\Instructions.png">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="images\background.jpg">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="images\vertbackground.jpg">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="web\uploads\README.txt">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -274,14 +260,14 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Data\" />
+		<Folder Include="Views\" />
 		<Folder Include="Scripts\" />
-		<Folder Include="web\images\" />
 		<Folder Include="web\css\" />
 		<Folder Include="web\js\" />
 		<Folder Include="web\uploads\" />
 	</ItemGroup>
 	<ItemGroup>
-		<Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="AppSettings.cs">
+		<Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="ServerAppSettings.cs">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</Compile>
 	</ItemGroup>

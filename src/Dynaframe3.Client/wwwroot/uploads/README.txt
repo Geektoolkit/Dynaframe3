@@ -1,0 +1,2 @@
+﻿Uploads Directory for WebUI upload. Directory will add itself to the playlist. All images uploaded from the webapp will go in this directory.
+This readme file will delete on install via install.sh (Placeholder Only)

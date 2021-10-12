@@ -15,7 +15,7 @@ namespace Dynaframe3
         static public void LogComment(string comment)
         {
             // Note: Appsettings determins if this actually logs or not. Defaults to 'off'.
-            if (AppSettings.Default.EnableLogging)
+            if (ServerAppSettings.Default.EnableLogging)
             {
                 string date = DateTime.Now.ToString("g");
                 string logComment = date + ":" + comment;
@@ -37,7 +37,7 @@ namespace Dynaframe3
         public static string GetLogAsHTML()
         {
             // if disabled help the user out
-            if (!AppSettings.Default.EnableLogging)
+            if (!ServerAppSettings.Default.EnableLogging)
             {
                 return "Logging is currently disabled! Please enable logging to continue...";
             }

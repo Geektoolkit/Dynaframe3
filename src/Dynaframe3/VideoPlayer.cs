@@ -32,10 +32,10 @@ namespace Dynaframe3
                 Logger.LogComment("Linux Detected, setting up OMX Player");
                 pInfo.FileName = "omxplayer";
                 Logger.LogComment("Setting up Appsettings...");
-                pInfo.Arguments = AppSettings.Default.OXMOrientnation + " --aspect-mode " + AppSettings.Default.VideoStretch + " ";
+                pInfo.Arguments = ServerAppSettings.Default.OXMOrientnation + " --aspect-mode " + ServerAppSettings.Default.VideoStretch + " ";
 
                 // Append volume command argument
-                if (!AppSettings.Default.VideoVolume)
+                if (!ServerAppSettings.Default.VideoVolume)
                 {
                     pInfo.Arguments += "--vol -6000 ";
                 }
@@ -91,7 +91,7 @@ namespace Dynaframe3
                 });
                 return false;
             }
-            else if((AppSettings.Default.PlaybackFullVideo == false) && (ForceTransition))
+            else if((ServerAppSettings.Default.PlaybackFullVideo == false) && (ForceTransition))
             {
                 // We should interupt the video...check status gets called at the slide transition time.
                 Logger.LogComment("VideoPlayer is closing playing video to transition to images..");

@@ -41,7 +41,7 @@ namespace Dynaframe3
             Playlist.Clear();
 
             // filter based on file paths
-            foreach (string dir in AppSettings.Default.CurrentPlayList)
+            foreach (string dir in ServerAppSettings.Default.CurrentPlayList)
             {
                 using (var db = new MediaDataContext())
                 {
@@ -55,7 +55,7 @@ namespace Dynaframe3
 
             // Add in toplevel directories 
             // TODO: This can be filtered out here.
-            foreach (string dir in AppSettings.Default.SearchDirectories)
+            foreach (string dir in ServerAppSettings.Default.SearchDirectories)
             {
                 using (var db = new MediaDataContext())
                 {
@@ -68,9 +68,9 @@ namespace Dynaframe3
             }
 
             // Filter based on tags
-            if (!String.IsNullOrEmpty(AppSettings.Default.InclusiveTagFilters))
+            if (!String.IsNullOrEmpty(ServerAppSettings.Default.InclusiveTagFilters))
             {
-                string[] filters = AppSettings.Default.InclusiveTagFilters.Split(';');
+                string[] filters = ServerAppSettings.Default.InclusiveTagFilters.Split(';');
                 foreach (string filter in filters)
                 {
                     using (var db = new MediaDataContext())
@@ -86,7 +86,7 @@ namespace Dynaframe3
 
             Playlist = Playlist.Distinct().ToList();
 
-            if (AppSettings.Default.Shuffle)
+            if (ServerAppSettings.Default.Shuffle)
             {
                 Random r = new Random((int)DateTime.Now.Ticks);
                 Playlist = Helpers.Shuffle<int>(Playlist, r).ToList();
@@ -148,17 +148,17 @@ namespace Dynaframe3
         public void InitializeDatabase()
         {
             Logger.LogComment("InitializeDatabase() - Building Database");
-            AddItemsToDatabase(AppSettings.Default.CurrentPlayList, SearchOption.AllDirectories);
-            AddItemsToDatabase(AppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly);
+            AddItemsToDatabase(ServerAppSettings.Default.CurrentPlayList, SearchOption.AllDirectories);
+            AddItemsToDatabase(ServerAppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly);
         }
 
         public void AddItemsToDatabase(List<string> Folders, SearchOption searchOptions)
         {
             // Filter folders and issues out now..
             string[] folders = new string[] { "" };
-            if (AppSettings.Default.IgnoreFolders.Length > 0)
+            if (ServerAppSettings.Default.IgnoreFolders.Length > 0)
             {
-                folders = AppSettings.Default.IgnoreFolders.Split(",");
+                folders = ServerAppSettings.Default.IgnoreFolders.Split(",");
             }
 
             // First remove ignore folders from Folders array which is passed in

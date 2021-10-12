@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Linq;
 
 namespace Dynaframe3.Server
 {
@@ -24,7 +23,11 @@ namespace Dynaframe3.Server
         {
 
             services.AddControllersWithViews();
-            services.AddRazorPages();
+            services.AddRazorPages(options =>
+            {
+                //options.Conventions.AddPageRoute("/Home", "");
+                options.Conventions.AddPageRoute("/Index", "/Fallback");
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,7 +52,8 @@ namespace Dynaframe3.Server
             {
                 endpoints.MapRazorPages();
                 endpoints.MapControllers();
-                endpoints.MapFallbackToFile("index.html");
+                endpoints.MapFallbackToPage("/Home");
+                //endpoints.MapFallbackToFile("index.html");
             });
         }
     }

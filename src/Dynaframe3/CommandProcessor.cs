@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Dynaframe3
 {
@@ -12,6 +13,7 @@ namespace Dynaframe3
     public static class CommandProcessor
     {
         static MainWindow handleMainWindow = null;
+        static readonly string _uploadsDirectory = AppDomain.CurrentDomain.BaseDirectory + "/web/uploads/";
 
         public static void GetMainWindowHandle(MainWindow mainWindow)
         {
@@ -35,35 +37,35 @@ namespace Dynaframe3
 
         public static void SetInfoBar(string InfobarValue)
         {
-            switch (InfobarValue)
+            switch (InfobarValue.ToUpper())
             {
-                case "INFOBAR_DATETIME_Off":
+                case "INFOBAR_DATETIME_ON":
                     {
-                        AppSettings.Default.InfoBarState = AppSettings.InfoBar.DateTime;
+                        ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.DateTime;
                         break;
                     }
-                case "INFOBAR_FILENAME_Off":
+                case "INFOBAR_FILENAME_ON":
                     {
-                        AppSettings.Default.InfoBarState = AppSettings.InfoBar.FileInfo;
+                        ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.FileInfo;
                         break;
                     }
-                case "INFOBAR_EXIF_ON":
-                    {
-                        AppSettings.Default.InfoBarState = AppSettings.InfoBar.ExifData;
-                        break;
-                    }
-                case "INFOBAR_DATETIME_On":
-                case "INFOBAR_FILENAME_On":
-                case "INFOBAR_IP_On":
                 case "INFOBAR_EXIF_OFF":
+                    {
+                        ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.ExifData;
+                        break;
+                    }
+                case "INFOBAR_DATETIME_OFF":
+                case "INFOBAR_FILENAME_OFF":
+                case "INFOBAR_IP_OFF":
+                case "INFOBAR_EXIF_ON":
                 case "INFOBAR_HIDDEN":
                     {
-                        AppSettings.Default.InfoBarState = AppSettings.InfoBar.OFF;
+                        ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.OFF;
                         break;
                     }
-                case "INFOBAR_IP_Off":
+                case "INFOBAR_IP_ON":
                     {
-                        AppSettings.Default.InfoBarState = AppSettings.InfoBar.IP;
+                        ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.IP;
                         break;
                     }
                 default:
@@ -72,8 +74,8 @@ namespace Dynaframe3
                     }
             }
 
-            AppSettings.Default.ReloadSettings = true;
-            AppSettings.Default.Save();
+            ServerAppSettings.Default.ReloadSettings = true;
+            ServerAppSettings.Default.Save();
         }
 
         /// <summary>
@@ -154,42 +156,97 @@ namespace Dynaframe3
         public static void ProcessCommand(string command)
         {
             Logger.LogComment("Command recieved: " + command);
-            switch (command)
+            var commandFound = true;
+            switch (command.ToUpper())
             {
                 case "SCREENOFF":
                     {
                         TurnOffScreen();
+                        ServerAppSettings.Default.ScreenStatus = false;
                         break;
                     }
                 case "SCREENON":
                     {
                         TurnOnScreen();
+                        ServerAppSettings.Default.ScreenStatus = true;
                         break;
                     }
-                case "INFOBAR_DATETIME_Off":
-                case "INFOBAR_DATETIME_On":
-                case "INFOBAR_FILENAME_Off":
-                case "INFOBAR_FILENAME_On":
+                case "INFOBAR_DATETIME_OFF":
+                    {
+                        SetInfoBar(command);
+                        ServerAppSettings.Default.ShowInfoDateTime = false;
+                        break;
+                    }
+                case "INFOBAR_DATETIME_ON":
+                    {
+                        SetInfoBar(command);
+                        ServerAppSettings.Default.ShowInfoDateTime = true;
+                        ServerAppSettings.Default.ShowInfoFileName = false;
+                        ServerAppSettings.Default.ShowInfoIP = "false";
+                        break;
+                    }
+                case "INFOBAR_FILENAME_OFF":
+                    {
+                        SetInfoBar(command);
+                        ServerAppSettings.Default.ShowInfoFileName = false;
+                        break;
+                    }
+                case "INFOBAR_FILENAME_ON":
+                    {
+                        SetInfoBar(command);
+                        ServerAppSettings.Default.ShowInfoDateTime = false;
+                        ServerAppSettings.Default.ShowInfoFileName = true;
+                        ServerAppSettings.Default.ShowInfoIP = "false";
+                        break;
+                    }
                 case "INFOBAR_HIDDEN":
+                    {
+                        SetInfoBar(command);
+                        break;
+                    }
                 case "INFOBAR_EXIF_ON":
+                    {
+                        SetInfoBar(command);
+                        ServerAppSettings.Default.ShowEXIFData = true;
+                        break;
+                    }
                 case "INFOBAR_EXIF_OFF":
                     {
                         SetInfoBar(command);
+                        ServerAppSettings.Default.ShowEXIFData = false;
                         break;
                     }
-                case "INFOBAR_IP_Off":
-                case "INFOBAR_IP_On":
+                case "INFOBAR_IP_OFF":
                     {
                         SetInfoBar(command);
+                        ServerAppSettings.Default.ShowInfoIP = "false";
+                        break;
+                    }
+                case "INFOBAR_IP_ON":
+                    {
+                        SetInfoBar(command);
+                        ServerAppSettings.Default.ShowInfoDateTime = false;
+                        ServerAppSettings.Default.ShowInfoFileName = false;
+                        ServerAppSettings.Default.ShowInfoIP = "true";
                         break;
                     }
                 case "CONTROL_FIRST":
                 case "CONTROL_BACKWARD":
-                case "CONTROL_PAUSE_On":
-                case "CONTROL_PAUSE_Off":
                 case "CONTROL_FORWARD":
                     {
                         ControlSlideshow(command);
+                        break;
+                    }
+                case "CONTROL_PAUSE_ON":
+                    {
+                        ControlSlideshow(command);
+                        ServerAppSettings.Default.SlideShowPaused = true;
+                        break;
+                    }
+                case "CONTROL_PAUSE_OFF":
+                    {
+                        ControlSlideshow(command);
+                        ServerAppSettings.Default.SlideShowPaused = false;
                         break;
                     }
                 case "REBOOT":
@@ -214,144 +271,73 @@ namespace Dynaframe3
                     }
                 case "UTILITY_UPDATEFILELIST":
                     {
-                        AppSettings.Default.RefreshDirctories = true;
-                        AppSettings.Default.Save();
+                        ServerAppSettings.Default.RefreshDirctories = true;
+                        break;
+                    }
+                case "SHUFFLE_OFF":
+                    {
+                        ServerAppSettings.Default.Shuffle = false;
+                        break;
+                    }
+                case "SHUFFLE_ON":
+                    {
+                        ServerAppSettings.Default.Shuffle = true;
                         break;
                     }
 
 
                 default:
                     {
-
+                        commandFound = false;
                         break;
                     }
             }
+
+            if (commandFound)
+            {
+                ServerAppSettings.Default.ReloadSettings = true;
+            }
+
+            ServerAppSettings.Default.Save();
         }
 
         // File Upload 
 
-        public static String GetBoundary(String ctype)
+        public static async Task<string> SaveFileAsync(Stream input, string fileExtension)
         {
-            return "--" + ctype.Split(';')[1].Split('=')[1];
-        }
-
-        public static bool SaveFile(Encoding enc, String boundary, Stream input, string fileExtension)
-        {
-            Byte[] boundaryBytes = enc.GetBytes(boundary);
-            Int32 boundaryLen = boundaryBytes.Length;
-            bool ImageUploaded = true;
             //var dirPath= AppSettings.Default.CurrentDirectory + "/uploads/image_" + DateTime.Now.ToString("ddMMyyhhmmss") + "." + fileExtension;
-            var dirPath = AppDomain.CurrentDomain.BaseDirectory + "/web/uploads/image_" + DateTime.Now.ToString("ddMMyyhhmmss") + "." + fileExtension;
+            var fileName = "image_" + DateTime.Now.ToString("ddMMyyhhmmss") + fileExtension;
+            var dirPath = _uploadsDirectory + fileName;
             //var dirPath = "/Users/rnewberger/Web/image4.jpg";
 
-            using (FileStream output = new FileStream(dirPath, FileMode.Create, FileAccess.Write))
+            using (var output = new FileStream(dirPath, FileMode.Create, FileAccess.Write))
             {
-                Byte[] buffer = new Byte[1024];
-                Int32 len = input.Read(buffer, 0, 1024);
-                Int32 startPos = -1;
-
-                // Find start boundary
-                while (true)
-                {
-                    if (len == 0)
-                    {
-                        ImageUploaded = false;
-                        File.Delete(dirPath);
-                        break;
-                    }
-
-                    startPos = IndexOf(buffer, len, boundaryBytes);
-                    if (startPos >= 0)
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        Array.Copy(buffer, len - boundaryLen, buffer, 0, boundaryLen);
-                        len = input.Read(buffer, boundaryLen, 1024 - boundaryLen);
-                    }
-                }
-
-                // Skip four lines (Boundary, Content-Disposition, Content-Type, and a blank)
-                for (Int32 i = 0; i < 4; i++)
-                {
-                    while (true)
-                    {
-                        if (len == 0)
-                        {
-                            ImageUploaded = false;
-                            File.Delete(dirPath);
-                            break;
-                        }
-
-                        startPos = Array.IndexOf(buffer, enc.GetBytes("\n")[0], startPos);
-                        if (startPos >= 0)
-                        {
-                            startPos++;
-                            break;
-                        }
-                        else
-                        {
-                            len = input.Read(buffer, 0, 1024);
-                        }
-                    }
-                }
-
-                Array.Copy(buffer, startPos, buffer, 0, len - startPos);
-                len = len - startPos;
-
-                while (true)
-                {
-                    Int32 endPos = IndexOf(buffer, len, boundaryBytes);
-                    if (endPos >= 0)
-                    {
-                        if (endPos > 0) output.Write(buffer, 0, endPos - 2);
-                        break;
-                    }
-                    else if (len <= boundaryLen)
-                    {
-                        ImageUploaded = false;
-                        File.Delete(dirPath);
-                        break;
-                    }
-                    else
-                    {
-                        output.Write(buffer, 0, len - boundaryLen);
-                        Array.Copy(buffer, len - boundaryLen, buffer, 0, boundaryLen);
-                        len = input.Read(buffer, boundaryLen, 1024 - boundaryLen) + boundaryLen;
-                    }
-                }
+                await input.CopyToAsync(output).ConfigureAwait(false);
             }
             ControlSlideshow("CONTROL_FORWARD");
-            return ImageUploaded;
+            return fileName;
         }
 
-        private static Int32 IndexOf(Byte[] buffer, Int32 len, Byte[] boundaryBytes)
+        public static IEnumerable<string> GetFiles()
         {
-            for (Int32 i = 0; i <= len - boundaryBytes.Length; i++)
+            var files = Directory.GetFiles(_uploadsDirectory);
+            foreach (var file in files)
             {
-                Boolean match = true;
-                for (Int32 j = 0; j < boundaryBytes.Length && match; j++)
-                {
-                    match = buffer[i + j] == boundaryBytes[j];
-                }
-
-                if (match)
-                {
-                    return i;
-                }
+                yield return Path.GetFileName(file);
             }
+        }
 
-            return -1;
+        public static Stream GetFile(string fileName)
+        {
+            var dirPath = _uploadsDirectory + fileName;
+            return File.OpenRead(dirPath);
         }
 
         public static void DeleteFile(string fileName)
         {
-            var dirPath = AppDomain.CurrentDomain.BaseDirectory + "/web/uploads/" + fileName;
+            var dirPath = _uploadsDirectory + fileName;
             File.Delete(dirPath);
             ControlSlideshow("CONTROL_FORWARD");
         }
-
-
     }
 }

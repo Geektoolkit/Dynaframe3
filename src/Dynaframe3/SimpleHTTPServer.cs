@@ -17,6 +17,7 @@ using System.Reflection;
 using System.Web;
 using Dynaframe3.Server;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.JsonPatch;
 
 internal class SimpleHTTPServer
 {
@@ -201,7 +202,7 @@ internal class SimpleHTTPServer
                 
                 return;
             }
-
+            
             Logger.LogComment("*************************************************************");
             Logger.LogComment("SIMPLEHTTPSERVER: Incoming Web Request...");
             Logger.LogComment("SIMPLEHTTPSERVER: Checking query string for values to edit..");
@@ -327,10 +328,10 @@ internal class SimpleHTTPServer
                 //Upload Images
                 if (context.Request.QueryString.Get("COMMAND") == "UTILITY_UPLOADFILE")
                 {
-                    if (context.Request.ContentType != null)
-                    {
-                        ImageUploaded = CommandProcessor.SaveFile(context.Request.ContentEncoding, CommandProcessor.GetBoundary(context.Request.ContentType), context.Request.InputStream, context.Request.QueryString.Get("Extension"));
-                    }
+                    //if (context.Request.ContentType != null)
+                    //{
+                    //    ImageUploaded = CommandProcessor.SaveFile(context.Request.ContentEncoding, CommandProcessor.GetBoundary(context.Request.ContentType), context.Request.InputStream, context.Request.QueryString.Get("Extension"));
+                    //}
                 }
                 else if (context.Request.QueryString.Get("COMMAND") == "UTILITY_DELETEFILE")
                 {
@@ -353,9 +354,9 @@ internal class SimpleHTTPServer
             if ((context.Request.QueryString.Get("ClientIP") != null) && (context.Request.QueryString.Get("ClientIP") != ""))
             {
                 string ip = context.Request.QueryString.Get("ClientIP");
-                if (!AppSettings.Default.RemoteClients.Contains(ip))
+                if (!ServerAppSettings.Default.RemoteClients.Contains(ip))
                 {
-                    AppSettings.Default.RemoteClients.Add(context.Request.QueryString.Get("ClientIP"));
+                    ServerAppSettings.Default.RemoteClients.Add(context.Request.QueryString.Get("ClientIP"));
                 }
 
                 SyncedFrame.SyncEngine.AddFrame(ip);
@@ -363,7 +364,7 @@ internal class SimpleHTTPServer
             }
             if (context.Request.QueryString.Get("CLEARSYNCLIST") != null)
             {
-                AppSettings.Default.RemoteClients.Clear();
+                ServerAppSettings.Default.RemoteClients.Clear();
                 SyncedFrame.SyncEngine.syncedFrames.Clear();
             }
 
@@ -373,7 +374,7 @@ internal class SimpleHTTPServer
             if (dir != null)
             {
                 string pictureDir = dir.Replace("'", "");
-                AppSettings.Default.CurrentDirectory = pictureDir;
+                ServerAppSettings.Default.CurrentDirectory = pictureDir;
                 refreshDirectories++;
             }
 
@@ -385,7 +386,7 @@ internal class SimpleHTTPServer
                 {
                     Logger.LogComment("SimpleHTTPServer: Removing directory..." + rem);
                     string removeDir = rem.Replace("'", "");
-                    AppSettings.Default.SearchDirectories.Remove(rem);
+                    ServerAppSettings.Default.SearchDirectories.Remove(rem);
 
                     List<string> ToRemove = new List<string>();
 
@@ -393,7 +394,7 @@ internal class SimpleHTTPServer
                     // list and then go through that. Awkward but too tired to figure out the right way to fix
                     // this right now.
                     Logger.LogComment("Emumerating directories to remove..");
-                    foreach (string subdirectory in AppSettings.Default.CurrentPlayList)
+                    foreach (string subdirectory in ServerAppSettings.Default.CurrentPlayList)
                     {
                         if (subdirectory.Contains(removeDir))
                         {
@@ -403,15 +404,15 @@ internal class SimpleHTTPServer
 
                     foreach (string del in ToRemove)
                     {
-                        if (AppSettings.Default.CurrentPlayList.Contains(del))
+                        if (ServerAppSettings.Default.CurrentPlayList.Contains(del))
                         {
-                            AppSettings.Default.CurrentPlayList.Remove(del);
+                            ServerAppSettings.Default.CurrentPlayList.Remove(del);
                             Logger.LogComment("Removing subdirectory: " + del);
                         }
                     }
 
                     Logger.LogComment("New Playlist is as follows----------------");
-                    foreach (string playlistDir in AppSettings.Default.CurrentPlayList)
+                    foreach (string playlistDir in ServerAppSettings.Default.CurrentPlayList)
                     {
                         Logger.LogComment(playlistDir);
                     }
@@ -434,22 +435,22 @@ internal class SimpleHTTPServer
                 {
                     case "Uniform":
                         {
-                            AppSettings.Default.ImageStretch = Avalonia.Media.Stretch.Uniform;
+                            ServerAppSettings.Default.ImageStretch = Avalonia.Media.Stretch.Uniform;
                             break;
                         }
                     case "UniformToFill":
                         {
-                            AppSettings.Default.ImageStretch = Avalonia.Media.Stretch.UniformToFill;
+                            ServerAppSettings.Default.ImageStretch = Avalonia.Media.Stretch.UniformToFill;
                             break;
                         }
                     case "Fill":
                         {
-                            AppSettings.Default.ImageStretch = Avalonia.Media.Stretch.Fill;
+                            ServerAppSettings.Default.ImageStretch = Avalonia.Media.Stretch.Fill;
                             break;
                         }
                     case "None":
                         {
-                            AppSettings.Default.ImageStretch = Avalonia.Media.Stretch.None;
+                            ServerAppSettings.Default.ImageStretch = Avalonia.Media.Stretch.None;
                             break;
                         }
                     default:
@@ -463,11 +464,11 @@ internal class SimpleHTTPServer
             {
                 // We use search directories to add things like NAS drives and usb drives to the system.
                 // This checks to make sure it exists when they're adding it, and that it isn't already in the list..
-                if (Directory.Exists(directoryToAdd) && (!AppSettings.Default.SearchDirectories.Contains(directoryToAdd)))
+                if (Directory.Exists(directoryToAdd) && (!ServerAppSettings.Default.SearchDirectories.Contains(directoryToAdd)))
                 {
-                    AppSettings.Default.SearchDirectories.Add(directoryToAdd);
+                    ServerAppSettings.Default.SearchDirectories.Add(directoryToAdd);
                     // Cleanup. Somewhere this is getting doubled up sometimes still. It's a small list so this should be fast.
-                    AppSettings.Default.SearchDirectories = AppSettings.Default.SearchDirectories.Distinct().ToList();
+                    ServerAppSettings.Default.SearchDirectories = ServerAppSettings.Default.SearchDirectories.Distinct().ToList();
                     refreshDirectories++;
                 }
             }
@@ -476,16 +477,16 @@ internal class SimpleHTTPServer
             if (subdirectorytoadd != null)
             {
                 Logger.LogComment("SIMPLEHTTPSERVER: Adding directory: " + HttpUtility.HtmlDecode(subdirectorytoadd));
-                AppSettings.Default.CurrentPlayList.Clear();
+                ServerAppSettings.Default.CurrentPlayList.Clear();
                 // We use search directories to add things like NAS drives and usb drives to the system.
                 // This checks to make sure it exists when they're adding it, and that it isn't already in the list..
                 string[] directoryList = subdirectorytoadd.Split(',');
                 foreach (string newdir in directoryList)
                 {
                     string decodedDirectory = System.Web.HttpUtility.UrlDecode(newdir);
-                    if (Directory.Exists(decodedDirectory) && (!AppSettings.Default.CurrentPlayList.Contains(decodedDirectory)))
+                    if (Directory.Exists(decodedDirectory) && (!ServerAppSettings.Default.CurrentPlayList.Contains(decodedDirectory)))
                     {
-                        AppSettings.Default.CurrentPlayList.Add(decodedDirectory);
+                        ServerAppSettings.Default.CurrentPlayList.Add(decodedDirectory);
                     }
                 }
                 refreshDirectories++;
@@ -497,14 +498,14 @@ internal class SimpleHTTPServer
             Logger.LogComment("Processed web request. RefreshSettings Value is: " + refreshSettings);
             if (refreshDirectories > 0)
             {
-                AppSettings.Default.RefreshDirctories = true;
+                ServerAppSettings.Default.RefreshDirctories = true;
             }
             if (refreshSettings > 0)
             {
-                AppSettings.Default.ReloadSettings = true;
+                ServerAppSettings.Default.ReloadSettings = true;
             }
             Logger.LogComment("SimpleHTTPServer: saving appsettings");
-            AppSettings.Default.Save();
+            ServerAppSettings.Default.Save();
 
         }
 
@@ -663,7 +664,7 @@ internal class SimpleHTTPServer
 
     public string GetAppDataPage()
     {
-        return Newtonsoft.Json.JsonConvert.SerializeObject(AppSettings.Default, Newtonsoft.Json.Formatting.Indented);
+        return Newtonsoft.Json.JsonConvert.SerializeObject(ServerAppSettings.Default, Newtonsoft.Json.Formatting.Indented);
     }
 
 
@@ -682,7 +683,7 @@ internal class SimpleHTTPServer
 
             string dirChoices = "<br>";
 
-            foreach (string dir in AppSettings.Default.SearchDirectories)
+            foreach (string dir in ServerAppSettings.Default.SearchDirectories)
             {
                 // Top level directory:
                 dirChoices += "<ul id='dirs' class='directorylist'>";
@@ -697,7 +698,7 @@ internal class SimpleHTTPServer
                     string subdirectory = Path.GetFileName(subdir);
                     string encdirectory = System.Web.HttpUtility.UrlEncode(subdir);
                     string cbChecked = "";
-                    if (AppSettings.Default.CurrentPlayList.Contains(subdir))
+                    if (ServerAppSettings.Default.CurrentPlayList.Contains(subdir))
                     {
                         cbChecked = "checked";
                     }
@@ -712,7 +713,7 @@ internal class SimpleHTTPServer
             dirChoices += "</li></div>";
 
             dirChoices += "<br><br><br><div class ='settings'><h4>Search Directories: </h4>";
-            foreach (string directory in AppSettings.Default.SearchDirectories)
+            foreach (string directory in ServerAppSettings.Default.SearchDirectories)
             {
                 if (directory != AppDomain.CurrentDomain.BaseDirectory + "web/uploads/")
                 {
@@ -726,11 +727,11 @@ internal class SimpleHTTPServer
             dirChoices += "</div><br>";
 
             page = page.Replace("<!-- DIRECTORIES -->", dirChoices);
-            page = page.Replace("<!--CURRENTTAGFILTER-->", AppSettings.Default.InclusiveTagFilters);
+            page = page.Replace("<!--CURRENTTAGFILTER-->", ServerAppSettings.Default.InclusiveTagFilters);
 
             // Sync Client list
             string clients = "";
-            foreach (string client in AppSettings.Default.RemoteClients)
+            foreach (string client in ServerAppSettings.Default.RemoteClients)
             {
                 clients += "<br>" + client;
             }
@@ -738,15 +739,15 @@ internal class SimpleHTTPServer
 
 
             // Generate custom settings here
-            page = page.Replace("<!--INFOBARFONTSIZE-->", "value=" + AppSettings.Default.InfoBarFontSize.ToString() + ">");
-            page = page.Replace("<!--SLIDESHOWDURATION-->", "value=" + AppSettings.Default.SlideshowTransitionTime.ToString() + ">");
-            page = page.Replace("<!--TRANSITIONTIME-->", "value=" + AppSettings.Default.FadeTransitionTime.ToString() + ">");
-            page = page.Replace("<!--IPADDRESSTIME-->", "value=" + AppSettings.Default.NumberOfSecondsToShowIP.ToString() + ">");
-            page = page.Replace("<!--DATETIMEFORMAT-->", "value='" + AppSettings.Default.DateTimeFormat + "'>");
-            page = page.Replace("<!--DATETIMEFONTFAMILY-->", "value='" + AppSettings.Default.DateTimeFontFamily + "'>");
-            page = page.Replace("<!--BLURBOXSIGMAX-->", "value='" + AppSettings.Default.BlurBoxSigmaX + "'>");
-            page = page.Replace("<!--BLURBOXSIGMAY-->", "value='" + AppSettings.Default.BlurBoxSigmaY + "'>");
-            page = page.Replace("<!--BLURBOXMARGIN-->", "value='" + AppSettings.Default.BlurBoxMargin + "'>");
+            page = page.Replace("<!--INFOBARFONTSIZE-->", "value=" + ServerAppSettings.Default.InfoBarFontSize.ToString() + ">");
+            page = page.Replace("<!--SLIDESHOWDURATION-->", "value=" + ServerAppSettings.Default.SlideshowTransitionTime.ToString() + ">");
+            page = page.Replace("<!--TRANSITIONTIME-->", "value=" + ServerAppSettings.Default.FadeTransitionTime.ToString() + ">");
+            page = page.Replace("<!--IPADDRESSTIME-->", "value=" + ServerAppSettings.Default.NumberOfSecondsToShowIP.ToString() + ">");
+            page = page.Replace("<!--DATETIMEFORMAT-->", "value='" + ServerAppSettings.Default.DateTimeFormat + "'>");
+            page = page.Replace("<!--DATETIMEFONTFAMILY-->", "value='" + ServerAppSettings.Default.DateTimeFontFamily + "'>");
+            page = page.Replace("<!--BLURBOXSIGMAX-->", "value='" + ServerAppSettings.Default.BlurBoxSigmaX + "'>");
+            page = page.Replace("<!--BLURBOXSIGMAY-->", "value='" + ServerAppSettings.Default.BlurBoxSigmaY + "'>");
+            page = page.Replace("<!--BLURBOXMARGIN-->", "value='" + ServerAppSettings.Default.BlurBoxMargin + "'>");
 
             //page = page.Replace("<!--ShowInfoIP-->", "value='" + AppSettings.Default.ShowInfoIP + "'>");
 
@@ -762,7 +763,7 @@ internal class SimpleHTTPServer
 
             // Rotation Settings 
 
-            switch (AppSettings.Default.Rotation.ToString())
+            switch (ServerAppSettings.Default.Rotation.ToString())
             {
                 case "0":
                     page = page.Replace("<!--ROTATIONCURRENTSETTING0-->", "value=\"0\" checked");
@@ -792,7 +793,7 @@ internal class SimpleHTTPServer
 
             //Image Scale Settings
 
-            switch (AppSettings.Default.ImageStretch.ToString())
+            switch (ServerAppSettings.Default.ImageStretch.ToString())
             {
                 case "UniformToFill":
                     page = page.Replace("<!--IMAGESCALINGCURRENTSETTINGUNIFILL-->", "checked");
@@ -822,7 +823,7 @@ internal class SimpleHTTPServer
 
             // Shuffle Settings
 
-            string shufflefriendly = AppSettings.Default.Shuffle ? "On" : "Off";
+            string shufflefriendly = ServerAppSettings.Default.Shuffle ? "On" : "Off";
             switch (shufflefriendly.ToString())
             {
                 case "On":
@@ -839,9 +840,9 @@ internal class SimpleHTTPServer
             // Video Aspect Setting
 
 
-            page = page.Replace("<!--VIDEOASPECTMODECURRENTSETTING-->", "  " + AppSettings.Default.VideoStretch);
+            page = page.Replace("<!--VIDEOASPECTMODECURRENTSETTING-->", "  " + ServerAppSettings.Default.VideoStretch);
 
-            switch (AppSettings.Default.VideoStretch.ToString())
+            switch (ServerAppSettings.Default.VideoStretch.ToString())
             {
                 case "Fill":
                     page = page.Replace("<!--VIDEOASPECTFILL-->", "checked");
@@ -866,7 +867,7 @@ internal class SimpleHTTPServer
 
             // Video Player Audio Settings
 
-            string videoplayasaudiofriendly = AppSettings.Default.VideoVolume ? "On" : "Off";
+            string videoplayasaudiofriendly = ServerAppSettings.Default.VideoVolume ? "On" : "Off";
             page = page.Replace("<!--VIDEOPLAYAUDIOCURRENTSETTING-->", "(Current value: " + videoplayasaudiofriendly + " )");
             switch (videoplayasaudiofriendly.ToString())
             {
@@ -884,7 +885,7 @@ internal class SimpleHTTPServer
 
             // Sync Tab Setting
 
-            string syncsettingsfriendly = AppSettings.Default.IsSyncEnabled ? "On" : "Off";
+            string syncsettingsfriendly = ServerAppSettings.Default.IsSyncEnabled ? "On" : "Off";
             switch (syncsettingsfriendly.ToString())
             {
                 case "On":
@@ -899,7 +900,7 @@ internal class SimpleHTTPServer
 
             // Tree View Settings
 
-            string expandcollaspedfriendly = AppSettings.Default.ExpandDirectoriesByDefault ? "Expanded" : "Toggleable";
+            string expandcollaspedfriendly = ServerAppSettings.Default.ExpandDirectoriesByDefault ? "Expanded" : "Toggleable";
             page = page.Replace("<!--TREEVIEWCURRENTSETTING-->", "(Current value: " + expandcollaspedfriendly + " )");
             switch (expandcollaspedfriendly)
             {
@@ -913,7 +914,7 @@ internal class SimpleHTTPServer
                     break;
             }
             // Video Playback Mode Settings
-            if (AppSettings.Default.PlaybackFullVideo)
+            if (ServerAppSettings.Default.PlaybackFullVideo)
             {
                 page = page.Replace("<!--VIDEOPLAYBACKOBEY-->", "");
                 page = page.Replace("<!--VIDEOPLAYBACKIGNORE-->", "checked");
@@ -925,7 +926,7 @@ internal class SimpleHTTPServer
             }
 
             // Logging on/off Settings
-            string loggingenabledfriendly = AppSettings.Default.EnableLogging ? "Enable" : "Disable";
+            string loggingenabledfriendly = ServerAppSettings.Default.EnableLogging ? "Enable" : "Disable";
             switch (loggingenabledfriendly)
             {
                 case "Enable":
@@ -942,7 +943,7 @@ internal class SimpleHTTPServer
 
             // Control Button Control
 
-            if (AppSettings.Default.ShowInfoDateTime == true)
+            if (ServerAppSettings.Default.ShowInfoDateTime == true)
             {
                 page = page.Replace("<!--ShowInfoDateTime-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=INFOBAR_DATETIME_On&on=true\">Hide Date & Time</a>");
             }
@@ -950,7 +951,7 @@ internal class SimpleHTTPServer
             {
                 page = page.Replace("<!--ShowInfoDateTime-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=INFOBAR_DATETIME_Off&on=false\">Show Date & Time</a>");
             }
-            if (AppSettings.Default.ShowInfoFileName == true)
+            if (ServerAppSettings.Default.ShowInfoFileName == true)
             {
                 page = page.Replace("<!--ShowInfoFileName-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=INFOBAR_FILENAME_On&on=true\">Hide Filename</a>");
             }
@@ -958,7 +959,7 @@ internal class SimpleHTTPServer
             {
                 page = page.Replace("<!--ShowInfoFileName-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=INFOBAR_FILENAME_Off&on=false\">Show Filename</a>");
             }
-            if (AppSettings.Default.ShowInfoIP == "true")
+            if (ServerAppSettings.Default.ShowInfoIP == "true")
             {
                 page = page.Replace("<!--ShowInfoIP-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=INFOBAR_IP_On&on=true\">Hide IP</a>");
             }
@@ -967,7 +968,7 @@ internal class SimpleHTTPServer
                 page = page.Replace("<!--ShowInfoIP-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=INFOBAR_IP_Off&on=false\">Show IP</a>");
             }
 
-            if (AppSettings.Default.ShowEXIFData == true)
+            if (ServerAppSettings.Default.ShowEXIFData == true)
             {
                 page = page.Replace("<!--ShowInfoEXIF-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=INFOBAR_EXIF_OFF&on=true\">Hide EXIF Data</a>");
             }
@@ -976,7 +977,7 @@ internal class SimpleHTTPServer
                 page = page.Replace("<!--ShowInfoEXIF-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=INFOBAR_EXIF_ON&on=false\">Show EXIF Data</a>");
             }
 
-            if (AppSettings.Default.ScreenStatus == true)
+            if (ServerAppSettings.Default.ScreenStatus == true)
             {
                 page = page.Replace("<!--TurnScreenOnOff-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=SCREENOFF \">Turn Screen Off</a>");
             }
@@ -985,7 +986,7 @@ internal class SimpleHTTPServer
                 page = page.Replace("<!--TurnScreenOnOff-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=SCREENON \">Turn Screen On</a>");
             }
 
-            if (AppSettings.Default.SlideShowPaused == true)
+            if (ServerAppSettings.Default.SlideShowPaused == true)
             {
                 page = page.Replace("<!--SlideShowOnOff-->", "<a class=\"btn btn-danger btn-lg\"href=\"default.htm?COMMAND=CONTROL_PAUSE_Off \">Paused</a>");
             }
@@ -994,7 +995,7 @@ internal class SimpleHTTPServer
                 page = page.Replace("<!--SlideShowOnOff-->", "<a class=\"btn btn-primary btn-lg\"href=\"default.htm?COMMAND=CONTROL_PAUSE_On \">Playing</a>");
             }
 
-            if (AppSettings.Default.Shuffle == true)
+            if (ServerAppSettings.Default.Shuffle == true)
             {
                 page = page.Replace("<!--ShuffleOnOff-->", "<a class=\"btn btn-success btn-lg\"href=\"default.htm?COMMAND=SHUFFLE_Off \">Shuffle On</a>");
             }
@@ -1006,14 +1007,14 @@ internal class SimpleHTTPServer
 
             // Expand Directory
 
-            if (AppSettings.Default.ExpandDirectoriesByDefault)
+            if (ServerAppSettings.Default.ExpandDirectoriesByDefault)
             {
                 page = page.Replace(@"//JSLISTOPENSETTING", "JSLists.openAll();");
             }
 
             // Write JSON to hidden field, This should be done to a new URL file, but this works for me now. 
 
-            string json = Newtonsoft.Json.JsonConvert.SerializeObject(AppSettings.Default, Newtonsoft.Json.Formatting.Indented);
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(ServerAppSettings.Default, Newtonsoft.Json.Formatting.Indented);
 
 
             page = page.Replace("<!--JSONSettings-->", json);

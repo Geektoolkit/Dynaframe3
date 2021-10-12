@@ -39,9 +39,9 @@ namespace Dynaframe3.ImagePresenters
             blurredbitmap = new SKBitmap(blurInfo);
 
             blurPaint = new SKPaint();
-            blurPaint.ImageFilter = SKImageFilter.CreateBlur(AppSettings.Default.BlurBoxSigmaX, AppSettings.Default.BlurBoxSigmaY);
+            blurPaint.ImageFilter = SKImageFilter.CreateBlur(ServerAppSettings.Default.BlurBoxSigmaX, ServerAppSettings.Default.BlurBoxSigmaY);
 
-            backgroundImage.Margin = new Thickness(AppSettings.Default.BlurBoxMargin);
+            backgroundImage.Margin = new Thickness(ServerAppSettings.Default.BlurBoxMargin);
         }
 
         /// <summary>
@@ -70,8 +70,8 @@ namespace Dynaframe3.ImagePresenters
         public void UpdateImage(string newImagePath)
         {
             ImageString = newImagePath;
-            backgroundImage.Margin = new Thickness(AppSettings.Default.BlurBoxMargin);
-            blurPaint.ImageFilter = SKImageFilter.CreateBlur(AppSettings.Default.BlurBoxSigmaX, AppSettings.Default.BlurBoxSigmaY);
+            backgroundImage.Margin = new Thickness(ServerAppSettings.Default.BlurBoxMargin);
+            blurPaint.ImageFilter = SKImageFilter.CreateBlur(ServerAppSettings.Default.BlurBoxSigmaX, ServerAppSettings.Default.BlurBoxSigmaY);
             ShowBitmapWithBlurbox();
         }
 

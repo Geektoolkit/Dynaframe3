@@ -46,12 +46,12 @@ namespace Dynaframe3.TransitionTypes
 
             foregroundTransition = new DoubleTransition();
             foregroundTransition.Easing = new QuadraticEaseIn();
-            foregroundTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
+            foregroundTransition.Duration = TimeSpan.FromMilliseconds(ServerAppSettings.Default.FadeTransitionTime);
             foregroundTransition.Property = BlurBoxImage.OpacityProperty;
 
             backgroundTransition = new DoubleTransition();
             backgroundTransition.Easing = new QuadraticEaseIn();
-            backgroundTransition.Duration = TimeSpan.FromMilliseconds(AppSettings.Default.FadeTransitionTime);
+            backgroundTransition.Duration = TimeSpan.FromMilliseconds(ServerAppSettings.Default.FadeTransitionTime);
             backgroundTransition.Property = UserControl.OpacityProperty;
 
             ForegroundImage.Transitions.Clear();

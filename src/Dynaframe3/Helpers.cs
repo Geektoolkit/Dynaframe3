@@ -160,7 +160,7 @@ namespace Dynaframe3
                 int i = 0;
                 if (int.TryParse(querystring, out i))
                 {
-                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, i);
+                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, i);
                 }
                 return 1;
             }
@@ -179,7 +179,7 @@ namespace Dynaframe3
                 float i = 0;
                 if (float.TryParse(querystring, out i))
                 {
-                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, i);
+                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, i);
                 }
                 return 1;
             }
@@ -198,7 +198,7 @@ namespace Dynaframe3
                 double i = 0;
                 if (double.TryParse(querystring, out i))
                 {
-                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, i);
+                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, i);
                 }
                 return 1;
             }
@@ -216,7 +216,7 @@ namespace Dynaframe3
         {
             if (querystring != null)
             {
-               typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, querystring);
+               typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, querystring);
                 return 1;
             }
             return 0;
@@ -234,11 +234,11 @@ namespace Dynaframe3
             {
                 if (querystring.ToUpper() == "ON")
                 {
-                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, true);
+                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, true);
                 }
                 else
                 {
-                    typeof(AppSettings).GetProperty(property).SetValue(AppSettings.Default, false);
+                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, false);
                 }
                 return 1;
             }
@@ -248,18 +248,18 @@ namespace Dynaframe3
         public static void DumpAppSettingsToLogger()
         {
             Logger.LogComment("Current App Settings");
-            Logger.LogComment("FadeTransition: " + AppSettings.Default.FadeTransitionTime);
-            Logger.LogComment("SlideshowTransitionTime: " + AppSettings.Default.SlideshowTransitionTime);
-            Logger.LogComment("FontSize: " + AppSettings.Default.InfoBarFontSize);
-            Logger.LogComment("FontFamily: " + AppSettings.Default.DateTimeFontFamily);
-            Logger.LogComment("DateTimeFormat: " + AppSettings.Default.DateTimeFormat);
-            Logger.LogComment("Rotation: " + AppSettings.Default.Rotation);
-            Logger.LogComment("Shuffle: " + AppSettings.Default.Shuffle);
-            Logger.LogComment("ImageStretch: " + AppSettings.Default.ImageStretch);
-            Logger.LogComment("VideoStretch: " + AppSettings.Default.VideoStretch);
-            Logger.LogComment("VideoVolume: " + AppSettings.Default.VideoVolume);
-            Logger.LogComment("isSyncEnabled: " + AppSettings.Default.IsSyncEnabled);
-            Logger.LogComment("Number of Sync Clients: " + AppSettings.Default.RemoteClients.Count);
+            Logger.LogComment("FadeTransition: " + ServerAppSettings.Default.FadeTransitionTime);
+            Logger.LogComment("SlideshowTransitionTime: " + ServerAppSettings.Default.SlideshowTransitionTime);
+            Logger.LogComment("FontSize: " + ServerAppSettings.Default.InfoBarFontSize);
+            Logger.LogComment("FontFamily: " + ServerAppSettings.Default.DateTimeFontFamily);
+            Logger.LogComment("DateTimeFormat: " + ServerAppSettings.Default.DateTimeFormat);
+            Logger.LogComment("Rotation: " + ServerAppSettings.Default.Rotation);
+            Logger.LogComment("Shuffle: " + ServerAppSettings.Default.Shuffle);
+            Logger.LogComment("ImageStretch: " + ServerAppSettings.Default.ImageStretch);
+            Logger.LogComment("VideoStretch: " + ServerAppSettings.Default.VideoStretch);
+            Logger.LogComment("VideoVolume: " + ServerAppSettings.Default.VideoVolume);
+            Logger.LogComment("isSyncEnabled: " + ServerAppSettings.Default.IsSyncEnabled);
+            Logger.LogComment("Number of Sync Clients: " + ServerAppSettings.Default.RemoteClients.Count);
         }
 
 
