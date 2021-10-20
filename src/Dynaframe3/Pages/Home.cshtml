@@ -32,6 +32,7 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="ico/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
+    <link href="Dynaframe3.Client.styles.css" rel="stylesheet" asp-append-version="true">
 </head>
 <body>
     <header id="header">
@@ -57,6 +58,15 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+    <script src="./js/jsLists.js" asp-append-version="true"></script>
+    <script>
+        function setupList(id) {
+            var list = document.getElementById(id);
+            if (list.firstElementChild.getAttribute("class").indexOf('jslist-li') === -1) {
+                JSLists.createTree(id);
+            }
+        }
+    </script>
     <script src="_framework/blazor.webassembly.js"></script>
 </body>
 

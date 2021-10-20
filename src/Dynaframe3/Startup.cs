@@ -22,12 +22,9 @@ namespace Dynaframe3.Server
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddControllersWithViews();
-            services.AddRazorPages(options =>
-            {
-                //options.Conventions.AddPageRoute("/Home", "");
-                options.Conventions.AddPageRoute("/Index", "/Fallback");
-            });
+            services.AddControllersWithViews()
+                .AddNewtonsoftJson();
+            services.AddRazorPages();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

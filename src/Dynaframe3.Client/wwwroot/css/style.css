@@ -214,7 +214,7 @@ body {
     }
 
         .tabs .content section {
-            display: none;
+            display: block;
             -webkit-animation-name: content;
             animation-name: content;
             -webkit-animation-direction: normal;
@@ -264,10 +264,6 @@ body {
     transform: translateX(0%);
 }
 
-.tabs input[name="tab-control"]:nth-of-type(1):checked ~ .content > section:nth-child(1) {
-    display: block;
-}
-
 .tabs input[name="tab-control"]:nth-of-type(2):checked ~ ul > li:nth-child(2) > label {
     cursor: default;
     color: #428BFF;
@@ -288,10 +284,6 @@ body {
     transform: translateX(100%);
 }
 
-.tabs input[name="tab-control"]:nth-of-type(2):checked ~ .content > section:nth-child(2) {
-    display: block;
-}
-
 .tabs input[name="tab-control"]:nth-of-type(3):checked ~ ul > li:nth-child(3) > label {
     cursor: default;
     color: #428BFF;
@@ -310,10 +302,6 @@ body {
 .tabs input[name="tab-control"]:nth-of-type(3):checked ~ .slider {
     -webkit-transform: translateX(200%);
     transform: translateX(200%);
-}
-
-.tabs input[name="tab-control"]:nth-of-type(3):checked ~ .content > section:nth-child(3) {
-    display: block;
 }
 
 .tabs input[name="tab-control"]:nth-of-type(4):checked ~ ul > li:nth-child(4) > label {

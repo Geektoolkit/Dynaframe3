@@ -82,38 +82,30 @@ namespace Dynaframe3
                 {
                     if (_appSettings == null)
                     {
-                        try
+                        var builder = new ConfigurationBuilder()
+                            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+
+                        _jsonSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+
+                        var config = builder.Build();
+                        _appSettings = new ServerAppSettings();
+                        config.Bind(_appSettings);
+                        if (_appSettings.SearchDirectories.Count == 0)
                         {
-                            var builder = new ConfigurationBuilder()
-                                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-
-                            _jsonSource = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-
-                            var config = builder.Build();
-                            _appSettings = new ServerAppSettings();
-                            config.Bind(_appSettings);
-                            if (_appSettings.SearchDirectories.Count == 0)
+                            // Firstrun...if there are no search directories, add in mypictures and subfolders
+                            _appSettings.SearchDirectories.Add(SpecialDirectories.MyPictures);
+                            _appSettings.CurrentPlayList.Clear();
+                            foreach (string dir in Directory.GetDirectories(SpecialDirectories.MyPictures))
                             {
-                                // Firstrun...if there are no search directories, add in mypictures and subfolders
-                                _appSettings.SearchDirectories.Add(SpecialDirectories.MyPictures);
-                                _appSettings.CurrentPlayList.Clear();
-                                foreach (string dir in Directory.GetDirectories(SpecialDirectories.MyPictures))
-                                {
-                                    _appSettings.CurrentPlayList.Add(dir);
-                                }
-                                string dirPath = AppDomain.CurrentDomain.BaseDirectory + "web/uploads/";
-                                _appSettings.SearchDirectories.Add(dirPath);
-                                foreach (string dir in Directory.GetDirectories(dirPath))
-                                {
-                                    _appSettings.CurrentPlayList.Add(dir);
-                                }
-
+                                _appSettings.CurrentPlayList.Add(dir);
                             }
-                        }
-                        catch (Exception ex)
-                        {
-                            throw;
+                            string dirPath = AppDomain.CurrentDomain.BaseDirectory + "web/uploads/";
+                            _appSettings.SearchDirectories.Add(dirPath);
+                            foreach (string dir in Directory.GetDirectories(dirPath))
+                            {
+                                _appSettings.CurrentPlayList.Add(dir);
+                            }
                         }
                     }
                 }
@@ -124,8 +116,14 @@ namespace Dynaframe3
 
         public void Save()
         {
+            // We don't want to save the subdirectories but we do want to return it from the API so we can't simply use a JsonIgnoreAttribute.
+            var currentSubDirs = SearchSubDirectories;
+            SearchSubDirectories = null;
+
             // open config file
             string json = JsonConvert.SerializeObject(_appSettings);
+
+            SearchSubDirectories = currentSubDirs;
 
             //write string to file
             System.IO.File.WriteAllText(_jsonSource, json);

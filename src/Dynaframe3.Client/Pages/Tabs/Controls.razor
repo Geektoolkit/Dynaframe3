@@ -10,7 +10,7 @@
     <fieldset>
         <legend>Frame Controls</legend>
         <div class="d-grid gap-2 d-md-block">
-            <ScreenCommandButton AppSettings="AppSettings" />
+            <ScreenCommandButton />
             <ExitButton />
             <br><br>
         </div>
@@ -18,10 +18,10 @@
     <fieldset>
         <legend>Infobar Settings</legend>
         <div class="d-grid gap-2 d-md-block">
-            <ShowInfoDateTimeButton AppSettings="AppSettings" />
-            <ShowInfoFileNameButton AppSettings="AppSettings" />
-            <ShowInfoIpButton AppSettings="AppSettings" />
-            <ShowInfoExifButton AppSettings="AppSettings" />
+            <ShowInfoDateTimeButton />
+            <ShowInfoFileNameButton />
+            <ShowInfoIpButton />
+            <ShowInfoExifButton />
             <br><br>
         </div>
     </fieldset>
@@ -30,9 +30,9 @@
         <div class="d-grid gap-2 d-md-block">
             <CommandButton Text="First" Command="CONTROL_FIRST" />
             <CommandButton Text="Back" Command="CONTROL_BACKWARD" />
-            <SlideShowPausedButton AppSettings="AppSettings" />
+            <SlideShowPausedButton />
             <CommandButton Text="Next" Command="CONTROL_FORWARD" />
-            <SlidShuffleButton AppSettings="AppSettings" />
+            <SlidShuffleButton />
 
             <br><br>
         </div>
@@ -62,9 +62,6 @@
 </section>
 
 @code {
-    [Parameter]
-    public AppSettings AppSettings { get; set; }
-
     private async Task DarkModeClick()
     {
         await JsRuntime.InvokeVoidAsync("alert", "Coming Soon!");

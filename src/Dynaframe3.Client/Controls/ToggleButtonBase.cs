@@ -15,17 +15,16 @@ namespace Dynaframe3.Client.Controls
         [Inject]
         private StateContainer State { get; set; }
 
-        [Parameter]
-        public AppSettings AppSettings { get; set; }
+        protected AppSettings AppSettings { get; set; }
 
-
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
-            base.OnInitialized();
+            await base.OnInitializedAsync();
+            AppSettings = await State.GetCurrentSettingsAsync();
             State.OnUpdated += OnStateUpdated;
         }
 
-        private void OnStateUpdated(AppSettings settings)
+        protected virtual async void OnStateUpdated(AppSettings settings)
         {
             var currentToggle = GetCurrentToggle();
             var newToggle = GetToggle(settings);
@@ -33,7 +32,7 @@ namespace Dynaframe3.Client.Controls
 
             if (currentToggle != newToggle)
             {
-                InvokeAsync(StateHasChanged);
+                await InvokeAsync(StateHasChanged);
             }
         }
 
@@ -41,15 +40,18 @@ namespace Dynaframe3.Client.Controls
         {
             base.BuildRenderTree(builder);
 
-            builder.OpenElement(0, "button");
+            if (AppSettings is not null)
+            {
+                builder.OpenElement(0, "button");
 
-            var toggle = GetCurrentToggle();
+                var toggle = GetCurrentToggle();
 
-            builder.AddAttribute(1, "class", toggle ? "btn btn-success btn-lg" : "btn btn-primary btn-lg");
-            builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, ToggleAsync));
-            var textContent = GetButtonText();
-            builder.AddContent(3, GetButtonText());
-            builder.CloseElement();
+                builder.AddAttribute(1, "class", toggle ? "btn btn-success btn-lg" : "btn btn-primary btn-lg");
+                builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, ToggleAsync));
+                var textContent = GetButtonText();
+                builder.AddContent(3, GetButtonText());
+                builder.CloseElement();
+            }
         }
 
         protected abstract string GetCommand();
@@ -68,7 +70,7 @@ namespace Dynaframe3.Client.Controls
 
             resp.EnsureSuccessStatusCode();
 
-            await State.GetLatestAsync();
+            await State.SettingsUpdatedAsync();
         }
 
         public void Dispose()

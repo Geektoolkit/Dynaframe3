@@ -36,6 +36,8 @@ namespace Dynaframe3.Shared
         /// </summary>
         public List<string> SearchDirectories { get; set; }
 
+        public Dictionary<string, List<string>> SearchSubDirectories { get; set; }
+
         public List<string> CurrentPlayList { get; set; }
 
         /// <summary>

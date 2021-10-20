@@ -14,5 +14,5 @@
     public string Class { get; set; } = "btn btn-primary btn-lg";
 
     protected virtual Task ClickAsync()
-        => Service.ExecuteCommand(Command);
+        => Service.ExecuteCommandAsync(Command);
 }

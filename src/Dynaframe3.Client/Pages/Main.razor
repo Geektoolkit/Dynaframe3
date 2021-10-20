@@ -1,10 +1,9 @@
 ﻿@page "/"
 @inherits LayoutComponentBase
-@implements IDisposable
 @inject StateContainer State
 @using Dynaframe3.Client.Pages.Tabs
 
-@if (appSettings is null)
+@if (!settingsLoaded)
 {
     <div>Loading...</div>
 }
@@ -56,43 +55,33 @@ else
         <div class="slider"><div class="indicator"></div></div>
 
         <div class="content">
-            @if (currentTab == Tab.Controls)
+            @switch (currentTab)
             {
-                <Controls AppSettings="appSettings" />
-            }
-            else
-            {
-                @Body
+                case Tab.Controls:
+                    <Controls />
+                    break;
+                case Tab.Playlist:
+                    <Playlists />
+                    break;
             }
         </div>
     </div>
 }
 
 @code {
+    private bool settingsLoaded;
     private Tab currentTab;
-    private AppSettings appSettings;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await State.GetCurrentSettingsAsync();
+        settingsLoaded = true;
+    }
 
     private void ChangeTab(Tab tab)
     {
         currentTab = tab;
-    }
-
-    protected override async Task OnInitializedAsync()
-    {
-        State.OnUpdated += OnStateUpdated;
-
-        await State.GetLatestAsync();
-    }
-
-    private async void OnStateUpdated(AppSettings newSettings)
-    {
-        appSettings = newSettings;
-        await InvokeAsync(StateHasChanged);
-    }
-
-    public void Dispose()
-    {
-        State.OnUpdated -= OnStateUpdated;
     }
 
     private enum Tab
