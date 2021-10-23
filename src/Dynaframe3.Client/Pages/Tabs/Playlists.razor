@@ -45,20 +45,6 @@
                 </div>
             }
         </div>
-
-        @*
-            foreach (string directory in ServerAppSettings.Default.SearchDirectories)
-               {
-                   if (directory != AppDomain.CurrentDomain.BaseDirectory + "web/uploads/")
-                   {
-                       dirChoices += directory + "      <br><a class='btn btn-danger btn-sm' href=?rem=" + directory + "#tab2>Remove</a><br>";
-                   }
-                   else
-                   {
-                       dirChoices += directory + "      <br><button type='button' class='btn btn-danger btn-sm' disabled>Remove</button><br>";
-                   }
-               }
-        *@
         <br />
         <div class="form-row">
             <div class='settings'>
@@ -142,7 +128,15 @@
         }
         doc.Replace(d => d.InclusiveTagFilters, filterTags);
 
-        await Service.UpdateAppSettingsAsync(doc);
+        var  resp = await Service.UpdateAppSettingsAsync(doc, false);
+
+        if (resp.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            await JsRuntime.InvokeVoidAsync("alert", await resp.Content.ReadAsStringAsync());
+            return;
+        }
+
+        resp.EnsureSuccessStatusCode();
 
         addDirectory = "";
 

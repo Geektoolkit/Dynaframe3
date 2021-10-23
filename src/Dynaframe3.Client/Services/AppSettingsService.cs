@@ -28,12 +28,17 @@ namespace Dynaframe3.Client.Services
             resp.EnsureSuccessStatusCode();
         }
 
-        public async Task UpdateAppSettingsAsync(JsonPatchDocument<AppSettings> jsonPatch)
+        public async Task<HttpResponseMessage> UpdateAppSettingsAsync(JsonPatchDocument<AppSettings> jsonPatch, bool errorOnBadStatus = true)
         {
             var content = new StringContent(JsonConvert.SerializeObject(jsonPatch), Encoding.UTF8, "application/json");
             var resp = await _client.PatchAsync("appsettings", content).ConfigureAwait(false);
 
-            resp.EnsureSuccessStatusCode();
+            if (errorOnBadStatus)
+            {
+                resp.EnsureSuccessStatusCode();
+            }
+
+            return resp;
         }
     }
 }
