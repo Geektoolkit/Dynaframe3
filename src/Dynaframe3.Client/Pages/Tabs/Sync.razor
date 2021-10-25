@@ -85,10 +85,6 @@
     private async Task ClearRemoteIpsAsync()
     {
         var patch = new JsonPatchDocument<AppSettings>();
-        //for (var i = 0; i < appSettings.RemoteClients.Count; i++)
-        //{
-        //    patch.Remove(a => a.RemoteClients, i);
-        //}
         patch.Replace(a => a.RemoteClients, new List<string>());
         
         await Service.UpdateAppSettingsAsync(patch);
