@@ -265,7 +265,6 @@ namespace Dynaframe3
                         Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                         {
                             handleMainWindow.Close();
-                            handleMainWindow.server.Stop();
                         });
                         throw new Exception("EXIT Called...exiting app!");
                     }

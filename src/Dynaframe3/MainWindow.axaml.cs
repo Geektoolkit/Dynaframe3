@@ -1,33 +1,20 @@
 ﻿using Avalonia;
 using Avalonia.Animation;
-using Avalonia.Animation.Animators;
 using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.LogicalTree;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Avalonia.Media.Imaging;
-using Avalonia.Rendering;
-using Avalonia.Skia;
+using Dynaframe3.TransitionTypes;
+using MetadataExtractor;
+using Microsoft.Extensions.Hosting;
 using System;
-using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
-using System.Configuration;
-using Microsoft.Extensions.Configuration;
-using Microsoft.VisualBasic.FileIO;
-using System.Collections.Generic;
-using SkiaSharp;
-using MetadataExtractor;
-using Avalonia.Rendering.SceneGraph;
-using Dynaframe3.TransitionTypes;
 
 namespace Dynaframe3
 {
@@ -40,7 +27,6 @@ namespace Dynaframe3
 
         // Engines
         internal PlayListEngine playListEngine;
-        internal SimpleHTTPServer server;
 
         /// <summary>
         /// This controls the time between 'slides'
@@ -62,9 +48,14 @@ namespace Dynaframe3
 
         public MainWindow()
         {
+            throw new NotImplementedException();
+        }
+
+        public MainWindow(string[] args)
+        {
             playListEngine = new PlayListEngine();
             InitializeComponent();
-            SetupWebServer();
+            SetupWebServer(args);
         }
 
         private void InitializeComponent()
@@ -133,20 +124,20 @@ namespace Dynaframe3
                 intro = Environment.CurrentDirectory + "/images/vertbackground.jpg";
             }
 
-            crossFadeTransition.SetImage(intro,0);
+            crossFadeTransition.SetImage(intro, 0);
             crossFadeTransition.SetImageStretch(ServerAppSettings.Default.ImageStretch);
 
             slideTimer.Elapsed += Timer_Tick;
 
             Stopwatch sw = new Stopwatch();
-            
+
             Logger.LogComment("Initializing database..");
             sw.Start();
             playListEngine.InitializeDatabase();
             playListEngine.RebuildPlaylist();
 
             sw.Stop();
-            Logger.LogComment("Database initialized. Took: " + sw.ElapsedMilliseconds + " ms." );
+            Logger.LogComment("Database initialized. Took: " + sw.ElapsedMilliseconds + " ms.");
 
             ServerAppSettings.Default.ReloadSettings = true;
             slideTimer.Start();
@@ -211,7 +202,6 @@ namespace Dynaframe3
             {
                 slideTimer.Stop();
                 this.Close();
-                server.Stop();
             }
 
             if (e.Key == Avalonia.Input.Key.T)
@@ -397,7 +387,7 @@ namespace Dynaframe3
         private void UpdateInfoBar()
         {
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            { 
+            {
                 tb.FontFamily = ServerAppSettings.Default.DateTimeFontFamily;
                 if (DateTime.Now.Subtract(timeStarted).TotalSeconds < ServerAppSettings.Default.NumberOfSecondsToShowIP)
                 {
@@ -458,22 +448,25 @@ namespace Dynaframe3
         }
 
 
-        public void SetupWebServer()
+        public void SetupWebServer(string[] args)
         {
-            string current = System.IO.Directory.GetCurrentDirectory();
-            try
+            var cts = new CancellationTokenSource();
+            var host = HttpHost.CreateHostBuilder(args).Build();
+            var task = host.RunAsync(cts.Token);
+
+            Closing += (object sender, CancelEventArgs e) =>
             {
-                server = new SimpleHTTPServer(current + "//web", ServerAppSettings.Default.ListenerPort);
-                Logger.LogComment("SetupWebServer: Successfully setup webserver on default port :" + ServerAppSettings.Default.ListenerPort);
-            }
-            catch (Exception)
-            {
-                // This can happen if the port is in use. Wittypi for instance uses 8000.  If this happens, message the user and try 5053 to try to reduce
-                // the chances of a collision....and to give them a chance to pick one of thier own.
-                Logger.LogComment("Error trying to start on default port!  Please set a new port in appsettings.json. Going to try again using Port 5053");
-                ServerAppSettings.Default.ListenerPort = 5053;
-                server = new SimpleHTTPServer(current + "//web", ServerAppSettings.Default.ListenerPort);
-            }
+                cts.Cancel();
+
+                try
+                {
+                    task.ConfigureAwait(false).GetAwaiter().GetResult();
+                }
+                finally
+                {
+                    host.Dispose();
+                }
+            };
         }
 
         /// <summary>
@@ -484,7 +477,7 @@ namespace Dynaframe3
             Logger.LogComment("Refresh settings was called");
             Helpers.DumpAppSettingsToLogger();
             Logger.LogComment("Current opacity: " + mainWindow.Opacity);
-           
+
             // Infobar is the text at the bottom (default 100)
             tb.FontSize = ServerAppSettings.Default.InfoBarFontSize;
 
