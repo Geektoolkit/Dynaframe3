@@ -1,8 +1,9 @@
 ﻿@using Dynaframe3.Client.Services
 @using Microsoft.AspNetCore.JsonPatch
-@inject StateContainer State
+
+@inherits AppSettingsPage
+
 @inject AppSettingsService Service
-@implements IDisposable
 
 <section>
     <p style="font-size: 32px;">Sync</p>
@@ -44,7 +45,6 @@
 </section>
 
 @code {
-    private AppSettings appSettings;
     private bool syncEnabled;
     private string ip;
 
@@ -52,17 +52,14 @@
     {
         await base.OnInitializedAsync();
 
-        appSettings = await State.GetCurrentSettingsAsync();
         syncEnabled = appSettings.IsSyncEnabled;
-
-        State.OnUpdated += OnSettingsUpdated;
     }
 
-    private async void OnSettingsUpdated(AppSettings appSettings)
+    protected override void OnSettingsUpdated(AppSettings appSettings)
     {
-        this.appSettings = appSettings;
         syncEnabled = appSettings.IsSyncEnabled;
-        await InvokeAsync(StateHasChanged);
+
+        base.OnSettingsUpdated(appSettings);
     }
 
     private async Task SaveAsync()
@@ -89,10 +86,5 @@
         
         await Service.UpdateAppSettingsAsync(patch);
         await State.SettingsUpdatedAsync();
-    }
-
-    public void Dispose()
-    {
-        State.OnUpdated -= OnSettingsUpdated;
     }
 }

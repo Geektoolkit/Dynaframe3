@@ -15,7 +15,7 @@ namespace Dynaframe3
 {
     class PlayListEngine
     {
-        public MediaFile? CurrentMediaFile { get; set; }
+        public MediaFile CurrentMediaFile { get; set; }
         public int MediaIndex = 0;
         public List<int> Playlist;
 
@@ -112,7 +112,7 @@ namespace Dynaframe3
                     CurrentMediaFile = file;
                     return file;
                 }
-                catch (Exception exc)
+                catch (Exception)
                 {
                     MediaIndex++;
                     return GetCurrentFile();
@@ -124,7 +124,7 @@ namespace Dynaframe3
         public void DumpPlaylistToLog()
         {
             Logger.LogComment("--------------------- START DUMP --------------------------");
-            Logger.LogComment("Dumping log of: " + Playlist.Count() + " items.");
+            Logger.LogComment("Dumping log of: " + Playlist.Count + " items.");
             using (var db = new MediaDataContext())
             {
                 for (int i = 0; 0 < Playlist.Count; i++)
@@ -248,7 +248,7 @@ namespace Dynaframe3
             {
                 {
                     IEnumerable<MetadataExtractor.Directory> directories = ImageMetadataReader.ReadMetadata(mediaFile.Path);
-                    MetadataExtractor.Directory? dir = directories.Where(d => d.Name == "Exif IFD0").FirstOrDefault();
+                    MetadataExtractor.Directory dir = directories.Where(d => d.Name == "Exif IFD0").FirstOrDefault();
                     if (dir != null)
                     {
                         mediaFile.Title = GetTagByName("Windows XP Title", dir);
@@ -266,7 +266,7 @@ namespace Dynaframe3
 
         public string GetTagByName(string tagName, MetadataExtractor.Directory dir)
         {
-           Tag?val =  dir.Tags.Where(t => t.Name == tagName).FirstOrDefault();
+           Tag val =  dir.Tags.Where(t => t.Name == tagName).FirstOrDefault();
             if (val != null)
             {
                 return val.Description;

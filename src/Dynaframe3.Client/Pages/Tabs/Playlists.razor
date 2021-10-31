@@ -1,9 +1,10 @@
 ﻿@using Dynaframe3.Client.Services
 @using Microsoft.AspNetCore.JsonPatch
-@inject StateContainer State
+
+@inherits AppSettingsPage
+
 @inject IJSRuntime JsRuntime
 @inject AppSettingsService Service
-@implements IDisposable
 
 <section>
     <p style="font-size: 32px;">Playlists</p>
@@ -39,9 +40,11 @@
                 <div>
                     @directory
                     <br />
-                    <button class="btn btn-danger btn-sm" 
+                    <button class="btn btn-danger btn-sm"
                             disabled="@(directory == AppDomain.CurrentDomain.BaseDirectory + "web/uploads/")"
-                            @onclick="async () => await RemoveDirectoryAsync(directory)">Remove</button>
+                            @onclick="async () => await RemoveDirectoryAsync(directory)">
+                        Remove
+                    </button>
                 </div>
             }
         </div>
@@ -71,20 +74,10 @@
 </section>
 
 @code {
-    private AppSettings appSettings;
     private string addDirectory;
     private string filterTags;
 
     private List<string> jsListEntries = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        State.OnUpdated += OnSettingsUpdated;
-
-        appSettings = await State.GetCurrentSettingsAsync();
-    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -97,11 +90,11 @@
         }
     }
 
-    private async void OnSettingsUpdated(AppSettings appSettings)
+    protected override void OnSettingsUpdated(AppSettings appSettings)
     {
-        this.appSettings = appSettings;
         jsListEntries.Clear();
-        await InvokeAsync(StateHasChanged);
+
+        base.OnSettingsUpdated(appSettings);
     }
 
     private bool SubDirectoryChecked(string subDir)
@@ -128,7 +121,7 @@
         }
         doc.Replace(d => d.InclusiveTagFilters, filterTags);
 
-        var  resp = await Service.UpdateAppSettingsAsync(doc, false);
+        var resp = await Service.UpdateAppSettingsAsync(doc, false);
 
         if (resp.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {
@@ -141,10 +134,5 @@
         addDirectory = "";
 
         await State.SettingsUpdatedAsync();
-    }
-
-    public void Dispose()
-    {
-        State.OnUpdated -= OnSettingsUpdated;
     }
 }

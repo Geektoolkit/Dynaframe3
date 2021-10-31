@@ -46,6 +46,7 @@ namespace Dynaframe3
 
         Transform rotationTransform;
 
+        // An empty constructor is required for the axaml to compile, but it is not actually used.
         public MainWindow()
         {
             throw new NotImplementedException();
@@ -465,6 +466,7 @@ namespace Dynaframe3
                 finally
                 {
                     host.Dispose();
+                    cts.Dispose();
                 }
             };
         }

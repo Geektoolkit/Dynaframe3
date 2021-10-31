@@ -1,0 +1,22 @@
+﻿#tblUploadedFiles {
+    font-family: Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+    #tblUploadedFiles td, #tblUploadedFiles th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+
+    #tblUploadedFiles tr:hover {
+        background-color: #ddd;
+    }
+
+    #tblUploadedFiles th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: gray;
+        color: white;
+    }

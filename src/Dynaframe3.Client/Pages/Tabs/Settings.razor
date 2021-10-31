@@ -1,8 +1,9 @@
-﻿@using Avalonia.Media; 
+﻿@using Avalonia.Media;
 @using Microsoft.AspNetCore.JsonPatch
 @using Dynaframe3.Client.Services
-@implements IDisposable
-@inject StateContainer State
+
+@inherits AppSettingsPage
+
 @inject AppSettingsService Service
 <section>
     <p style="font-size: 32px;">Settings</p>
@@ -35,7 +36,7 @@
             </div>
         </div>
         <!-- Infobar Settings -->
-        <!-- Number of seconds to show ip-->		
+        <!-- Number of seconds to show ip-->
         <br>
         <div class="form-row">
             <div class="form-label">
@@ -66,7 +67,7 @@
             </div>
         </div>
 
-        <!--ROTATE-->		
+        <!--ROTATE-->
         <br>
         <div class="form-row">
             <div class="form-label">
@@ -119,7 +120,7 @@
             </div>
             <div class="form-input">
                 <input type="radio" name="VideoVolume" value="on" checked="@(appSettings.VideoVolume)" @onchange="@(() => appSettings.VideoVolume = true)" id="VideoVolume-On" /><label for="VideoVolume">On</label>
-                <input type="radio" name="VideoVolume" value="off" checked="@(!appSettings.VideoVolume)" @onchange="@(() => appSettings.VideoVolume = false)" id="VideoVolume-Off"/><label for="VideoVolume">Off</label>
+                <input type="radio" name="VideoVolume" value="off" checked="@(!appSettings.VideoVolume)" @onchange="@(() => appSettings.VideoVolume = false)" id="VideoVolume-Off" /><label for="VideoVolume">Off</label>
             </div>
         </div>
         <br>
@@ -195,23 +196,6 @@
 </section>
 
 @code {
-    private AppSettings appSettings;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-
-        State.OnUpdated += OnSettingsUpdated;
-
-        appSettings = await State.GetCurrentSettingsAsync();
-    }
-
-    private async void OnSettingsUpdated(AppSettings appSettings)
-    {
-        this.appSettings = appSettings;
-        await InvokeAsync(StateHasChanged);
-    }
-
     private async Task SaveAsync()
     {
         var doc = new JsonPatchDocument<AppSettings>();
@@ -235,10 +219,5 @@
         await Service.UpdateAppSettingsAsync(doc);
 
         await State.SettingsUpdatedAsync();
-    }
-
-    public void Dispose()
-    {
-        State.OnUpdated -= OnSettingsUpdated;
     }
 }
