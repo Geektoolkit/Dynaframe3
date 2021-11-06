@@ -100,7 +100,7 @@ namespace Dynaframe3
                             {
                                 _appSettings.CurrentPlayList.Add(dir);
                             }
-                            string dirPath = AppDomain.CurrentDomain.BaseDirectory + "web/uploads/";
+                            string dirPath = AppDomain.CurrentDomain.BaseDirectory + "wwwroot/uploads/";
                             _appSettings.SearchDirectories.Add(dirPath);
                             foreach (string dir in Directory.GetDirectories(dirPath))
                             {
