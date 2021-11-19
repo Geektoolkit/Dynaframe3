@@ -451,22 +451,19 @@ namespace Dynaframe3
 
         public void SetupWebServer(string[] args)
         {
-            var cts = new CancellationTokenSource();
-            var host = HttpHost.CreateHostBuilder(args).Build();
-            var task = host.RunAsync(cts.Token);
+            var host = HttpHost.CreateHostBuilder(args);
+            host.Start();
 
-            Closing += (object sender, CancelEventArgs e) =>
+            Closing += async (object sender, CancelEventArgs e) =>
             {
-                cts.Cancel();
-
                 try
                 {
-                    task.ConfigureAwait(false).GetAwaiter().GetResult();
+                    using var cts = new CancellationTokenSource(5000); // Give five seconds to shut down
+                    await host.StopAsync(cts.Token);
                 }
                 finally
                 {
-                    host.Dispose();
-                    cts.Dispose();
+                    await host.DisposeAsync();
                 }
             };
         }

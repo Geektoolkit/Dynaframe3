@@ -86,19 +86,15 @@ namespace Dynaframe3.ImagePresenters
 
             bitmap.ScalePixels(blurredbitmap, SKFilterQuality.Medium);
 
-            SKCanvas canvas = new SKCanvas(blurredbitmap);
+            using SKCanvas canvas = new SKCanvas(blurredbitmap);
             canvas.DrawBitmap(blurredbitmap, new SKPoint(0,0), blurPaint);
 
-            SKData data = SKImage.FromBitmap(blurredbitmap).Encode(SKEncodedImageFormat.Jpeg, 100);
+            using SKData data = SKImage.FromBitmap(blurredbitmap).Encode(SKEncodedImageFormat.Jpeg, 100);
 
             bitmapData = new Bitmap(data.AsStream());
 
             backgroundImage.Source = bitmapData;
             foregroundImage.Source = new Bitmap(ImageString);
-
-            bitmap.Dispose();
-            canvas.Dispose();
-            data.Dispose();
         }
     }
 }
