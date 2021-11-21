@@ -13,7 +13,7 @@ namespace Dynaframe3
     public static class CommandProcessor
     {
         static MainWindow handleMainWindow = null;
-        static readonly string _uploadsDirectory = AppDomain.CurrentDomain.BaseDirectory + "/web/uploads/";
+        static readonly string _uploadsDirectory = AppDomain.CurrentDomain.BaseDirectory + "/wwwroot/uploads/";
 
         public static void GetMainWindowHandle(MainWindow mainWindow)
         {

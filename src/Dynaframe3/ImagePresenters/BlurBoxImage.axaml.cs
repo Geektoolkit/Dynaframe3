@@ -78,7 +78,12 @@ namespace Dynaframe3.ImagePresenters
 
         private void ShowBitmapWithBlurbox()
         {
-            SKBitmap bitmap = SKBitmap.Decode(ImageString);
+            using SKBitmap bitmap = SKBitmap.Decode(ImageString);
+            if (bitmap is null)
+            {
+                throw new InvalidOperationException($"Could not load file {ImageString}");
+            }
+
             bitmap.ScalePixels(blurredbitmap, SKFilterQuality.Medium);
 
             SKCanvas canvas = new SKCanvas(blurredbitmap);
