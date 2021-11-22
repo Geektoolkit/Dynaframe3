@@ -65,7 +65,7 @@ namespace Dynaframe3.Client.Controls
 
         protected virtual async Task ToggleAsync()
         {
-            var url = "commands/" + GetCommand();
+            var url = $"{ApiVersion.Version}commands/{GetCommand()}";
             var resp = await Client.SendAsync(new HttpRequestMessage(HttpMethod.Post, url));
 
             resp.EnsureSuccessStatusCode();

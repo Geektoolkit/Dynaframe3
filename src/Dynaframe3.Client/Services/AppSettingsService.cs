@@ -18,11 +18,11 @@ namespace Dynaframe3.Client.Services
         }
 
         public Task<AppSettings> GetAppSettingsAsync()
-            => _client.GetFromJsonAsync<AppSettings>("AppSettings");
+            => _client.GetFromJsonAsync<AppSettings>($"{ApiVersion.Version}/AppSettings");
 
         public async Task ExecuteCommandAsync(string command)
         {
-            var url = $"commands/{command}";
+            var url = $"{ApiVersion.Version}/commands/{command}";
             var resp = await _client.SendAsync(new HttpRequestMessage(HttpMethod.Post, url)).ConfigureAwait(false);
 
             resp.EnsureSuccessStatusCode();
@@ -31,7 +31,7 @@ namespace Dynaframe3.Client.Services
         public async Task<HttpResponseMessage> UpdateAppSettingsAsync(JsonPatchDocument<AppSettings> jsonPatch, bool errorOnBadStatus = true)
         {
             var content = new StringContent(JsonConvert.SerializeObject(jsonPatch), Encoding.UTF8, "application/json");
-            var resp = await _client.PatchAsync("appsettings", content).ConfigureAwait(false);
+            var resp = await _client.PatchAsync($"{ApiVersion.Version}/appsettings", content).ConfigureAwait(false);
 
             if (errorOnBadStatus)
             {

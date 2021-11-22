@@ -5,7 +5,7 @@
 @code {
     private async Task OnClick()
     {
-        var resp = await Client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "commands/EXITAPP"));
+        var resp = await Client.SendAsync(new HttpRequestMessage(HttpMethod.Post, $"{ApiVersion.Version}/commands/EXITAPP"));
 
         resp.EnsureSuccessStatusCode();
     }

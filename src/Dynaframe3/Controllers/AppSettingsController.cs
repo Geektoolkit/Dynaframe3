@@ -12,7 +12,8 @@ using System.Net;
 namespace Dynaframe3.Controllers
 {
     [ApiController]
-    [Route("AppSettings")]
+    [ApiVersion("1.0")]
+    [Route("v{version:apiVersion}/AppSettings")]
     public class AppSettingsController : Controller
     {
         [HttpGet("")]

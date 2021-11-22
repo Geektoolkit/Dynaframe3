@@ -68,14 +68,14 @@
     {
         await base.OnInitializedAsync();
 
-        files = await Client.GetFromJsonAsync<List<string>>("uploads");
+        files = await Client.GetFromJsonAsync<List<string>>($"{ApiVersion.Version}/uploads");
     }
 
     private async Task OnInputFileChangeAsync(InputFileChangeEventArgs e)
     {
         using var form = new MultipartFormDataContent();
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "uploads")
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiVersion.Version}/uploads")
         {
             Content = form
         };
@@ -94,7 +94,7 @@
 
     private async Task DeleteFileAsync(string fileName)
     {
-        var resp = await Client.DeleteAsync(fileName);
+        var resp = await Client.DeleteAsync($"{ApiVersion.Version}/uploads/{fileName}");
 
         resp.EnsureSuccessStatusCode();
 

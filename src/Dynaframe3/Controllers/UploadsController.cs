@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 namespace Dynaframe3.Controllers
 {
     [ApiController]
-    [Route("Uploads")]
+    [ApiVersion("1.0")]
+    [Route("v{version:apiVersion}/Uploads")]
     public class UploadsController : Controller
     {
         [HttpPost("")]

@@ -3,7 +3,8 @@
 namespace Dynaframe3.Controllers
 {
     [ApiController]
-    [Route("Commands")]
+    [ApiVersion("1.0")]
+    [Route("v{version:apiVersion}/Commands")]
     public class CommandsController
     {
         [HttpPost("{command}")]
