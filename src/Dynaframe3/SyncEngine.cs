@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,13 +38,13 @@ namespace Dynaframe3
                 }
             }
 
-            public static void SyncFrames(string imageUrl)
+            public static async Task SyncFramesAsync(string imageUrl)
             {
                 Logger.LogComment("SyncFrames enabled...sending sync signals..");
-                Parallel.For(0, syncedFrames.Count, i =>
+                await Parallel.ForEachAsync(syncedFrames, async (frame, cancellationToken) =>
                 {
-                    string host = "http://" + syncedFrames[i].hostname + ":" + ServerAppSettings.Default.ListenerPort;
-                    string command = "?SETFILE=" + imageUrl;
+                    string host = "http://" + frame.hostname + ":" + ServerAppSettings.Default.ListenerPort;
+                    string command = "SETFILE";
                     string uri = host + command;
                     Logger.LogComment("SyncEngine - SyncFrames: Sending: " + uri);
 
@@ -53,7 +54,9 @@ namespace Dynaframe3
                         // such as 200OK or even JSON to give status back.  
                         // This sends the request to the other frames.
 
-                        client.GetStringAsync(uri);
+                        var resp = await client.PostAsJsonAsync(uri, new { File = imageUrl }, cancellationToken).ConfigureAwait(false);
+
+                        resp.EnsureSuccessStatusCode();
                     }
                     catch (System.UriFormatException exc)
                     {
@@ -64,7 +67,7 @@ namespace Dynaframe3
                         {
                             // We have a bad hostame in the list...a bad uri will neverwork
                             // and so lets try to clean it out to keep things from going sideways..
-                            ServerAppSettings.Default.RemoteClients.Remove(syncedFrames[i].hostname);
+                            ServerAppSettings.Default.RemoteClients.Remove(frame.hostname);
                         }
                         catch (Exception)
                         {

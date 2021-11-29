@@ -279,7 +279,7 @@ namespace Dynaframe3
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Timer_Tick(object sender, EventArgs e)
+        private async void Timer_Tick(object sender, EventArgs e)
         {
             if (IsPaused)
             {
@@ -296,7 +296,7 @@ namespace Dynaframe3
                 {
                     Logger.LogComment("Timer_Tick: Reload settings was true... loading settings");
                     ServerAppSettings.Default.ReloadSettings = false;
-                    Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         RefreshSettings();
                     });
@@ -343,7 +343,7 @@ namespace Dynaframe3
                 // sync frame call
                 if ((ServerAppSettings.Default.IsSyncEnabled) && (SyncedFrame.SyncEngine.syncedFrames.Count > 0))
                 {
-                    SyncedFrame.SyncEngine.SyncFrames(playListEngine.CurrentMediaFile.Path);
+                    await SyncedFrame.SyncEngine.SyncFramesAsync(playListEngine.CurrentMediaFile.Path);
                 }
                 PlayFile(playListEngine.CurrentMediaFile.Path);
             }

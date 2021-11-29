@@ -7,8 +7,17 @@ namespace Dynaframe3.Controllers
     [Route("v{version:apiVersion}/Commands")]
     public class CommandsController
     {
+        [HttpPost("SETFILE")]
+        public void SetFile([FromBody] FileBody body)
+            => CommandProcessor.ProcessSetFile(body.File);
+
         [HttpPost("{command}")]
         public void Execute([FromRoute] string command)
             => CommandProcessor.ProcessCommand(command);
+    }
+
+    public class FileBody
+    {
+        public string File { get; set; }
     }
 }
