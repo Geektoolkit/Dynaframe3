@@ -5,6 +5,8 @@
 @inherits AppSettingsPage
 
 @inject AppSettingsService Service
+@inject IJSRuntime JsRuntime
+
 <section>
     <p style="font-size: 32px;">Settings</p>
     <div class="form">
@@ -219,5 +221,7 @@
         await Service.UpdateAppSettingsAsync(doc);
 
         await State.SettingsUpdatedAsync();
+
+        await JsRuntime.InvokeVoidAsync("scrollTop");
     }
 }

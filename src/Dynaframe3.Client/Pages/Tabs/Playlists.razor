@@ -20,7 +20,9 @@
                             @foreach (var subDir in appSettings.SearchSubDirectories[directory])
                             {
                                 <li class="subdirectory">
-                                    <input type="checkbox" class="directorydb" value="@subDir" checked="@SubDirectoryChecked(subDir)" />@subDir
+                                    <input type="checkbox" class="directorydb" value="@subDir" 
+                                        checked="@SubDirectoryChecked(subDir)"
+                                        @onchange="eventArg => ToggleSubDir(subDir, (bool)eventArg.Value)"/>@subDir
                                 </li>
                             }
                         </ul>
@@ -71,6 +73,7 @@
             </div>
         </div>
     </div>
+
 </section>
 
 @code {
@@ -78,6 +81,8 @@
     private string filterTags;
 
     private List<string> jsListEntries = new();
+
+    private Dictionary<string, bool> subDirChanges = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -95,6 +100,11 @@
         jsListEntries.Clear();
 
         base.OnSettingsUpdated(appSettings);
+    }
+
+    private void ToggleSubDir(string subDir, bool value)
+    {
+        subDirChanges[subDir] = value;
     }
 
     private bool SubDirectoryChecked(string subDir)
@@ -121,6 +131,23 @@
         }
         doc.Replace(d => d.InclusiveTagFilters, filterTags);
 
+        // Reset current playlist
+        foreach (var subDir in subDirChanges)
+        {
+            if (subDir.Value && !appSettings.CurrentPlayList.Contains(subDir.Key))
+            {
+                doc.Add(d => d.CurrentPlayList, subDir.Key);
+            }
+            else if (!subDir.Value)
+            {
+                var index = appSettings.CurrentPlayList.IndexOf(subDir.Key);
+                if (index > -1)
+                {
+                    doc.Remove(d => d.CurrentPlayList, index);
+                }
+            }
+        }
+
         var resp = await Service.UpdateAppSettingsAsync(doc, false);
 
         if (resp.StatusCode == System.Net.HttpStatusCode.BadRequest)
@@ -133,6 +160,10 @@
 
         addDirectory = "";
 
+        subDirChanges.Clear();
+
         await State.SettingsUpdatedAsync();
+
+        await JsRuntime.InvokeVoidAsync("scrollTop");
     }
 }
