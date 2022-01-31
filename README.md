@@ -9,7 +9,7 @@ Note: Please see the releases section for the latest release. The below command 
 
 Quickstart: On a raspberry pi based system you'll want to connect to a network, put a few images in the Pictures folder to get started, and then run:
 
-    sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.13/install.sh && bash install.sh; rm -f install.sh ; sudo reboot
+    sudo wget https://github.com/Geektoolkit/Dynaframe3/releases/download/2.19/install.sh && bash install.sh; rm -f install.sh ; sudo reboot
     
 On reboot it should startup, and it'll show you the URL of the configuration page.
 
