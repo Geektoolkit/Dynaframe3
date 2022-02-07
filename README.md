@@ -1,6 +1,8 @@
 # Dynaframe 2
 Dynamic Photo and Video Slideshow system for SBC (such as Raspberry pi)
 
+Note: There is now a Dynaframe Pro, which is a patreon supported successor to this. This project will continue to live on as the open source/free DIY version, but if you're looking for a simpler supported product, then Dynaframe Pro is where I've put that work. It includes skinning, image based installs, and more!  Find out more and how to get it here: https://www.youtube.com/watch?v=CIwkHq_v-ZE
+
 Video Demo, how to install, and intro here: https://youtu.be/XEaUsaNEzjY
 There are other related videos on the same channel.
 There are user written tutorials in Show and Tell under Discussions
