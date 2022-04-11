@@ -1,16 +1,15 @@
 ﻿@page "/upload"
+@using System.Net;
 @using System.Net.Http.Headers;
-@inject HttpClient Client  
+@inject HttpClient Client
+@inject StateContainer State
 
 <br>
 <br>
 <!-- IMAGE UPLOAD -->
 <legend>Upload Images</legend>
 <div class="d-grid gap-2 d-md-block">
-    @*<form name="fileUploadForm" id="fileUploadForm" method="post" enctype="multipart/form-data">*@
-        @*<input type="file" name="file" id="file" accept="image/*" />*@
-        <InputFile OnChange="OnInputFileChangeAsync" AdditionalAttributes="inputFileAttributes" />
-    @*</form>*@
+    <InputFile OnChange="OnInputFileChangeAsync" AdditionalAttributes="inputFileAttributes" />
     @if (imageUploadFailed)
     {
         <label id="lblWarning" style="color:red;background-color:yellow;">Image upload failed! Please try again</label>
@@ -68,14 +67,14 @@
     {
         await base.OnInitializedAsync();
 
-        files = await Client.GetFromJsonAsync<List<string>>($"{ApiVersion.Version}/uploads");
+        files = await Client.GetFromJsonAsync<List<string>>($"{ApiVersion.Version}/Devices/{State.CurrentDeviceId}/Uploads");
     }
 
     private async Task OnInputFileChangeAsync(InputFileChangeEventArgs e)
     {
         using var form = new MultipartFormDataContent();
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiVersion.Version}/uploads")
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiVersion.Version}/Devices/{State.CurrentDeviceId}/Uploads")
         {
             Content = form
         };
@@ -94,7 +93,7 @@
 
     private async Task DeleteFileAsync(string fileName)
     {
-        var resp = await Client.DeleteAsync($"{ApiVersion.Version}/uploads/{fileName}");
+        var resp = await Client.DeleteAsync($"{ApiVersion.Version}/Devices/{State.CurrentDeviceId}/Uploads/{WebUtility.UrlEncode(fileName)}");
 
         resp.EnsureSuccessStatusCode();
 

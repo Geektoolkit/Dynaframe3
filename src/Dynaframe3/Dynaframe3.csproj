@@ -13,23 +13,29 @@
     <Configurations>Release;Debug</Configurations>
     <FileVersion>3.0.0.0</FileVersion>
   </PropertyGroup>
+	
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.0" />
-
-	  <PackageReference Include="Avalonia.Desktop" Version="0.10.10" />
-	  <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.10" />
+	  <PackageReference Include="Avalonia.Desktop" Version="0.10.13" />
+	  <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.13" />
 	  <PackageReference Include="Avalonia.Skia.Desktop" Version="0.5.2-build3633-alpha" />
-	  <PackageReference Include="MetadataExtractor" Version="2.7.1" />
-	  <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="6.0.0" />
-	  <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.0" />
+	  <PackageReference Include="MetadataExtractor" Version="2.7.2" />
+	  <PackageReference Include="Microsoft.AspNetCore.JsonPatch" Version="6.0.3" />
+	  <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.3" />
 	  <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.0.0" />
-	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="6.0.3" />
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.3">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.3" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+	  <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.3" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-	  <PackageReference Include="Avalonia" Version="0.10.10" />
+	  <PackageReference Include="Avalonia" Version="0.10.13" />
+	  <PackageReference Include="Splat.Microsoft.Extensions.DependencyInjection" Version="14.1.45" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Dynaframe3.Client\Dynaframe3.Client.csproj" />
     <ProjectReference Include="..\Dynaframe3.Shared\Dynaframe3.Shared.csproj" />
   </ItemGroup>
 
@@ -53,6 +59,16 @@
 		<Content Include="images\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+		<AvaloniaXaml Remove="Scripts\**" />
+		<AvaloniaXaml Remove="Views\**" />
+		<Compile Remove="Scripts\**" />
+		<Compile Remove="Views\**" />
+		<Content Remove="Scripts\**" />
+		<Content Remove="Views\**" />
+		<EmbeddedResource Remove="Scripts\**" />
+		<EmbeddedResource Remove="Views\**" />
+		<None Remove="Scripts\**" />
+		<None Remove="Views\**" />
 		<Content Include="dynaframe.desktop">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
@@ -71,15 +87,11 @@
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
 		</None>
+		<None Update="uploads\README.txt">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="Data\" />
-		<Folder Include="Views\" />
-		<Folder Include="Scripts\" />
-	</ItemGroup>
-	<ItemGroup>
-		<Compile Condition=" '$(EnableDefaultCompileItems)' == 'true' " Update="ServerAppSettings.cs">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</Compile>
 	</ItemGroup>
 </Project>

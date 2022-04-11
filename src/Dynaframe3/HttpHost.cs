@@ -14,8 +14,6 @@ namespace Dynaframe3
             builder.Services.AddControllersWithViews()
                 .AddNewtonsoftJson();
 
-            builder.Services.AddRazorPages();
-
             builder.Services.AddApiVersioning(o =>
             {
                 o.DefaultApiVersion = new ApiVersion(1, 0);
@@ -23,21 +21,14 @@ namespace Dynaframe3
 
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseWebAssemblyDebugging();
-            }
-            else
+            if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
-            app.MapRazorPages();
             app.MapControllers();
-            app.MapFallbackToPage("/Home");
 
             return app;
         }

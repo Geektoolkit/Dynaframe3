@@ -14,10 +14,18 @@ namespace Dynaframe3.Controllers
     [Route("v{version:apiVersion}/Uploads")]
     public class UploadsController : Controller
     {
+        static readonly string _uploadsDirectory = AppDomain.CurrentDomain.BaseDirectory + "/wwwroot/uploads/";
+
         [HttpPost("")]
         public async Task<IActionResult> UploadFileAsync([FromForm]IFormFile file)
         {
-            var fileName = await CommandProcessor.SaveFileAsync(file.OpenReadStream(), Path.GetExtension(file.FileName));
+            var fileName = "image_" + DateTime.Now.ToString("ddMMyyhhmmss") + Path.GetExtension(file.FileName);
+            var dirPath = _uploadsDirectory + fileName;
+
+            using (var output = new FileStream(dirPath, FileMode.Create, FileAccess.Write))
+            {
+                await file.OpenReadStream().CopyToAsync(output).ConfigureAwait(false);
+            }
 
             return base.Created(GetFileUrl(fileName),
                             fileName);
@@ -34,7 +42,7 @@ namespace Dynaframe3.Controllers
         [HttpGet("")]
         public IActionResult GetFiles()
         {
-            var files = CommandProcessor.GetFiles();
+            var files = Directory.GetFiles(_uploadsDirectory).Select(f => Path.GetFileName(f));
             var fileUrls = files.Select(f => GetFileUrl(f));
             return Ok(fileUrls);
         }
@@ -47,13 +55,16 @@ namespace Dynaframe3.Controllers
             {
                 contentType = "application/octet-stream";
             }
-            return File(CommandProcessor.GetFile(fileName), contentType);
+            var dirPath = _uploadsDirectory + fileName;
+            var stream = System.IO.File.OpenRead(dirPath);
+            return File(stream, contentType);
         }
 
         [HttpDelete("{fileName}")]
         public IActionResult DeleteFile([FromRoute] string fileName)
         {
-            CommandProcessor.DeleteFile(fileName);
+            var dirPath = _uploadsDirectory + fileName;
+            System.IO.File.Delete(dirPath);
             return Ok();
         }
     }

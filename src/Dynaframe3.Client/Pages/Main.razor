@@ -1,6 +1,7 @@
 ﻿@page "/"
 @inherits LayoutComponentBase
 @inject StateContainer State
+@inject Services.DevicesService DevicesService
 @using Dynaframe3.Client.Pages.Tabs
 
 @if (!settingsLoaded)
@@ -10,10 +11,18 @@
 else
 {
     <div class="tabs">
+        <div class="row">
+            <div class="offset-md-3 col-md-6">
+                <select id="deviceSelect" class="form-select" @onchange="OnDeviceChange">
+                    @foreach (var device in devices)
+                    {
+                        <option value="@(device.Id)">@(device.HostName) - @(device.Ip)</option>
+                    }
+                </select>
+            </div>
+        </div>
+
         <ul id="ulTopControls">
-
-
-
             <li title="Controls" @onclick='() => ChangeTab(Tab.Controls)'>
                 <label for="tab1" role="button" class="tablabel @(currentTab == Tab.Controls ? "active" : "")">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-controller" viewBox="0 0 16 16">
@@ -73,17 +82,26 @@ else
 @code {
     private bool settingsLoaded;
     private Tab currentTab;
+    private List<Device> devices;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await State.GetCurrentSettingsAsync();
+
+        devices = await DevicesService.GetDevicesAsync();
+
+        await State.SetCurrentDeviceAsync(devices.First().Id);
         settingsLoaded = true;
     }
 
     private void ChangeTab(Tab tab)
     {
         currentTab = tab;
+    }
+
+    private async void OnDeviceChange(ChangeEventArgs e)
+    {
+        await State.SetCurrentDeviceAsync((int)e.Value!);
     }
 
     private enum Tab

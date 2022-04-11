@@ -4,7 +4,7 @@
 
 @inherits AppSettingsPage
 
-@inject AppSettingsService Service
+@inject DevicesService Service
 @inject IJSRuntime JsRuntime
 
 <section>
@@ -218,9 +218,7 @@
         doc.Replace(a => a.BlurBoxMargin, appSettings.BlurBoxMargin);
         doc.Replace(a => a.EnableLogging, appSettings.EnableLogging);
 
-        await Service.UpdateAppSettingsAsync(doc);
-
-        await State.SettingsUpdatedAsync();
+        await Service.UpdateAppSettingsAsync(State.CurrentDeviceId, doc);
 
         await JsRuntime.InvokeVoidAsync("scrollTop");
     }

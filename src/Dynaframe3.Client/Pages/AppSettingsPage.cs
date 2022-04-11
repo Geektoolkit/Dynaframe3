@@ -12,11 +12,11 @@ namespace Dynaframe3.Client.Pages
         [Inject]
         public StateContainer State { get; set; }
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
-            await base.OnInitializedAsync();
+            base.OnInitialized();
 
-            appSettings = await State.GetCurrentSettingsAsync();
+            appSettings = State.CurrentAppSettings;
 
             State.OnUpdated += OnSettingsUpdated;
         }

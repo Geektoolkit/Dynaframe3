@@ -1,5 +1,6 @@
 ﻿@using Dynaframe3.Client.Services
-@inject AppSettingsService Service 
+@inject DevicesService Service 
+@inject StateContainer State
 
 <button class="@Class" @onclick="ClickAsync">@Text</button>
 
@@ -14,5 +15,5 @@
     public string Class { get; set; } = "btn btn-primary btn-lg";
 
     protected virtual Task ClickAsync()
-        => Service.ExecuteCommandAsync(Command);
+        => Service.ExecuteCommandAsync(State.CurrentDeviceId, Command);
 }

@@ -5,9 +5,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Dynaframe3.Shared;
 using Dynaframe3.TransitionTypes;
 using MetadataExtractor;
 using Microsoft.Extensions.Hosting;
+using Splat;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -46,23 +48,28 @@ namespace Dynaframe3
 
         Transform rotationTransform;
 
-        // An empty constructor is required for the axaml to compile, but it is not actually used.
+        DeviceCache deviceCache;
+        FrameCommandProcessor commandProcessor;
+
+        int deviceId;
+
         public MainWindow()
         {
-            throw new NotImplementedException();
-        }
-
-        public MainWindow(string[] args)
-        {
             playListEngine = new PlayListEngine();
+
+            deviceCache = Locator.Current.GetService<DeviceCache>();
+
             InitializeComponent();
-            SetupWebServer(args);
         }
 
         private void InitializeComponent()
         {
-            CommandProcessor.GetMainWindowHandle(this);
-            SyncedFrame.SyncEngine.Initialize(); // initialize the list of frames for syncing.
+            var device = deviceCache.CurrentDevice;
+            deviceId = device.Id;
+            var appSettings = device.AppSettings;
+            SyncedFrame.SyncEngine.Initialize(appSettings); // initialize the list of frames for syncing.
+
+            commandProcessor = new FrameCommandProcessor(this);
 
             AvaloniaXamlLoader.Load(this);
             this.KeyDown += MainWindow_KeyDown;
@@ -83,7 +90,7 @@ namespace Dynaframe3
 
             fadeTransition = new DoubleTransition();
             fadeTransition.Easing = new QuadraticEaseIn();
-            fadeTransition.Duration = TimeSpan.FromMilliseconds(ServerAppSettings.Default.FadeTransitionTime);
+            fadeTransition.Duration = TimeSpan.FromMilliseconds(appSettings.FadeTransitionTime);
             fadeTransition.Property = UserControl.OpacityProperty;
 
             mainWindow = this.FindControl<Window>("mainWindow");
@@ -97,7 +104,7 @@ namespace Dynaframe3
             mainPanel = this.FindControl<Panel>("mainPanel");
             mainPanel.Transitions = new Transitions();
             mainPanel.Transitions.Add(panelTransition);
-            if (ServerAppSettings.Default.Rotation != 0)
+            if (appSettings.Rotation != 0)
             {
                 RotateMainPanel();
             }
@@ -107,7 +114,7 @@ namespace Dynaframe3
             tb.Text = "Loading images...";
             tb.FontFamily = new FontFamily("Terminal");
             tb.FontWeight = FontWeight.Bold;
-            tb.FontSize = ServerAppSettings.Default.InfoBarFontSize;
+            tb.FontSize = appSettings.InfoBarFontSize;
             tb.Transitions = new Transitions();
             tb.Transitions.Add(fadeTransition);
             tb.Padding = new Thickness(30);
@@ -116,7 +123,7 @@ namespace Dynaframe3
             VideoPlayer.MainWindowHandle = this.mainWindow;
 
             string intro;
-            if ((ServerAppSettings.Default.Rotation == 0) || ServerAppSettings.Default.Rotation == 180)
+            if ((appSettings.Rotation == 0) || appSettings.Rotation == 180)
             {
                 intro = Environment.CurrentDirectory + "/images/background.jpg";
             }
@@ -126,7 +133,7 @@ namespace Dynaframe3
             }
 
             crossFadeTransition.SetImage(intro, 0);
-            crossFadeTransition.SetImageStretch(ServerAppSettings.Default.ImageStretch);
+            crossFadeTransition.SetImageStretch(appSettings.ImageStretch);
 
             slideTimer.Elapsed += Timer_Tick;
 
@@ -134,17 +141,23 @@ namespace Dynaframe3
 
             Logger.LogComment("Initializing database..");
             sw.Start();
-            playListEngine.InitializeDatabase();
-            playListEngine.RebuildPlaylist();
+            playListEngine.InitializeDatabase(appSettings);
+            playListEngine.RebuildPlaylist(appSettings);
 
             sw.Stop();
             Logger.LogComment("Database initialized. Took: " + sw.ElapsedMilliseconds + " ms.");
 
-            ServerAppSettings.Default.ReloadSettings = true;
+            appSettings.ReloadSettings = true;
             slideTimer.Start();
             Timer_Tick(null, null);
             Logger.LogComment("Dynaframe Initialized...");
 
+        }
+
+        public override async void BeginInit()
+        {
+            base.BeginInit();
+            await commandProcessor.StartAsync(deviceId);
         }
 
         private void MainWindow_Closed(object sender, EventArgs e)
@@ -197,6 +210,7 @@ namespace Dynaframe3
 
         private void MainWindow_KeyDown(object sender, Avalonia.Input.KeyEventArgs e)
         {
+            var appSettings = deviceCache.CurrentDevice.AppSettings;
 
             // Exit on Escape or Control X (Windows and Linux Friendly)
             if ((e.Key == Avalonia.Input.Key.Escape) || ((e.KeyModifiers == Avalonia.Input.KeyModifiers.Control) && (e.Key == Avalonia.Input.Key.X)))
@@ -235,24 +249,24 @@ namespace Dynaframe3
 
             if (e.Key == Avalonia.Input.Key.F)
             {
-                ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.FileInfo;
+                appSettings.InfoBarState = AppSettings.InfoBar.FileInfo;
             }
             if (e.Key == Avalonia.Input.Key.I)
             {
-                ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.IP;
+                appSettings.InfoBarState = AppSettings.InfoBar.IP;
             }
             if (e.Key == Avalonia.Input.Key.E)
             {
-                ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.ExifData;
+                appSettings.InfoBarState = AppSettings.InfoBar.ExifData;
             }
             if (e.Key == Avalonia.Input.Key.C)
             {
-                ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.DateTime;
+                appSettings.InfoBarState = AppSettings.InfoBar.DateTime;
             }
             if (e.Key == Avalonia.Input.Key.H)
             {
                 tb.Opacity = 0;
-                ServerAppSettings.Default.InfoBarState = ServerAppSettings.InfoBar.OFF;
+                appSettings.InfoBarState = AppSettings.InfoBar.OFF;
             }
 
             if (e.Key == Avalonia.Input.Key.Right)
@@ -290,16 +304,17 @@ namespace Dynaframe3
                 return;
             }
 
-            if (ServerAppSettings.Default.ReloadSettings)
+            var appSettings = deviceCache.CurrentDevice.AppSettings;
+
+            if (appSettings.ReloadSettings)
             {
                 try
                 {
                     Logger.LogComment("Timer_Tick: Reload settings was true... loading settings");
-                    ServerAppSettings.Default.ReloadSettings = false;
-                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-                    {
-                        RefreshSettings();
-                    });
+
+                    // TODO: Call server to get this set.
+                    appSettings.ReloadSettings = false;
+                    await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => RefreshSettings());
                 }
                 catch (Exception exc)
                 {
@@ -307,18 +322,20 @@ namespace Dynaframe3
                 }
 
             }
-            if (ServerAppSettings.Default.RefreshDirctories)
+            if (appSettings.RefreshDirctories)
             {
-                ServerAppSettings.Default.RefreshDirctories = false;
-                playListEngine.InitializeDatabase();
-                playListEngine.RebuildPlaylist();
+                // TODO: Call server to get this set.
+                appSettings.RefreshDirctories = false;
+                playListEngine.InitializeDatabase(appSettings);
+                playListEngine.RebuildPlaylist(appSettings);
             }
 
             UpdateInfoBar();
+
             bool GoToNext = false;
             if ((playListEngine.CurrentMediaFile != null) && (playListEngine.CurrentMediaFile.Type == "Video"))
             {
-                if (!VideoPlayer.CheckStatus(false))
+                if (!VideoPlayer.CheckStatus(false, appSettings))
                 {
                     // Video exited before we expected it to! Recover gracefully
                     GoToNext = true;
@@ -327,10 +344,10 @@ namespace Dynaframe3
 
 
             // check transpired time against transition time...
-            if ((DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > ServerAppSettings.Default.SlideshowTransitionTime) || GoToNext == true)
+            if ((DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > appSettings.SlideshowTransitionTime) || GoToNext == true)
             {
                 // See if a video is playing...
-                if (VideoPlayer.CheckStatus(true))
+                if (VideoPlayer.CheckStatus(true, appSettings))
                 {
                     // Video is still playing, tick off the next timer interval for now.
                     slideTimer.Start();
@@ -341,18 +358,19 @@ namespace Dynaframe3
                 Logger.LogComment("Next file is: " + playListEngine.CurrentMediaFile.Path);
 
                 // sync frame call
-                if ((ServerAppSettings.Default.IsSyncEnabled) && (SyncedFrame.SyncEngine.syncedFrames.Count > 0))
+                if ((appSettings.IsSyncEnabled) && (SyncedFrame.SyncEngine.syncedFrames.Count > 0))
                 {
-                    await SyncedFrame.SyncEngine.SyncFramesAsync(playListEngine.CurrentMediaFile.Path);
+                    await SyncedFrame.SyncEngine.SyncFramesAsync(appSettings, playListEngine.CurrentMediaFile.Path);
                 }
                 PlayFile(playListEngine.CurrentMediaFile.Path);
             }
             slideTimer.Start(); // start next iterations...this prevents reentry...
 
         }
+
         public void PlayFile(string path)
         {
-            PlayFile(path, ServerAppSettings.Default.FadeTransitionTime);
+            PlayFile(path, deviceCache.CurrentDevice.AppSettings.FadeTransitionTime);
         }
 
         public void PlayFile(string path, int transitionTime)
@@ -365,7 +383,8 @@ namespace Dynaframe3
                 // TODO: Try to 'peek' at next file, if video, then slow down more
                 if (playListEngine.CurrentMediaFile.Type == "Video")
                 {
-                    VideoPlayer.PlayVideo(path);
+                    var appSettings = deviceCache.CurrentDevice.AppSettings;
+                    VideoPlayer.PlayVideo(path, appSettings);
                 }
                 else
                 {
@@ -387,25 +406,26 @@ namespace Dynaframe3
 
         private void UpdateInfoBar()
         {
+            var appSettings = deviceCache.CurrentDevice.AppSettings;
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
             {
-                tb.FontFamily = ServerAppSettings.Default.DateTimeFontFamily;
-                if (DateTime.Now.Subtract(timeStarted).TotalSeconds < ServerAppSettings.Default.NumberOfSecondsToShowIP)
+                tb.FontFamily = appSettings.DateTimeFontFamily;
+                if (DateTime.Now.Subtract(timeStarted).TotalSeconds < appSettings.NumberOfSecondsToShowIP)
                 {
                     tb.Text = Helpers.GetIPString();
                     tb.Opacity = 1;
                 }
                 else
                 {
-                    switch (ServerAppSettings.Default.InfoBarState)
+                    switch (appSettings.InfoBarState)
                     {
-                        case (ServerAppSettings.InfoBar.DateTime):
+                        case (AppSettings.InfoBar.DateTime):
                             {
                                 tb.Opacity = 1;
-                                tb.Text = DateTime.Now.ToString(ServerAppSettings.Default.DateTimeFormat);
+                                tb.Text = DateTime.Now.ToString(appSettings.DateTimeFormat);
                                 break;
                             }
-                        case (ServerAppSettings.InfoBar.FileInfo):
+                        case (AppSettings.InfoBar.FileInfo):
                             {
                                 tb.Opacity = 1;
                                 FileInfo f = new FileInfo(playListEngine.CurrentMediaFile.Path);
@@ -415,18 +435,18 @@ namespace Dynaframe3
                                 tb.Text = f.Name;
                                 break;
                             }
-                        case (ServerAppSettings.InfoBar.IP):
+                        case (AppSettings.InfoBar.IP):
                             {
                                 tb.Opacity = 1;
                                 tb.Text = Helpers.GetIPString();
                                 break;
                             }
-                        case (ServerAppSettings.InfoBar.OFF):
+                        case (AppSettings.InfoBar.OFF):
                             {
                                 tb.Opacity = 0;
                                 break;
                             }
-                        case (ServerAppSettings.InfoBar.ExifData):
+                        case (AppSettings.InfoBar.ExifData):
                             {
                                 tb.Opacity = 1;
                                 tb.Text = playListEngine.CurrentMediaFile.Title + "\r\n" + playListEngine.CurrentMediaFile.Author;
@@ -439,7 +459,7 @@ namespace Dynaframe3
                             }
                     } // end switch
 
-                    if ((IsPaused) && (ServerAppSettings.Default.InfoBarState != ServerAppSettings.InfoBar.OFF))
+                    if ((IsPaused) && (appSettings.InfoBarState != AppSettings.InfoBar.OFF))
                     {
                         tb.Text += " (Paused)";
                     }
@@ -448,45 +468,27 @@ namespace Dynaframe3
             });
         }
 
-
-        public void SetupWebServer(string[] args)
-        {
-            var host = HttpHost.CreateHostBuilder(args);
-            host.Start();
-
-            Closing += async (object sender, CancelEventArgs e) =>
-            {
-                try
-                {
-                    using var cts = new CancellationTokenSource(5000); // Give five seconds to shut down
-                    await host.StopAsync(cts.Token);
-                }
-                finally
-                {
-                    await host.DisposeAsync();
-                }
-            };
-        }
-
         /// <summary>
         /// This gets called each clock cycle, and is responsible for 'refreshing' settings, fixing up rotation rendering, etc.
         /// </summary>
         private void RefreshSettings()
         {
+            var appSettings = deviceCache.CurrentDevice.AppSettings;
+
             Logger.LogComment("Refresh settings was called");
-            Helpers.DumpAppSettingsToLogger();
+            Helpers.DumpAppSettingsToLogger(appSettings);
             Logger.LogComment("Current opacity: " + mainWindow.Opacity);
 
             // Infobar is the text at the bottom (default 100)
-            tb.FontSize = ServerAppSettings.Default.InfoBarFontSize;
+            tb.FontSize = appSettings.InfoBarFontSize;
 
             // update stretch if changed
-            crossFadeTransition.SetImageStretch(ServerAppSettings.Default.ImageStretch);
+            crossFadeTransition.SetImageStretch(appSettings.ImageStretch);
 
             RotateMainPanel();
 
             // update any fade settings
-            fadeTransition.Duration = TimeSpan.FromMilliseconds(ServerAppSettings.Default.FadeTransitionTime);
+            fadeTransition.Duration = TimeSpan.FromMilliseconds(appSettings.FadeTransitionTime);
             crossFadeTransition.SetTransitions();
         }
         /// <summary>
@@ -494,7 +496,8 @@ namespace Dynaframe3
         /// </summary>
         private void RotateMainPanel()
         {
-            int degrees = ServerAppSettings.Default.Rotation;
+            var appSettings = deviceCache.CurrentDevice.AppSettings;
+            int degrees = appSettings.Rotation;
             double w = mainWindow.Width;
             double h = mainWindow.Height;
 
@@ -528,7 +531,7 @@ namespace Dynaframe3
             }
             mainPanel.RenderTransform = rotationTransform;
             mainWindow.InvalidateMeasure();
-            ServerAppSettings.Default.OXMOrientnation = "--orientation " + degrees.ToString();
+            appSettings.OXMOrientnation = "--orientation " + degrees.ToString();
 
         }
     }

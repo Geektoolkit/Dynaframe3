@@ -10,7 +10,7 @@ using Avalonia.Rendering.SceneGraph;
 using Avalonia.Skia;
 using Avalonia.Threading;
 using SkiaSharp;
-
+using Splat;
 
 namespace Dynaframe3.ImagePresenters
 {
@@ -24,6 +24,7 @@ namespace Dynaframe3.ImagePresenters
         SKBitmap blurredbitmap;
         SKPaint blurPaint;
 
+        readonly DeviceCache deviceCache;
 
         public string ImageString { get; set; }
         public BlurBoxImage()
@@ -38,10 +39,19 @@ namespace Dynaframe3.ImagePresenters
             blurInfo = new SKImageInfo(640, 480);
             blurredbitmap = new SKBitmap(blurInfo);
 
-            blurPaint = new SKPaint();
-            blurPaint.ImageFilter = SKImageFilter.CreateBlur(ServerAppSettings.Default.BlurBoxSigmaX, ServerAppSettings.Default.BlurBoxSigmaY);
+            deviceCache = Locator.Current.GetService<DeviceCache>();
 
-            backgroundImage.Margin = new Thickness(ServerAppSettings.Default.BlurBoxMargin);
+            Initialized += BlurBoxImage_Initialized;
+        }
+
+        private void BlurBoxImage_Initialized(object sender, EventArgs e)
+        {
+            var appSettings = deviceCache.CurrentDevice.AppSettings;
+
+            blurPaint = new SKPaint();
+            blurPaint.ImageFilter = SKImageFilter.CreateBlur(appSettings.BlurBoxSigmaX, appSettings.BlurBoxSigmaY);
+
+            backgroundImage.Margin = new Thickness(appSettings.BlurBoxMargin);
         }
 
         /// <summary>
@@ -57,7 +67,7 @@ namespace Dynaframe3.ImagePresenters
             AvaloniaXamlLoader.Load(this);
 
 
-            if (!String.IsNullOrEmpty(ImageString))
+            if (!string.IsNullOrEmpty(ImageString))
             {
                 ShowBitmapWithBlurbox();
             }
@@ -69,9 +79,10 @@ namespace Dynaframe3.ImagePresenters
 
         public void UpdateImage(string newImagePath)
         {
+            var appSettings = deviceCache.CurrentDevice.AppSettings;
             ImageString = newImagePath;
-            backgroundImage.Margin = new Thickness(ServerAppSettings.Default.BlurBoxMargin);
-            blurPaint.ImageFilter = SKImageFilter.CreateBlur(ServerAppSettings.Default.BlurBoxSigmaX, ServerAppSettings.Default.BlurBoxSigmaY);
+            backgroundImage.Margin = new Thickness(appSettings.BlurBoxMargin);
+            blurPaint.ImageFilter = SKImageFilter.CreateBlur(appSettings.BlurBoxSigmaX, appSettings.BlurBoxSigmaY);
             ShowBitmapWithBlurbox();
         }
 
@@ -87,7 +98,7 @@ namespace Dynaframe3.ImagePresenters
             bitmap.ScalePixels(blurredbitmap, SKFilterQuality.Medium);
 
             using SKCanvas canvas = new SKCanvas(blurredbitmap);
-            canvas.DrawBitmap(blurredbitmap, new SKPoint(0,0), blurPaint);
+            canvas.DrawBitmap(blurredbitmap, new SKPoint(0, 0), blurPaint);
 
             using SKData data = SKImage.FromBitmap(blurredbitmap).Encode(SKEncodedImageFormat.Jpeg, 100);
 

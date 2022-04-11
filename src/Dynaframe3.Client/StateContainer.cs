@@ -6,43 +6,43 @@ using System.Threading.Tasks;
 
 namespace Dynaframe3.Client
 {
-    public class StateContainer
+    public class StateContainer : IDisposable
     {
-        private readonly AppSettingsService _service;
-        private readonly SemaphoreSlim _sync = new SemaphoreSlim(1);
+        private readonly DevicesService _service;
+        private readonly DeviceSignalRService _signalRService;
 
         public event Action<AppSettings> OnUpdated;
 
-        private AppSettings _current;
+        public int CurrentDeviceId { get; private set; }
+        public AppSettings CurrentAppSettings { get; private set; }
 
-        public StateContainer(AppSettingsService service)
-            => _service = service;
-
-        public async Task<AppSettings> SettingsUpdatedAsync()
+        public StateContainer(DevicesService service, DeviceSignalRService signalRService)
         {
-            _current = await _service.GetAppSettingsAsync().ConfigureAwait(false);
-            OnUpdated?.Invoke(_current);
-            return _current;
+            _service = service;
+            _signalRService = signalRService;
+
+            _signalRService.OnAppSettingsChanged += OnAppSettingsChanged;
         }
 
-        public async ValueTask<AppSettings> GetCurrentSettingsAsync()
+        private void OnAppSettingsChanged(AppSettings newAppSettings)
         {
-            if (_current is not null)
-            {
-                return _current;
-            }
+            CurrentAppSettings = newAppSettings;
+            OnUpdated?.Invoke(newAppSettings);
+        }
 
-            await _sync.WaitAsync().ConfigureAwait(false);
+        public async Task SetCurrentDeviceAsync(int deviceId)
+        {
+            var appSettings = await _service.GetAppSettingsAsync(deviceId).ConfigureAwait(false);
 
-            try
-            {
-                _current = await _service.GetAppSettingsAsync().ConfigureAwait(false);
-            }
-            finally
-            {
-                _sync.Release();
-            }
-            return _current;
+            await _signalRService.DisconnectDeviceAsync(CurrentDeviceId).ConfigureAwait(false);
+            await _signalRService.ConnectDeviceAsync(deviceId).ConfigureAwait(false);
+            CurrentDeviceId = deviceId;
+            OnAppSettingsChanged(appSettings);
+        }
+
+        public void Dispose()
+        {
+            _signalRService.OnAppSettingsChanged -= OnAppSettingsChanged;
         }
     }
 }
