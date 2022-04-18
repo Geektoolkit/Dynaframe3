@@ -11,11 +11,10 @@
   "profiles": {
     "Dynaframe3": {
       "commandName": "Project",
-      "commandLineArgs": "--urls http://localhost:8050",
+      "commandLineArgs": "--urls http://localhost:8050 --dynaframe_server http://localhost:5193",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "DYNAFRAME_SERVER": "http://localhost:5193"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "applicationUrl": "http://localhost:8050",
       "dotnetRunMessages": "true"

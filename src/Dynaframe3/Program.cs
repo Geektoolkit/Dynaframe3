@@ -65,9 +65,10 @@ namespace Dynaframe3.Server
 
             services.AddSingleton<IConfiguration>(sp => configurationBuilder.Build());
 
-            services.AddHttpClient("", configureClient: h =>
+            services.AddHttpClient("", configureClient: (sp, h) =>
             {
-                h.BaseAddress = new Uri(Environment.GetEnvironmentVariable("DYNAFRAME_SERVER"));
+                var config = sp.GetRequiredService<IConfiguration>();
+                h.BaseAddress = new Uri(config.GetValue<string>("DYNAFRAME_SERVER"));
             })
                 .AddPolicyHandler(HttpPolicyExtensions
                     .HandleTransientHttpError()

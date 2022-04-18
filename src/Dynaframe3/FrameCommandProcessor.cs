@@ -1,6 +1,7 @@
 ﻿using Dynaframe3.Shared;
 using Dynaframe3.Shared.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Configuration;
 using Splat;
 using System;
 using System.Threading.Tasks;
@@ -16,10 +17,11 @@ namespace Dynaframe3
         {
             _window = window;
 
+            var config = Locator.Current.GetService<IConfiguration>();
+
             _connection = new HubConnectionBuilder()
                 .WithAutomaticReconnect(new RetryPolicy())
-                // TODO: Change url
-                .WithUrl("http://localhost:5193/Hub")
+                .WithUrl($"{config.GetValue<string>("DYNAFRAME_SERVER")}/Hub")
                 .Build();
 
             _connection.On(nameof(IFrameClient.TurnOnScreenAsync), ((IFrameClient)this).TurnOnScreenAsync);
