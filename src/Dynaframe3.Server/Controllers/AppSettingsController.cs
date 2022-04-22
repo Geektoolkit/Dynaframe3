@@ -1,9 +1,11 @@
 ﻿using Dynaframe3.Server.Data;
+using Dynaframe3.Server.SignalR;
 using Dynaframe3.Shared;
+using Dynaframe3.Shared.SignalR;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using System.Net;
 
 namespace Dynaframe3.Server.Controllers
 {
@@ -14,13 +16,15 @@ namespace Dynaframe3.Server.Controllers
     {
         private readonly ServerDbContext _db;
         private readonly HttpClient _httpClient;
+        private readonly IHubContext<DynaframeHub, IFrameClient> _hub;
         private readonly ILogger<AppSettingsController> _logger;
 
-        public AppSettingsController(ServerDbContext db, HttpClient httpClient,
-            ILogger<AppSettingsController> logger)
+        public AppSettingsController(ServerDbContext db, HttpClient httpClient, IHubContext<DynaframeHub,
+            IFrameClient> hub, ILogger<AppSettingsController> logger)
         {
             _db = db;
             _httpClient = httpClient;
+            _hub = hub;
             _logger = logger;
         }
 
@@ -40,34 +44,40 @@ namespace Dynaframe3.Server.Controllers
 
         private async Task<Device?> GetDevicesAsync(int devideId)
         {
-            return await _db.Devices.AsNoTracking()
+            return await _db.Devices
                 .Include(d => d.AppSettings)
                 .Where(d => d.Id == devideId)
                 .FirstOrDefaultAsync();
         }
 
         [HttpPatch("")]
-        public async Task<IActionResult> PatchAsync([FromRoute] int devideId, [FromBody] JsonPatchDocument<AppSettings> jsonPatch)
+        public async Task<IActionResult> PatchAsync([FromRoute] int deviceId, [FromBody] JsonPatchDocument<AppSettings> jsonPatch)
         {
+            _logger.LogInformation($"DAN: {Newtonsoft.Json.JsonConvert.SerializeObject(jsonPatch)}");
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var device = await GetDevicesAsync(devideId);
+            var device = await GetDevicesAsync(deviceId);
 
             if (device is null)
             {
-                return NotFound($"Could not find AppSettings for Device ID '{devideId}'");
+                return NotFound($"Could not find AppSettings for Device ID '{deviceId}'");
             }
 
             jsonPatch.ApplyTo(device.AppSettings);
 
             device.AppSettings.SearchDirectories = device.AppSettings.SearchDirectories.Distinct().ToList();
 
-            device.AppSettings.ReloadSettings = true;
+            if (!jsonPatch.Operations.Any(o => o.path == "/ReloadSettings"))
+            {
+                device.AppSettings.ReloadSettings = true;
+            }
 
             await _db.SaveChangesAsync();
+
+            await _hub.GetDevice(deviceId).SyncAppSettings(device.AppSettings);
 
             return Ok(device);
         }

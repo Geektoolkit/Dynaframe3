@@ -31,12 +31,7 @@ namespace Dynaframe3.Server
         /// </summary>
         public Task TurnOffScreenAsync(int deviceId)
         {
-            return GetDevice(deviceId).TurnOffScreenAsync();
-        }
-
-        private IFrameClient GetDevice(int deviceId)
-        {
-            return _hub.Clients.Group(deviceId.ToString());
+            return _hub.GetDevice(deviceId).TurnOffScreenAsync();
         }
 
         /// <summary>
@@ -98,27 +93,27 @@ namespace Dynaframe3.Server
             {
                 case "CONTROL_FIRST":
                     {
-                        return GetDevice(deviceId).FirstAsync();
+                        return _hub.GetDevice(deviceId).FirstAsync();
                     }
                 case "CONTROL_BACKWARD":
                     {
-                        return GetDevice(deviceId).BackAsync();
+                        return _hub.GetDevice(deviceId).BackAsync();
                     }
                 case "CONTROL_PAUSE_On":
                     {
-                        return GetDevice(deviceId).TogglePauseAsync();
+                        return _hub.GetDevice(deviceId).TogglePauseAsync();
                     }
 
                 case "CONTROL_PAUSE_Off":
                     {
-                        return GetDevice(deviceId).TogglePauseAsync();
+                        return _hub.GetDevice(deviceId).TogglePauseAsync();
                     }
 
 
 
                 case "CONTROL_FORWARD":
                     {
-                        return GetDevice(deviceId).ForwardAsync();
+                        return _hub.GetDevice(deviceId).ForwardAsync();
                     }
                 default:
                     {
@@ -134,7 +129,7 @@ namespace Dynaframe3.Server
         /// <returns>True if appSettings exists and updated, else false</returns>
         public Task ProcessSetFile(string filename, int deviceId)
         {
-            return GetDevice(deviceId).ProcessSetFileAsync(filename);
+            return _hub.GetDevice(deviceId).ProcessSetFileAsync(filename);
         }
 
         public async Task<bool> ProcessCommandAsync(string command, int deviceId)
@@ -245,17 +240,17 @@ namespace Dynaframe3.Server
                     }
                 case "REBOOT":
                     {
-                        await GetDevice(deviceId).RebootAsync().ConfigureAwait(false);
+                        await _hub.GetDevice(deviceId).RebootAsync().ConfigureAwait(false);
                         break;
                     }
                 case "SHUTDOWN":
                     {
-                        await GetDevice(deviceId).ShutdownAsync().ConfigureAwait(false);
+                        await _hub.GetDevice(deviceId).ShutdownAsync().ConfigureAwait(false);
                         break;
                     }
                 case "EXITAPP":
                     {
-                        await GetDevice(deviceId).ExitAsync().ConfigureAwait(false);
+                        await _hub.GetDevice(deviceId).ExitAsync().ConfigureAwait(false);
                         break;
                     }
                 case "UTILITY_UPDATEFILELIST":
@@ -286,7 +281,7 @@ namespace Dynaframe3.Server
             {
                 appSettings.ReloadSettings = true;
 
-                await GetDevice(deviceId).SyncAppSettings(appSettings).ConfigureAwait(false);
+                await _hub.GetDevice(deviceId).SyncAppSettings(appSettings).ConfigureAwait(false);
             }
 
             await _db.SaveChangesAsync().ConfigureAwait(false);

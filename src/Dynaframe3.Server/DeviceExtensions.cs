@@ -17,7 +17,13 @@ namespace Dynaframe3.Server
             };
             await Parallel.ForEachAsync<string>(device.AppSettings.SearchDirectories, parallelOptions, async (dir, cancel) =>
             {
-                string requestUri = $"http://{device.Ip}:{device.Port}/v1.0/Directories/Subdirectories?directory={WebUtility.UrlEncode(dir)}";
+                
+                if (!Uri.TryCreate($"http://{device.Ip}:{device.Port}", new UriCreationOptions(), out var baseUri))
+                {
+                    throw new InvalidOperationException($"Could not parse url from device http://{device.Ip}:{device.Port}");
+                }
+
+                var requestUri = $"{baseUri}v1.0/Directories/Subdirectories?directory={WebUtility.UrlEncode(dir)}";
                 var resp = await httpClient.GetAsync(
                     requestUri,
                     cancel);

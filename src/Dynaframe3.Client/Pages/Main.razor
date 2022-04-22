@@ -8,6 +8,10 @@
 {
     <div>Loading...</div>
 }
+else if (devices.Count == 0)
+{
+    <div>No devices have been registered...</div>
+}
 else
 {
     <div class="tabs">
@@ -90,7 +94,10 @@ else
 
         devices = await DevicesService.GetDevicesAsync();
 
-        await State.SetCurrentDeviceAsync(devices.First().Id);
+        if (devices.Any())
+        {
+            await State.SetCurrentDeviceAsync(devices.First().Id);
+        }
         settingsLoaded = true;
     }
 

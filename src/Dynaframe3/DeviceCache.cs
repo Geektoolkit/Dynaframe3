@@ -27,17 +27,31 @@ namespace Dynaframe3
         {
             var client = _httpClientFactory.CreateClient();
             var endpoint = _httpSettings.Endpoints
-                .First(e => e.Host is "*" or "localhost" || IPAddress.TryParse(e.Host, out _));
+                .First();
 
             if (endpoint is null)
             {
                 throw new InvalidOperationException("Could not find endpoint set up with '*', 'localhost', or an IP Address. One of these needs to be entered with the --urls command line arg");
             }
+            string hostName;
+            string ip;
+            if (IPAddress.TryParse(endpoint.Host, out var iPAddress))
+            {
+                hostName = Dns.GetHostName();
+                ip = iPAddress.ToString();
+            }
+            else
+            {
+                hostName = endpoint.Host;
+                ip = Dns.GetHostAddresses(hostName).FirstOrDefault(ip => (hostName == "localhost" || ip.ToString() != "127.0.1.1")
+                    && Uri.TryCreate($"http://{ip}", new UriCreationOptions(), out _))?.ToString()
+                    ?? throw new InvalidOperationException($"Could not determine IP Address for {hostName}");
+            }
 
             var device = new Device()
             {
-                HostName = Dns.GetHostName(),
-                Ip = endpoint.ExternalHost,
+                HostName = hostName,
+                Ip = ip,
                 Port = endpoint.Port
             };
             device.AppSettings.SearchDirectories.Add(SpecialDirectories.MyPictures);

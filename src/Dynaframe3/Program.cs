@@ -29,7 +29,6 @@ namespace Dynaframe3.Server
             await host.StartAsync();
 
             await Locator.Current.GetService<DeviceCache>().InitializeAsync();
-            var y = SynchronizationContext.Current;
 
             BuildAvaloniaApp()
                     .StartWithClassicDesktopLifetime(args, Avalonia.Controls.ShutdownMode.OnMainWindowClose);
@@ -92,8 +91,6 @@ namespace Dynaframe3.Server
                 config.Bind(settings);
                 return settings;
             });
-
-            services.AddSingleton<FrameCommandProcessor>();
 
             services.UseMicrosoftDependencyResolver();
 

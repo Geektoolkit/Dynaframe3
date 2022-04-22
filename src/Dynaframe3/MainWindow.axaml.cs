@@ -8,14 +8,15 @@ using Avalonia.Media;
 using Dynaframe3.Shared;
 using Dynaframe3.TransitionTypes;
 using MetadataExtractor;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.JsonPatch;
+using Newtonsoft.Json;
 using Splat;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Dynaframe3
@@ -312,8 +313,9 @@ namespace Dynaframe3
                 {
                     Logger.LogComment("Timer_Tick: Reload settings was true... loading settings");
 
-                    // TODO: Call server to get this set.
-                    appSettings.ReloadSettings = false;
+                    var doc = new JsonPatchDocument<AppSettings>();
+                    doc.Replace(d => d.ReloadSettings, false);
+                    await ResetSettings(doc);
                     await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => RefreshSettings());
                 }
                 catch (Exception exc)
@@ -324,8 +326,9 @@ namespace Dynaframe3
             }
             if (appSettings.RefreshDirctories)
             {
-                // TODO: Call server to get this set.
-                appSettings.RefreshDirctories = false;
+                var doc = new JsonPatchDocument<AppSettings>();
+                doc.Replace(d => d.RefreshDirctories, false);
+                await ResetSettings(doc);
                 playListEngine.InitializeDatabase(appSettings);
                 playListEngine.RebuildPlaylist(appSettings);
             }
@@ -366,6 +369,14 @@ namespace Dynaframe3
             }
             slideTimer.Start(); // start next iterations...this prevents reentry...
 
+        }
+
+        private async Task ResetSettings(JsonPatchDocument<AppSettings> doc)
+        {
+            var content = new StringContent(JsonConvert.SerializeObject(doc), Encoding.UTF8, "application/json");
+            var client = Locator.Current.GetService<IHttpClientFactory>().CreateClient();
+            var resp = await client.PatchAsync($"v1.0/Devices/{deviceId}/Appsettings", content);
+            resp.EnsureSuccessStatusCode();
         }
 
         public void PlayFile(string path)

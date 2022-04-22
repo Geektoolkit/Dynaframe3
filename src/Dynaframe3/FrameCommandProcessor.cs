@@ -49,6 +49,7 @@ namespace Dynaframe3
 
         public async Task StartAsync(int deviceId)
         {
+            _connection.Reconnected += (string arg) => _connection.InvokeAsync("ConnectDeviceAsync", deviceId);
             await _connection.StartAsync().ConfigureAwait(false);
             await _connection.InvokeAsync("ConnectDeviceAsync", deviceId).ConfigureAwait(false);
         }

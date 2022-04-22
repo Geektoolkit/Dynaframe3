@@ -3,6 +3,8 @@ using Dynaframe3.Server.Data;
 using Dynaframe3.Server.SignalR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Polly;
+using Polly.Extensions.Http;
 using Serilog;
 using Serilog.Events;
 
@@ -10,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews()
     .AddNewtonsoftJson();
+
+builder.Services.AddHealthChecks();
 
 builder.Host.UseSerilog((ctx, log) =>
 {
@@ -20,7 +24,11 @@ builder.Host.UseSerilog((ctx, log) =>
         .WriteTo.File("./logs/log", rollingInterval: RollingInterval.Day);
 });
 
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("")
+    .AddPolicyHandler(HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .WaitAndRetryAsync(3, i => TimeSpan.FromMilliseconds(250)))
+    ;
 
 builder.Services.AddSignalR();
 
@@ -58,6 +66,7 @@ else
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
+app.MapHealthChecks("/Heartbeat");
 app.MapRazorPages();
 app.MapControllers();
 app.MapFallbackToPage("/Home");

@@ -104,8 +104,14 @@ namespace Dynaframe3.ImagePresenters
 
             bitmapData = new Bitmap(data.AsStream());
 
+            var currentBackground = backgroundImage.Source as IDisposable;
+            var currentForeground = foregroundImage.Source as IDisposable;
+
             backgroundImage.Source = bitmapData;
             foregroundImage.Source = new Bitmap(ImageString);
+
+            currentBackground?.Dispose();
+            currentForeground?.Dispose();
         }
     }
 }

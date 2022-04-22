@@ -21,4 +21,4 @@ find /home/pi/DynaframeServer/logs/ -mtime +10 -type f -delete
 # set date and time, create log file oneach reboot
 now=$(date +"%Y-%m-%d-%H-%M")
 export ASPNETCORE_ENVIRONMENT="Production"
-./Dynaframe.Server > /home/pi/DynaframeServer/logs/dynaframeserver-${now}.log 2>&1
+./Dynaframe.Server --urls {{serverurl}} > /home/pi/DynaframeServer/logs/dynaframeserver-${now}.log 2>&1
