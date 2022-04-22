@@ -80,9 +80,6 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<None Update="dynaframe.db">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 		<None Update="Properties\launchSettings.json">
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 			<CopyToPublishDirectory>Never</CopyToPublishDirectory>

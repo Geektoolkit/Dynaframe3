@@ -48,12 +48,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="dynaframeserver.db">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="logs\" />
   </ItemGroup>
 

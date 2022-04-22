@@ -33,9 +33,15 @@ builder.Services.AddApiVersioning(o =>
 
 builder.Services.AddScoped<CommandProcessor>();
 
+var dbDirectory = $"{AppDomain.CurrentDomain.BaseDirectory}Data";
+if (!Directory.Exists(dbDirectory))
+{
+    Directory.CreateDirectory(dbDirectory);
+}
+
 builder.Services.AddDbContext<ServerDbContext>(x =>
 {
-    x.UseSqlite("Data Source=./Data/dynaframeserver.db");
+    x.UseSqlite($"Data Source={dbDirectory}/dynaframeserver.db");
 });
 
 var app = builder.Build();
@@ -57,11 +63,6 @@ app.MapControllers();
 app.MapFallbackToPage("/Home");
 
 app.MapHub<DynaframeHub>("/Hub");
-
-if (!File.Exists("./Data/dynaframeserver.db"))
-{
-    File.Copy("./dynaframeserver.db", "./Data/dynaframeserver.db");
-}
 
 using (var scope = app.Services.CreateScope())
 {
