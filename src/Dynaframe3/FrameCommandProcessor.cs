@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using Splat;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Dynaframe3
@@ -12,6 +13,7 @@ namespace Dynaframe3
     {
         private readonly MainWindow _window;
         private readonly HubConnection _connection;
+        private readonly List<IDisposable> _disposables = new();
 
         public FrameCommandProcessor(MainWindow window)
         {
@@ -24,32 +26,26 @@ namespace Dynaframe3
                 .WithUrl($"{config.GetValue<string>("DYNAFRAME_SERVER")}/Hub")
                 .Build();
 
-            _connection.On(nameof(IFrameClient.TurnOnScreenAsync), ((IFrameClient)this).TurnOnScreenAsync);
-            _connection.On(nameof(IFrameClient.TurnOffScreenAsync), ((IFrameClient)this).TurnOffScreenAsync);
-
-
-            _connection.On(nameof(IFrameClient.BackAsync), ((IFrameClient)this).BackAsync);
-            _connection.On(nameof(IFrameClient.ForwardAsync), ((IFrameClient)this).ForwardAsync);
-            _connection.On(nameof(IFrameClient.FirstAsync), ((IFrameClient)this).FirstAsync);
-            _connection.On(nameof(IFrameClient.TogglePauseAsync), ((IFrameClient)this).TogglePauseAsync);
-
-            _connection.On(nameof(IFrameClient.RebootAsync), ((IFrameClient)this).RebootAsync);
-            _connection.On(nameof(IFrameClient.ShutdownAsync), ((IFrameClient)this).ShutdownAsync);
-            _connection.On(nameof(IFrameClient.ExitAsync), ((IFrameClient)this).ExitAsync);
-
-            _connection.On<string>(nameof(IFrameClient.ProcessSetFileAsync), ((IFrameClient)this).ProcessSetFileAsync);
-            _connection.On<AppSettings>(nameof(IFrameClient.SyncAppSettings), ((IFrameClient)this).SyncAppSettings);
+            _disposables.AddRange(new[]
+            {
+                _connection.On(nameof(IFrameClient.TurnOnScreenAsync), ((IFrameClient)this).TurnOnScreenAsync),
+                _connection.On(nameof(IFrameClient.TurnOffScreenAsync), ((IFrameClient)this).TurnOffScreenAsync),
+                _connection.On(nameof(IFrameClient.BackAsync), ((IFrameClient)this).BackAsync),
+                _connection.On(nameof(IFrameClient.ForwardAsync), ((IFrameClient)this).ForwardAsync),
+                _connection.On(nameof(IFrameClient.FirstAsync), ((IFrameClient)this).FirstAsync),
+                _connection.On(nameof(IFrameClient.TogglePauseAsync), ((IFrameClient)this).TogglePauseAsync),
+                _connection.On(nameof(IFrameClient.RebootAsync), ((IFrameClient)this).RebootAsync),
+                _connection.On(nameof(IFrameClient.ShutdownAsync), ((IFrameClient)this).ShutdownAsync),
+                _connection.On(nameof(IFrameClient.ExitAsync), ((IFrameClient)this).ExitAsync),
+                _connection.On<string>(nameof(IFrameClient.ProcessSetFileAsync), ((IFrameClient)this).ProcessSetFileAsync),
+                _connection.On<AppSettings>(nameof(IFrameClient.SyncAppSettings), ((IFrameClient)this).SyncAppSettings)
+            });
         }
 
         public async Task StartAsync(int deviceId)
         {
             await _connection.StartAsync().ConfigureAwait(false);
             await _connection.InvokeAsync("ConnectDeviceAsync", deviceId).ConfigureAwait(false);
-        }
-
-        public async ValueTask DisposeAsync()
-        {
-            await _connection.DisposeAsync().ConfigureAwait(false);
         }
 
         Task IFrameClient.BackAsync()
@@ -122,6 +118,16 @@ namespace Dynaframe3
         Task IFrameClient.TurnOnScreenAsync()
         {
             return Helpers.RunProcessAsync("vcgencmd", "display_power 1");
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            foreach (var disposable in _disposables)
+            {
+                disposable.Dispose();
+            }
+
+            await _connection.DisposeAsync().ConfigureAwait(false);
         }
     }
 }
