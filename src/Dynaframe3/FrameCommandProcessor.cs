@@ -2,6 +2,7 @@
 using Dynaframe3.Shared.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 using Splat;
 using System;
 using System.Collections.Generic;
@@ -22,6 +23,10 @@ namespace Dynaframe3
             var config = Locator.Current.GetService<IConfiguration>();
 
             _connection = new HubConnectionBuilder()
+                .ConfigureLogging(l =>
+                {
+                    l.AddSerilog(Locator.Current.GetService<Serilog.ILogger>());
+                })
                 .WithAutomaticReconnect(new RetryPolicy())
                 .WithUrl($"{config.GetValue<string>("DYNAFRAME_SERVER")}/Hub")
                 .Build();

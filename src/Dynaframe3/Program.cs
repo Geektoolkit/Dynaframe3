@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Extensions.Http;
+using Serilog;
 using Splat;
 using Splat.Microsoft.Extensions.DependencyInjection;
 using System;
@@ -61,7 +62,14 @@ namespace Dynaframe3.Server
             configurationBuilder.AddCommandLine(args);
             configurationBuilder.AddEnvironmentVariables();
 
+            var logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.Debug()
+                .CreateLogger();
+
             var services = new ServiceCollection();
+
+            services.AddSingleton<Serilog.ILogger>(logger);
 
             services.AddSingleton<IConfiguration>(sp => configurationBuilder.Build());
 
