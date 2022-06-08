@@ -18,6 +18,31 @@ echo "starting Dynaframe" >> /home/pi/Dynaframe/logs/run.sh.log
 # find and delete any log file older than 10 days, could be longer later.
 find /home/pi/Dynaframe/logs/ -mtime +10 -type f -delete
 
-# set date and time, create log file oneach reboot
-now=$(date +"%Y-%m-%d-%H-%M")
-./Dynaframe > /home/pi/Dynaframe/logs/dynaframe-${now}.log 2>&1
+# Make sure that we can reach the server before starting. Give it a little bit as it may be starting up at the same time
+#while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8081" != "200"]]; 
+#do 
+#sleep 5; 
+#done
+secs=180                         
+endTime=$(( $(date +%s) + secs ))
+
+echo "Ensuring connection to Dynaframe Server at {{serverurl}}" >> /home/pi/DynaframeServer/logs/run.sh.log
+while [ $(date +%s) -lt $endTime ]; do  # Loop until interval has elapsed.
+    if [[ "$(curl -s -o /dev/null -w ''%{http_code}'' {{serverurl}}/Heartbeat)" == "200" ]];
+    then
+        export serverresponded="true"
+        break
+    else
+        sleep 1s
+    fi
+done
+
+if [[ "$serverresponded" == "true" ]]
+then
+    # set date and time, create log file oneach reboot
+    now=$(date +"%Y-%m-%d-%H-%M")
+    ./Dynaframe --urls {{urls}} --dynaframe_server {{serverurl}} > /home/pi/Dynaframe/logs/dynaframe-${now}.log 2>&1
+else
+    echo "Dynaframe Server did not respond" >> /home/pi/DynaframeServer/logs/run.sh.log
+    exit 1
+fi

@@ -1,12 +1,15 @@
-﻿using System;
+﻿using Dynaframe3.Shared;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Dynaframe3
 {
@@ -42,30 +45,14 @@ namespace Dynaframe3
             string version = Assembly.GetExecutingAssembly().GetName().Version.ToString();
             returnval += "(Version: " + version + ")\r\n";
 
-            NetworkInterface[] nets = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
-            if (nets.Length > 0)
+
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
             {
-                foreach (NetworkInterface net in nets)
+                var ipStr = ip.ToString();
+                if ((!ipStr.StartsWith("169.")) && (!ipStr.StartsWith("127.")) && (!ipStr.Contains("::")))
                 {
-                    try
-                    {
-                        var addresses = net.GetIPProperties().UnicastAddresses;
- 
-
-                        for (int i = 0; i < addresses.Count; i++)
-                        {
-                            string ip = addresses[i].Address.ToString();
-                            // Filter out IPV6, local, loopback, etc.
-                            
-
-                            if ((!ip.StartsWith("169.")) && (!ip.StartsWith("127.")) && (!ip.Contains("::")))
-                                returnval += "http://" + ip + ":8000 "+ Environment.NewLine;
-                        }
-                    }
-                    catch (Exception exc)
-                    {
-                        Logger.LogComment("Exception in GetIPString() : " + exc.ToString());
-                    }
+                    returnval += "http://" + ipStr + ":8000 " + Environment.NewLine;
                 }
             }
             return returnval;
@@ -78,35 +65,15 @@ namespace Dynaframe3
         /// <returns></returns>
         public static string GetIP()
         {
-            string returnval = "";
-
-            NetworkInterface[] nets = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces();
-            if (nets.Length > 0)
+            var host = Dns.GetHostEntry(Dns.GetHostName());
+            foreach (var ip in host.AddressList)
             {
-                foreach (NetworkInterface net in nets)
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
                 {
-                    try
-                    {
-                        var addresses = net.GetIPProperties().UnicastAddresses;
-
-
-                        for (int i = 0; i < addresses.Count; i++)
-                        {
-                            string ip = addresses[i].Address.ToString();
-                            // Filter out IPV6, local, loopback, etc.
-
-
-                            if ((!ip.StartsWith("169.")) && (!ip.StartsWith("127.")) && (!ip.Contains("::")))
-                                returnval += ip + ":8000 ";
-                        }
-                    }
-                    catch (Exception exc)
-                    {
-                        Logger.LogComment("Exception in GetIPString() : " + exc.ToString());
-                    }
+                    return ip.ToString();
                 }
             }
-            return returnval.Trim();
+            throw new Exception("No network adapters with an IPv4 address in the system!");
 
         }
 
@@ -117,7 +84,7 @@ namespace Dynaframe3
         /// <param name="args">any arguments to pass</param>
         /// <returns>Process ID if it runs, else -1 if something fails</returns>
 
-        public static int RunProcess(string patoToProcess, string args)
+        public static Task RunProcessAsync(string patoToProcess, string args)
         {
             try
             {
@@ -128,12 +95,17 @@ namespace Dynaframe3
                 }
                 Process process = new Process();
                 process.StartInfo = info;
+
+                var tcs = new TaskCompletionSource<object>();
+                process.EnableRaisingEvents = true;
+                process.Exited += (sender, args) => tcs.TrySetResult(null);
+
                 process.Start();
-                return process.Id;
+                return process.HasExited ? Task.CompletedTask : tcs.Task;
             }
             catch (Exception)
             {
-                return -1;
+                return Task.CompletedTask;
             }
         }
 
@@ -147,119 +119,21 @@ namespace Dynaframe3
             // 9/5 * C +32 = Farenheight
         }
 
-        /// <summary>
-        /// Parses out a value as an int and sets it based on the query string. 
-        /// </summary>
-        /// <param name="querystring"></param>
-        /// <param name="property"></param>
-        /// <returns>0 if a value was not found, 1 if a value was set</returns>
-        public static int SetIntAppSetting(string querystring, string property)
-        {
-            if (querystring != null)
-            {
-                int i = 0;
-                if (int.TryParse(querystring, out i))
-                {
-                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, i);
-                }
-                return 1;
-            }
-            return 0;
-        }
-        /// <summary>
-        /// Parses out a value as an int and sets it based on the query string. 
-        /// </summary>
-        /// <param name="querystring"></param>
-        /// <param name="property"></param>
-        /// <returns>0 if a value was not found, 1 if a value was set</returns>
-        public static int SetFloatAppSetting(string querystring, string property)
-        {
-            if (querystring != null)
-            {
-                float i = 0;
-                if (float.TryParse(querystring, out i))
-                {
-                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, i);
-                }
-                return 1;
-            }
-            return 0;
-        }
-        /// <summary>
-        /// Parses out a value as an int and sets it based on the query string. 
-        /// </summary>
-        /// <param name="querystring"></param>
-        /// <param name="property"></param>
-        /// <returns>0 if a value was not found, 1 if a value was set</returns>
-        public static int SetDoubleAppSetting(string querystring, string property)
-        {
-            if (querystring != null)
-            {
-                double i = 0;
-                if (double.TryParse(querystring, out i))
-                {
-                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, i);
-                }
-                return 1;
-            }
-            return 0;
-        }
-
-
-        /// <summary>
-        /// Takes in a string value and returns a 0/1 based on if a setting was found
-        /// </summary>
-        /// <param name="querystring"></param>
-        /// <param name="property"></param>
-        /// <returns>0 if no setting was changed, 1 if it was</returns>
-        public static int SetStringAppSetting(string querystring, string property)
-        {
-            if (querystring != null)
-            {
-               typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, querystring);
-                return 1;
-            }
-            return 0;
-        }
-
-        /// <summary>
-        /// Sets a boolean value based on the query string. 
-        /// </summary>
-        /// <param name="querystring"></param>
-        /// <param name="property"></param>
-        /// <returns>0 if no setting was passed, 1 if it was.</returns>
-        public static int SetBoolAppSetting(string querystring, string property)
-        {
-            if (querystring != null)
-            {
-                if (querystring.ToUpper() == "ON")
-                {
-                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, true);
-                }
-                else
-                {
-                    typeof(ServerAppSettings).GetProperty(property).SetValue(ServerAppSettings.Default, false);
-                }
-                return 1;
-            }
-            return 0;
-        }
-
-        public static void DumpAppSettingsToLogger()
+        public static void DumpAppSettingsToLogger(AppSettings appSettings)
         {
             Logger.LogComment("Current App Settings");
-            Logger.LogComment("FadeTransition: " + ServerAppSettings.Default.FadeTransitionTime);
-            Logger.LogComment("SlideshowTransitionTime: " + ServerAppSettings.Default.SlideshowTransitionTime);
-            Logger.LogComment("FontSize: " + ServerAppSettings.Default.InfoBarFontSize);
-            Logger.LogComment("FontFamily: " + ServerAppSettings.Default.DateTimeFontFamily);
-            Logger.LogComment("DateTimeFormat: " + ServerAppSettings.Default.DateTimeFormat);
-            Logger.LogComment("Rotation: " + ServerAppSettings.Default.Rotation);
-            Logger.LogComment("Shuffle: " + ServerAppSettings.Default.Shuffle);
-            Logger.LogComment("ImageStretch: " + ServerAppSettings.Default.ImageStretch);
-            Logger.LogComment("VideoStretch: " + ServerAppSettings.Default.VideoStretch);
-            Logger.LogComment("VideoVolume: " + ServerAppSettings.Default.VideoVolume);
-            Logger.LogComment("isSyncEnabled: " + ServerAppSettings.Default.IsSyncEnabled);
-            Logger.LogComment("Number of Sync Clients: " + ServerAppSettings.Default.RemoteClients.Count);
+            Logger.LogComment("FadeTransition: " + appSettings.FadeTransitionTime);
+            Logger.LogComment("SlideshowTransitionTime: " + appSettings.SlideshowTransitionTime);
+            Logger.LogComment("FontSize: " + appSettings.InfoBarFontSize);
+            Logger.LogComment("FontFamily: " + appSettings.DateTimeFontFamily);
+            Logger.LogComment("DateTimeFormat: " + appSettings.DateTimeFormat);
+            Logger.LogComment("Rotation: " + appSettings.Rotation);
+            Logger.LogComment("Shuffle: " + appSettings.Shuffle);
+            Logger.LogComment("ImageStretch: " + appSettings.ImageStretch);
+            Logger.LogComment("VideoStretch: " + appSettings.VideoStretch);
+            Logger.LogComment("VideoVolume: " + appSettings.VideoVolume);
+            Logger.LogComment("isSyncEnabled: " + appSettings.IsSyncEnabled);
+            Logger.LogComment("Number of Sync Clients: " + appSettings.RemoteClients.Count);
         }
 
 

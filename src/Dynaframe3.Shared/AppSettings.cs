@@ -5,6 +5,7 @@ namespace Dynaframe3.Shared
 {
     public class AppSettings
     {
+        public int Id { get; set; }
 
         /// <summary>
         /// Should the pictures in the folder shuffle?
@@ -61,11 +62,6 @@ namespace Dynaframe3.Shared
         public string DateTimeFormat { get; set; }
         // Font used for the clock/infobar
         public string DateTimeFontFamily { get; set; }
-
-        // This is the currently selected 'playlist'.  
-        // This will need to be expanded to an array in the future to support
-        // multiple folders being selected at once
-        public string CurrentDirectory { get; set; }
 
         public int NumberOfSecondsToShowIP { get; set; }
 
@@ -179,5 +175,58 @@ namespace Dynaframe3.Shared
         /// The margin the blurbox should use when displayed. Setting this to negative can scale the background to hide text/edges.
         /// </summary>
         public double BlurBoxMargin { get; set; }
+
+        public AppSettings()
+        {
+            ReloadSettings = true;
+            RefreshDirctories = true;
+
+            Shuffle = false;
+            VideoVolume = false;
+
+            Rotation = 0;
+            NumberOfSecondsToShowIP = 10;
+
+            OXMOrientnation = "--orientation 0";
+            SearchDirectories = new List<string>() { };
+            CurrentPlayList = new List<string>() { };
+            RemoteClients = new List<string>() { };
+
+            DateTimeFormat = "H:mm tt";
+            DateTimeFontFamily = "Terminal";
+
+            InfoBarFontSize = 50;
+            SlideshowTransitionTime = 30000;      // milliseconds between slides
+            FadeTransitionTime = 10000;            // milliseconds for fades
+            ImageStretch = Stretch.UniformToFill; // Default image stretch
+
+            // Video Settings
+            VideoStretch = "Fill";                // Used for OMXPlayer
+            PlaybackFullVideo = false;            // This means videos will obey transition time by default
+
+            ExpandDirectoriesByDefault = false;   // WebUI setting to expand the trees
+            ListenerPort = 8000;                  // Default port for the WebUI to listen on
+            IsSyncEnabled = false;                // Sync with other frames off by default
+
+            IgnoreFolders = ".lrlibrary,.photoslibrary"; // TODO: Expose this in the Advanced UI
+
+            ScreenStatus = true;                  // Default for Screen On / Off function
+            ShowInfoDateTime = false;             // Show Date Time in Infobar On / Off function
+            ShowInfoFileName = false;             // Show Filename in Infobar On / Off function
+            ShowEXIFData = false;                 // Show Exif Data in Infobar On / Off function
+            ShowInfoIP = "false";                 // Show IP in Infobar On / Off function
+            HideInfoBar = false;                  // Hide Infobar On / Off function
+            // TODO: Remove this
+            //DynaframeIP = Helpers.GetIP();        // Dynaframe IP Address
+            SlideShowPaused = false;              // Pause Slideshow on / off
+            EnableLogging = true;                 // Enables logging...should be set to false by default at some point.
+
+            // Tag settings
+            InclusiveTagFilters = "";             // Semicolon delimited list of images to include. Blank string means 'all'
+            // Blurbox Settings
+            BlurBoxSigmaX = 30;                   // See BlurboxImage.axaml.cs for usage
+            BlurBoxSigmaY = 30;                   // Used in line: blurPaint.ImageFilter = SKImageFilter.CreateBlur(50, 50);
+            BlurBoxMargin = -400;                 // Set to negative to scale the background image
+        }
     }
 }

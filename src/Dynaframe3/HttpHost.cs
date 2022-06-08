@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace Dynaframe3
 {
@@ -11,10 +12,16 @@ namespace Dynaframe3
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            builder.Host.UseSerilog((ctx, log) =>
+            {
+                log
+                    .WriteTo.Console()
+                    .WriteTo.Debug()
+                    ;
+            });
+
             builder.Services.AddControllersWithViews()
                 .AddNewtonsoftJson();
-
-            builder.Services.AddRazorPages();
 
             builder.Services.AddApiVersioning(o =>
             {
@@ -23,21 +30,14 @@ namespace Dynaframe3
 
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseWebAssemblyDebugging();
-            }
-            else
+            if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Error");
             }
 
-            app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
-            app.MapRazorPages();
             app.MapControllers();
-            app.MapFallbackToPage("/Home");
 
             return app;
         }

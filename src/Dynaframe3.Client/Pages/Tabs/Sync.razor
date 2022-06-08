@@ -3,7 +3,7 @@
 
 @inherits AppSettingsPage
 
-@inject AppSettingsService Service
+@inject DevicesService Service
 
 <section>
     <p style="font-size: 32px;">Sync</p>
@@ -73,10 +73,9 @@
             patch.Add(a => a.RemoteClients, ip);
         }
 
-        await Service.UpdateAppSettingsAsync(patch);
+        await Service.UpdateAppSettingsAsync(State.CurrentDeviceId, patch);
 
         ip = "";
-        await State.SettingsUpdatedAsync();
     }
 
     private async Task ClearRemoteIpsAsync()
@@ -84,7 +83,6 @@
         var patch = new JsonPatchDocument<AppSettings>();
         patch.Replace(a => a.RemoteClients, new List<string>());
         
-        await Service.UpdateAppSettingsAsync(patch);
-        await State.SettingsUpdatedAsync();
+        await Service.UpdateAppSettingsAsync(State.CurrentDeviceId, patch);
     }
 }

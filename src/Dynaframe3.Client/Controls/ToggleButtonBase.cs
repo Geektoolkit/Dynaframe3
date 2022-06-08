@@ -1,4 +1,5 @@
-﻿using Dynaframe3.Shared;
+﻿using Dynaframe3.Client.Services;
+using Dynaframe3.Shared;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 using System;
@@ -10,17 +11,17 @@ namespace Dynaframe3.Client.Controls
     public abstract class ToggleButtonBase : ComponentBase, IDisposable
     {
         [Inject]
-        private HttpClient Client { get; set; }
+        private StateContainer State { get; set; }
 
         [Inject]
-        private StateContainer State { get; set; }
+        private DevicesService Service { get; set; }
 
         protected AppSettings AppSettings { get; set; }
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
-            await base.OnInitializedAsync();
-            AppSettings = await State.GetCurrentSettingsAsync();
+            base.OnInitialized();
+            AppSettings = State.CurrentAppSettings;
             State.OnUpdated += OnStateUpdated;
         }
 
@@ -65,12 +66,7 @@ namespace Dynaframe3.Client.Controls
 
         protected virtual async Task ToggleAsync()
         {
-            var url = $"{ApiVersion.Version}commands/{GetCommand()}";
-            var resp = await Client.SendAsync(new HttpRequestMessage(HttpMethod.Post, url));
-
-            resp.EnsureSuccessStatusCode();
-
-            await State.SettingsUpdatedAsync();
+            await Service.ExecuteCommandAsync(State.CurrentDeviceId, GetCommand());
         }
 
         public void Dispose()

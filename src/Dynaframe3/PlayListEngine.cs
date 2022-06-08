@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Dynaframe3.Models;
+using Dynaframe3.Shared;
 
 namespace Dynaframe3
 {
@@ -29,7 +30,7 @@ namespace Dynaframe3
             MediaIndex = 0;
             GetCurrentFile();
         }
-        public void RebuildPlaylist()
+        public void RebuildPlaylist(AppSettings appsettings)
         {
             // TODO:
             // Add Filters
@@ -41,7 +42,7 @@ namespace Dynaframe3
             Playlist.Clear();
 
             // filter based on file paths
-            foreach (string dir in ServerAppSettings.Default.CurrentPlayList)
+            foreach (string dir in appsettings.CurrentPlayList)
             {
                 using (var db = new MediaDataContext())
                 {
@@ -55,7 +56,7 @@ namespace Dynaframe3
 
             // Add in toplevel directories 
             // TODO: This can be filtered out here.
-            foreach (string dir in ServerAppSettings.Default.SearchDirectories)
+            foreach (string dir in appsettings.SearchDirectories)
             {
                 using (var db = new MediaDataContext())
                 {
@@ -68,9 +69,9 @@ namespace Dynaframe3
             }
 
             // Filter based on tags
-            if (!String.IsNullOrEmpty(ServerAppSettings.Default.InclusiveTagFilters))
+            if (!String.IsNullOrEmpty(appsettings.InclusiveTagFilters))
             {
-                string[] filters = ServerAppSettings.Default.InclusiveTagFilters.Split(';');
+                string[] filters = appsettings.InclusiveTagFilters.Split(';');
                 foreach (string filter in filters)
                 {
                     using (var db = new MediaDataContext())
@@ -86,7 +87,7 @@ namespace Dynaframe3
 
             Playlist = Playlist.Distinct().ToList();
 
-            if (ServerAppSettings.Default.Shuffle)
+            if (appsettings.Shuffle)
             {
                 Random r = new Random((int)DateTime.Now.Ticks);
                 Playlist = Helpers.Shuffle<int>(Playlist, r).ToList();
@@ -106,6 +107,7 @@ namespace Dynaframe3
                     {
                         MediaIndex = 0;
                     }
+
                     Logger.LogComment("Skipping to item: " + Playlist[MediaIndex]);
                     MediaFile file = db.MediaFiles.Where(f => f.Id == Playlist[MediaIndex]).Single();
                     Logger.LogComment("Returning item# : " + MediaIndex + " File: " + file.Path);
@@ -145,20 +147,20 @@ namespace Dynaframe3
             Logger.LogComment("--------------------- END DUMP --------------------------");
         }
 
-        public void InitializeDatabase()
+        public void InitializeDatabase(AppSettings appsettings)
         {
             Logger.LogComment("InitializeDatabase() - Building Database");
-            AddItemsToDatabase(ServerAppSettings.Default.CurrentPlayList, SearchOption.AllDirectories);
-            AddItemsToDatabase(ServerAppSettings.Default.SearchDirectories, SearchOption.TopDirectoryOnly);
+            AddItemsToDatabase(appsettings, appsettings.CurrentPlayList, SearchOption.AllDirectories);
+            AddItemsToDatabase(appsettings, appsettings.SearchDirectories, SearchOption.TopDirectoryOnly);
         }
 
-        public void AddItemsToDatabase(List<string> Folders, SearchOption searchOptions)
+        public void AddItemsToDatabase(AppSettings appsettings, List<string> Folders, SearchOption searchOptions)
         {
             // Filter folders and issues out now..
             string[] folders = new string[] { "" };
-            if (ServerAppSettings.Default.IgnoreFolders.Length > 0)
+            if (appsettings.IgnoreFolders.Length > 0)
             {
-                folders = ServerAppSettings.Default.IgnoreFolders.Split(",");
+                folders = appsettings.IgnoreFolders.Split(",");
             }
 
             // First remove ignore folders from Folders array which is passed in

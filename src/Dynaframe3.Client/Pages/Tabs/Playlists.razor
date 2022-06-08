@@ -4,7 +4,7 @@
 @inherits AppSettingsPage
 
 @inject IJSRuntime JsRuntime
-@inject AppSettingsService Service
+@inject DevicesService Service
 
 <section>
     <p style="font-size: 32px;">Playlists</p>
@@ -116,9 +116,7 @@
 
         doc.Remove(d => d.SearchDirectories, appSettings.SearchDirectories.IndexOf(directory));
 
-        await Service.UpdateAppSettingsAsync(doc);
-
-        await State.SettingsUpdatedAsync();
+        await Service.UpdateAppSettingsAsync(State.CurrentDeviceId, doc);
     }
 
     private async Task SaveAsync()
@@ -148,7 +146,7 @@
             }
         }
 
-        var resp = await Service.UpdateAppSettingsAsync(doc, false);
+        var resp = await Service.UpdateAppSettingsAsync(State.CurrentDeviceId, doc, false);
 
         if (resp.StatusCode == System.Net.HttpStatusCode.BadRequest)
         {
@@ -161,8 +159,6 @@
         addDirectory = "";
 
         subDirChanges.Clear();
-
-        await State.SettingsUpdatedAsync();
 
         await JsRuntime.InvokeVoidAsync("scrollTop");
     }

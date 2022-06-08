@@ -214,7 +214,7 @@
                     margin-top: 5px;
                     left: 1px;
                 }
-}
+
 
 .slider.controls {
     -webkit-transform: translateX(0%);
@@ -286,3 +286,8 @@
             background: rgba(0, 0, 0, 0.08);
         }
     }
+}
+
+#deviceSelect {
+    margin-bottom: 10px;
+}

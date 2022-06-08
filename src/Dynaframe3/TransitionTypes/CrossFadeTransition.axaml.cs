@@ -5,8 +5,11 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Dynaframe3.ImagePresenters;
+using Dynaframe3.Shared;
+using Splat;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Dynaframe3.TransitionTypes
 {
@@ -15,23 +18,26 @@ namespace Dynaframe3.TransitionTypes
         BlurBoxImage ForegroundImage;
         BlurBoxImage BackgroundImage;
 
-
         // Transitions used for animating the fades
         DoubleTransition foregroundTransition;
         DoubleTransition backgroundTransition;
 
+        readonly DeviceCache appSettingsManager;
+
         public CrossFadeTransition()
         {
+            appSettingsManager = Locator.Current.GetService<DeviceCache>()!;
+
             InitializeComponent();
             BackgroundImage = this.FindControl<BlurBoxImage>("BackgroundBlurBox");
             ForegroundImage = this.FindControl<BlurBoxImage>("ForegroundBlurBox");
 
             SetTransitions();
-            
+
             BackgroundImage.Opacity = 0;
             ForegroundImage.Opacity = 1;
-
         }
+
         public void SetTransitions()
         {
             // Setup animations
@@ -46,21 +52,26 @@ namespace Dynaframe3.TransitionTypes
 
             foregroundTransition = new DoubleTransition();
             foregroundTransition.Easing = new QuadraticEaseIn();
-            foregroundTransition.Duration = TimeSpan.FromMilliseconds(ServerAppSettings.Default.FadeTransitionTime);
-            foregroundTransition.Property = BlurBoxImage.OpacityProperty;
 
-            backgroundTransition = new DoubleTransition();
-            backgroundTransition.Easing = new QuadraticEaseIn();
-            backgroundTransition.Duration = TimeSpan.FromMilliseconds(ServerAppSettings.Default.FadeTransitionTime);
-            backgroundTransition.Property = UserControl.OpacityProperty;
+            Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                var appSettings = appSettingsManager.CurrentDevice.AppSettings;
 
-            ForegroundImage.Transitions.Clear();
-            BackgroundImage.Transitions.Clear();
-            ForegroundImage.Transitions.Add(foregroundTransition);
-            BackgroundImage.Transitions.Add(backgroundTransition);
+                foregroundTransition.Duration = TimeSpan.FromMilliseconds(appSettings.FadeTransitionTime);
+                foregroundTransition.Property = BlurBoxImage.OpacityProperty;
 
+                backgroundTransition = new DoubleTransition();
+                backgroundTransition.Easing = new QuadraticEaseIn();
+                backgroundTransition.Duration = TimeSpan.FromMilliseconds(appSettings.FadeTransitionTime);
+                backgroundTransition.Property = UserControl.OpacityProperty;
 
+                ForegroundImage.Transitions.Clear();
+                BackgroundImage.Transitions.Clear();
+                ForegroundImage.Transitions.Add(foregroundTransition);
+                BackgroundImage.Transitions.Add(backgroundTransition);
+            });
         }
+
         public void SetImage(string newImage, int millisecondsDelay)
         {
             Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>

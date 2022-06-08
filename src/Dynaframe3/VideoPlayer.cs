@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Dynaframe3.Shared;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,24 +19,24 @@ namespace Dynaframe3
         static public Window MainWindowHandle;
         static public Panel MainPanelHandle;
 
-        public static void PlayVideo(string VideoPath)
+        public static void PlayVideo(string VideoPath, AppSettings appSettings)
         {
             IsPlaying = true;
             Logger.LogComment("Entering PlayVideoFile with Path: " + VideoPath);
 
             ProcessStartInfo pInfo = new ProcessStartInfo();
             pInfo.WindowStyle = ProcessWindowStyle.Maximized;
-
+            
             // TODO: Parameterize omxplayer settings
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 Logger.LogComment("Linux Detected, setting up OMX Player");
                 pInfo.FileName = "omxplayer";
                 Logger.LogComment("Setting up Appsettings...");
-                pInfo.Arguments = ServerAppSettings.Default.OXMOrientnation + " --aspect-mode " + ServerAppSettings.Default.VideoStretch + " ";
+                pInfo.Arguments = appSettings.OXMOrientnation + " --aspect-mode " + appSettings.VideoStretch + " ";
 
                 // Append volume command argument
-                if (!ServerAppSettings.Default.VideoVolume)
+                if (!appSettings.VideoVolume)
                 {
                     pInfo.Arguments += "--vol -6000 ";
                 }
@@ -76,7 +77,7 @@ namespace Dynaframe3
         /// Returns true if the video is playing, false if it isn't...
         /// </summary>
         /// <returns></returns>
-        public static bool CheckStatus(bool ForceTransition)
+        public static bool CheckStatus(bool ForceTransition, AppSettings appSettings)
         {
             if ((videoProcess == null) || (videoProcess.HasExited))
             {
@@ -91,7 +92,7 @@ namespace Dynaframe3
                 });
                 return false;
             }
-            else if((ServerAppSettings.Default.PlaybackFullVideo == false) && (ForceTransition))
+            else if((appSettings.PlaybackFullVideo == false) && (ForceTransition))
             {
                 // We should interupt the video...check status gets called at the slide transition time.
                 Logger.LogComment("VideoPlayer is closing playing video to transition to images..");
@@ -144,7 +145,7 @@ namespace Dynaframe3
                     // killall - 9 omxplayer.bin
                     // -q quiets this down in case omxplayer isn't running
 
-                    Helpers.RunProcess("killall", "-q -9 omxplayer.bin");
+                    Helpers.RunProcessAsync("killall", "-q -9 omxplayer.bin");
                     videoProcess = null;
 
                 }

@@ -9,16 +9,8 @@ namespace Dynaframe3.Models
         public DbSet<MediaFile> MediaFiles { get; set; }
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (Environment.OSVersion.Platform != PlatformID.Win32NT)
-            {
-                optionsBuilder.UseSqlite(
-                    @"Data Source=/home/pi/Dynaframe/dynaframe.db");
-            }
-            else
-            {
-                optionsBuilder.UseSqlite(
-                   @"Data Source=.\dynaframe.db");
-            }
+            optionsBuilder.UseSqlite(
+                $"Data Source={AppDomain.CurrentDomain.BaseDirectory}dynaframe.db");
         }
     }
     public class MediaFile
