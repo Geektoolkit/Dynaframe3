@@ -1,0 +1,90 @@
+﻿@using Dynaframe3.Client.Services
+@using Microsoft.AspNetCore.JsonPatch
+
+@inherits AppSettingsPage
+
+@inject AppSettingsService Service
+
+<section>
+    <p style="font-size: 32px;">Sync</p>
+    <div class="form">
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Sync Enabled</b></span>
+            </div>
+            <div class="form-input">
+                <input type="radio" name="syncenabled" checked="@syncEnabled" @onchange="@(() => { syncEnabled = true; })" /><label for="shuffle">On</label>
+                <input type="radio" name="syncenabled" checked="@(!syncEnabled)" @onchange="@(() => { syncEnabled = false; })" /><label for="shuffle">Off</label>
+            </div>
+            <br />
+            <br />
+            <div class="form-row">
+                <div class="form-label"><span><b>Client IP to Add</b></span></div>
+                <div class="form-input"><input type="text" name="ClientIP" @bind-value="ip" /></div>
+                <br>
+            </div>
+            <div class="form-row">
+                <div class="d-grid gap-2 d-md-block">
+                    <button class="btn btn-primary btn-lg" @onclick="SaveAsync">Update Sync Settings</button>
+                    <button class="btn btn-warning btn-lg" style="height:45px" @onclick="ClearRemoteIpsAsync">Clear list</button>
+                </div>
+            </div>
+            <br>
+            <div class="form-row">
+                <div class="form-label"><span><b>Current Clients:</b></span></div>
+                <div class="form-label">
+                    @foreach (var client in appSettings.RemoteClients)
+                    {
+                        <br />@client
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+@code {
+    private bool syncEnabled;
+    private string ip;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        syncEnabled = appSettings.IsSyncEnabled;
+    }
+
+    protected override void OnSettingsUpdated(AppSettings appSettings)
+    {
+        syncEnabled = appSettings.IsSyncEnabled;
+
+        base.OnSettingsUpdated(appSettings);
+    }
+
+    private async Task SaveAsync()
+    {
+        var patch = new JsonPatchDocument<AppSettings>();
+
+        patch.Replace(a => a.IsSyncEnabled, syncEnabled);
+
+        if (!string.IsNullOrWhiteSpace(ip))
+        {
+            patch.Add(a => a.RemoteClients, ip);
+        }
+
+        await Service.UpdateAppSettingsAsync(patch);
+
+        ip = "";
+        await State.SettingsUpdatedAsync();
+    }
+
+    private async Task ClearRemoteIpsAsync()
+    {
+        var patch = new JsonPatchDocument<AppSettings>();
+        patch.Replace(a => a.RemoteClients, new List<string>());
+        
+        await Service.UpdateAppSettingsAsync(patch);
+        await State.SettingsUpdatedAsync();
+    }
+}

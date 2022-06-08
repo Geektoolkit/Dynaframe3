@@ -1,0 +1,196 @@
+@import "https://fonts.googleapis.com/css?family=Montserrat:400,700|Raleway:300,400";
+
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+#header {
+    box-sizing: border-box;
+    background: black;
+    padding: 50px 15px;
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    width: 100%;
+    height: 10px;
+}
+
+.logo {
+    background: black;
+    text-align: left;
+    width: 70px;
+    padding: 5px;
+    color: #fff;
+}
+
+.menu {
+    text-align: right;
+    padding: 10px;
+    color: #E8E8E8;
+    font-family: "Montserrat";
+    font-size: 10px;
+    color: #fff;
+    font-weight: 2000;
+    padding: 10px 0 10px 0;
+    margin: 20;
+}
+
+    .menu ul li {
+        display: inline-block;
+        text-decoration: none;
+    }
+
+a {
+    text-decoration: none;
+}
+
+.title {
+    flex: 1;
+    text-align: left;
+    padding: 10px;
+}
+
+    .title ul li {
+        display: inline-block;
+        text-decoration: none;
+    }
+
+a {
+    text-decoration: none;
+}
+
+html {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    background: #efefef;
+    color: #333;
+    font-family: "Raleway";
+    height: 100%;
+}
+
+    body h1 {
+        text-align: center;
+        color: #000000;
+        font-weight: 800;
+        padding: 40px 0 20px 0;
+        margin: 0;
+    }
+
+    body h9 {
+        text-align: left;
+        font-family: "Montserrat";
+        font-weight: bold;
+        font-size: 20px;
+        color: #fff;
+        font-weight: 2000;
+        padding: 10px 0 10px 0;
+        margin: 20;
+    }
+
+@-webkit-keyframes content {
+    from {
+        opacity: 0;
+        -webkit-transform: translateY(5%);
+        transform: translateY(5%);
+    }
+
+    to {
+        opacity: 1;
+        -webkit-transform: translateY(0%);
+        transform: translateY(0%);
+    }
+}
+
+@keyframes content {
+    from {
+        opacity: 0;
+        -webkit-transform: translateY(5%);
+        transform: translateY(5%);
+    }
+
+    to {
+        opacity: 1;
+        -webkit-transform: translateY(0%);
+        transform: translateY(0%);
+    }
+}
+    /*
+*
+* ==========================================
+* CUSTOM UTIL CLASSES
+* ==========================================
+*
+*/
+    /* toggle switches with bootstrap default colors */
+    .custom-control-input-success:checked ~ .custom-control-label::before {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
+
+    .custom-control-input-danger:checked ~ .custom-control-label::before {
+        background-color: #dc3545 !important;
+        border-color: #dc3545 !important;
+    }
+
+    .custom-control-input-warning:checked ~ .custom-control-label::before {
+        background-color: #ffc107 !important;
+        border-color: #ffc107 !important;
+    }
+
+    .custom-control-input-info:checked ~ .custom-control-label::before {
+        background-color: #17a2b8 !important;
+        border-color: #17a2b8 !important;
+    }
+
+    /* Large toggl switches */
+    .custom-switch-lg .custom-control-label::before {
+        left: -2.25rem;
+        width: 3rem;
+        border-radius: 1.5rem;
+    }
+
+    .custom-switch-lg .custom-control-label::after {
+        top: calc(.25rem + 3px);
+        left: calc(-2.25rem + 4px);
+        width: calc(1.5rem - 6px);
+        height: calc(1.5rem - 6px);
+        border-radius: 1.5rem;
+    }
+
+    .custom-switch-lg .custom-control-input:checked ~ .custom-control-label::after {
+        transform: translateX(1.4rem);
+    }
+
+    .custom-switch-lg .custom-control-label::before {
+        height: 1.5rem;
+    }
+
+    .custom-switch-lg .custom-control-label {
+        padding-left: 1.5rem;
+        line-height: 1.7rem;
+    }
+
+.alert {
+    width: 200px;
+    height: 100px;
+    line-height: 100px;
+    background-color: green;
+    color: white;
+    opacity: 0.5;
+    text-align: center;
+}
+
+.hide {
+    display: none;
+}

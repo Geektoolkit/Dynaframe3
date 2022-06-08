@@ -1,0 +1,227 @@
+﻿@using Avalonia.Media;
+@using Microsoft.AspNetCore.JsonPatch
+@using Dynaframe3.Client.Services
+
+@inherits AppSettingsPage
+
+@inject AppSettingsService Service
+@inject IJSRuntime JsRuntime
+
+<section>
+    <p style="font-size: 32px;">Settings</p>
+    <div class="form">
+        <br>
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Infobar font size</b></span>
+            </div>
+            <div class="form-input">
+                <input type="text" name="infobarfontsize" placeholder="50" @bind="appSettings.InfoBarFontSize" />
+            </div>
+        </div>
+        <br>
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Slideshow duration between slides </b>(ms)</span>
+            </div>
+            <div class="form-input">
+                <input type="text" name="slideshowduration" placeholder="30000" @bind="appSettings.SlideshowTransitionTime" />
+            </div>
+        </div>
+        <br>
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Transition duration during fades </b>(ms)</span>
+            </div>
+            <div class="form-input">
+                <input type="text" name="transitiontime" placeholder="1600" @bind="appSettings.FadeTransitionTime" />
+            </div>
+        </div>
+        <!-- Infobar Settings -->
+        <!-- Number of seconds to show ip-->
+        <br>
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Number of seconds to show IP Address on start </b>(0 to disable)</span>
+            </div>
+            <div class="form-input">
+                <input type="text" name="ipaddresstime" placeholder="15" @bind="appSettings.NumberOfSecondsToShowIP" />
+            </div>
+        </div>
+        <br>
+
+
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Date & Time Format</b><a href="https://www.c-sharpcorner.com/blogs/date-and-time-format-in-c-sharp-programming1" target="_blank">(examples here)</a></span>
+            </div>
+            <div class="form-input">
+                <input type="text" name="DateTimeFormat" width="300" placeholder="H:mm tt" @bind="appSettings.DateTimeFormat" />
+            </div>
+        </div>
+        <br>
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Date & Time Font Family</b></span>
+            </div>
+            <div class="form-input">
+                <input type="text" name="DateTimeFontFamily" width="300" placeholder="Verdana" @bind="appSettings.DateTimeFontFamily" />
+            </div>
+        </div>
+
+        <!--ROTATE-->
+        <br>
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Rotate</b></span>
+            </div>
+            <div class="form-input">
+                <input type="radio" name="rotation" checked="@(appSettings.Rotation == 0)" @onchange="@(() => { appSettings.Rotation = 0; })" id="radio-0"><label for="radio-0">0</label>
+                <input type="radio" name="rotation" checked="@(appSettings.Rotation == 90)" @onchange="@(() => { appSettings.Rotation = 90; })" id="radio-90"><label for="radio-90">90</label>
+                <input type="radio" name="rotation" checked="@(appSettings.Rotation == 180)" @onchange="@(() => { appSettings.Rotation = 180; })" id="radio-180"><label for="radio-180">180</label>
+                <input type="radio" name="rotation" checked="@(appSettings.Rotation == 270)" @onchange="@(() => { appSettings.Rotation = 270; })" id="radio-270"><label for="radio-270">270</label>
+            </div>
+        </div>
+        <br>
+        <!--SCALING-->
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Image Scaling</b></span>
+            </div>
+            <div class="form-input">
+                <input type="radio" name="imagescaling" value="UniformToFill" checked="@(appSettings.ImageStretch == Stretch.UniformToFill)" @onchange="@(() => { appSettings.ImageStretch = Stretch.UniformToFill; })" id="radio-uniformfill"> <label for="radio-uniformfill">UniformToFill - Aspect ratio preserved</label><br />
+                <input type="radio" name="imagescaling" value="Uniform" checked="@(appSettings.ImageStretch == Stretch.Uniform)" @onchange="@(() => { appSettings.ImageStretch = Stretch.Uniform; })" id="radio-uniform"> <label for="radio-uniform">Uniform - Preserves aspect ratio</label><br />
+                <input type="radio" name="imagescaling" value="None" checked="@(appSettings.ImageStretch == Stretch.None)" @onchange="@(() => { appSettings.ImageStretch = Stretch.None; })" id="radio-none">	<label for="radio-none">Original</label><br />
+                <input type="radio" name="imagescaling" value="Fill" checked="@(appSettings.ImageStretch == Stretch.Fill)" @onchange="@(() => { appSettings.ImageStretch = Stretch.Fill; })" id="radio-fill"> <label for="radio-fill">Fill - Ignores aspect ratio</label><br />
+            </div>
+        </div>
+
+
+        <br>
+        <!-- Video Aspect Settings-->
+
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Video Aspect Mode</b></span>
+            </div>
+            <div class="form-input">
+                <input type="radio" name="VideoStretch" value="Letterbox" checked="@(appSettings.VideoStretch == "LetterBox")" @onchange="@(() => appSettings.VideoStretch = "LetterBox")" id="VideoStretch-LetterBox"> <label for="radio5">Letterbox</label>
+                <input type="radio" name="VideoStretch" value="Fill" checked="@(appSettings.VideoStretch == "Fill")" @onchange="@(() => appSettings.VideoStretch = "Fill")" id="VideoStretch-Fill"> <label for="radio5">Fill</label>
+                <input type="radio" name="VideoStretch" value="Stretch" checked="@(appSettings.VideoStretch == "Stretch")" @onchange="@(() => appSettings.VideoStretch = "Stretch")" id="VideoStretch-Stretch"> <label for="radio5">Stretch</label>
+            </div>
+
+        </div>
+
+
+        <br>
+
+        <!--VideoVolume-->
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Play Audio with Video</b></span>
+            </div>
+            <div class="form-input">
+                <input type="radio" name="VideoVolume" value="on" checked="@(appSettings.VideoVolume)" @onchange="@(() => appSettings.VideoVolume = true)" id="VideoVolume-On" /><label for="VideoVolume">On</label>
+                <input type="radio" name="VideoVolume" value="off" checked="@(!appSettings.VideoVolume)" @onchange="@(() => appSettings.VideoVolume = false)" id="VideoVolume-Off" /><label for="VideoVolume">Off</label>
+            </div>
+        </div>
+        <br>
+        <!-- Video playback mode - Sets VideoPlaybackMode accordingly-->
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Video Playback Duration</b> Should videos play back fully or obey transition time?</span>
+            </div>
+            <div class="form-input">
+                <input type="radio" name="PlaybackFullVideo" value="off" checked="@(!appSettings.PlaybackFullVideo)" @onchange="@(() => appSettings.PlaybackFullVideo = false)" id="PlaybackFullVideo-Off" /><label for="SetVideoPlaybackMode">Obey Transition Time</label>
+                <input type="radio" name="PlaybackFullVideo" value="on" checked="@(appSettings.PlaybackFullVideo)" @onchange="@(() => appSettings.PlaybackFullVideo = true)" id="PlaybackFullVideo-On" /><label for="SetVideoPlaybackMode">Always Play full video</label>
+            </div>
+        </div>
+
+        <!--Directory expansion-->
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Directory Tree style</b> Expanded by default, or Toggleable</span>
+            </div>
+            <div class="form-input">
+                <input type="radio" name="ExpandDirectoriesByDefault" value="on" checked="@(appSettings.ExpandDirectoriesByDefault)" @onchange="@(() => appSettings.ExpandDirectoriesByDefault = true)" id="ExpandDirectoriesByDefault-On" /><label for="ExpandDirectoriesByDefault">Expanded</label>
+                <input type="radio" name="ExpandDirectoriesByDefault" value="off" checked="@(!appSettings.ExpandDirectoriesByDefault)" @onchange="@(() => appSettings.ExpandDirectoriesByDefault = false)" id="ExpandDirectoriesByDefault-Off" /><label for="ExpandDirectoriesByDefault">Toggleable</label>
+            </div>
+        </div>
+        <br />
+        <!--Blurbox Options-->
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Blurbox XSigma Value </b></span>
+            </div>
+            <div class="form-input">
+                <input type="text" name="BlurBoxSigmaX" @bind="appSettings.BlurBoxSigmaX" />
+            </div>
+        </div><br />
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Blurbox YSigma Value </b></span>
+            </div>
+            <div class="form-input">
+                <input type="text" name="BlurBoxSigmaY" @bind="appSettings.BlurBoxSigmaY" />
+            </div>
+        </div><br />
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Blurbox Margin Value </b></span>
+            </div>
+            <div class="form-input">
+                <input type="text" name="BlurBoxMargin" @bind="appSettings.BlurBoxMargin" />
+            </div>
+        </div>
+        <br />
+
+        <!-- Logging Enable/Disable -->
+        <div class="form-row">
+            <div class="form-label">
+                <span><b>Logging</b> Enable to help with debugging</span>
+            </div>
+            <div class="form-input">
+                <input type="radio" name="EnableLogging" value="on" checked="@(appSettings.EnableLogging)" @onchange="@(() => appSettings.EnableLogging = true)" id="EnableLogging-On" /><label for="AllowLogging-On">Enable</label>
+                <input type="radio" name="EnableLogging" value="off" checked="@(!appSettings.EnableLogging)" @onchange="@(() => appSettings.EnableLogging = false)" id="EnableLogging-Off" /><label for="AllowLogging-Off">Disable</label>
+            </div>
+        </div>
+
+
+        <br />
+        <br />
+        <br />
+        <input type="hidden" name="SettingPageTab4" />
+        <div class="d-grid gap-2 d-md-block">
+            <button class="btn btn-primary btn-lg" @onclick="SaveAsync">Save</button>
+        </div>
+    </div>
+</section>
+
+@code {
+    private async Task SaveAsync()
+    {
+        var doc = new JsonPatchDocument<AppSettings>();
+        doc.Replace(a => a.InfoBarFontSize, appSettings.InfoBarFontSize);
+        doc.Replace(a => a.SlideshowTransitionTime, appSettings.SlideshowTransitionTime);
+        doc.Replace(a => a.FadeTransitionTime, appSettings.FadeTransitionTime);
+        doc.Replace(a => a.NumberOfSecondsToShowIP, appSettings.NumberOfSecondsToShowIP);
+        doc.Replace(a => a.DateTimeFormat, appSettings.DateTimeFormat);
+        doc.Replace(a => a.DateTimeFontFamily, appSettings.DateTimeFontFamily);
+        doc.Replace(a => a.Rotation, appSettings.Rotation);
+        doc.Replace(a => a.ImageStretch, appSettings.ImageStretch);
+        doc.Replace(a => a.VideoStretch, appSettings.VideoStretch);
+        doc.Replace(a => a.VideoVolume, appSettings.VideoVolume);
+        doc.Replace(a => a.PlaybackFullVideo, appSettings.PlaybackFullVideo);
+        doc.Replace(a => a.ExpandDirectoriesByDefault, appSettings.ExpandDirectoriesByDefault);
+        doc.Replace(a => a.BlurBoxSigmaX, appSettings.BlurBoxSigmaX);
+        doc.Replace(a => a.BlurBoxSigmaY, appSettings.BlurBoxSigmaY);
+        doc.Replace(a => a.BlurBoxMargin, appSettings.BlurBoxMargin);
+        doc.Replace(a => a.EnableLogging, appSettings.EnableLogging);
+
+        await Service.UpdateAppSettingsAsync(doc);
+
+        await State.SettingsUpdatedAsync();
+
+        await JsRuntime.InvokeVoidAsync("scrollTop");
+    }
+}

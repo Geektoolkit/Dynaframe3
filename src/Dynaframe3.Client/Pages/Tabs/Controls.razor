@@ -1,0 +1,69 @@
+﻿@using Dynaframe3.Client.Controls
+@using Dynaframe3.Client.Controls.Frame
+@using Dynaframe3.Client.Controls.InfoBar
+@using Dynaframe3.Client.Controls.Slide
+
+@inject IJSRuntime JsRuntime
+
+<section>
+    <p style="font-size: 32px;">Controls</p>
+    <fieldset>
+        <legend>Frame Controls</legend>
+        <div class="d-grid gap-2 d-md-block">
+            <ScreenCommandButton />
+            <ExitButton />
+            <br><br>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Infobar Settings</legend>
+        <div class="d-grid gap-2 d-md-block">
+            <ShowInfoDateTimeButton />
+            <ShowInfoFileNameButton />
+            <ShowInfoIpButton />
+            <ShowInfoExifButton />
+            <br><br>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Slide Controls</legend>
+        <div class="d-grid gap-2 d-md-block">
+            <CommandButton Text="First" Command="CONTROL_FIRST" />
+            <CommandButton Text="Back" Command="CONTROL_BACKWARD" />
+            <SlideShowPausedButton />
+            <CommandButton Text="Next" Command="CONTROL_FORWARD" />
+            <SlidShuffleButton />
+
+            <br><br>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Utilities</legend>
+        <div class="d-grid gap-2 d-md-block">
+            <CommandButton Text="Update File list" Command="UTILITY_UPDATEFILELIST" />
+            <a class="btn btn-primary btn-lg" href="/upload">Upload File</a>
+            <a class="btn btn-dark btn-lg" @onclick="DarkModeClick" @onclick:preventDefault="true" href="default.htm">Dark Mode</a>
+        </div>
+    </fieldset>
+    <br /><br />
+    <fieldset>
+        <legend>Reboot/Shutdown commands</legend>
+        <div class="d-grid gap-2 d-md-block">
+            <CommandButton Command="REBOOT" Text="Reboot Frame" Class="btn btn-warning btn-lg" />
+        </div>
+        <br />
+        <div class="d-grid gap-2 d-md-block">
+            <CommandButton Command="SHUTDOWN" Text="Shutdown Frame" Class="btn btn-warning btn-lg" />
+        </div>
+    </fieldset>
+
+    <br><br>
+
+</section>
+
+@code {
+    private async Task DarkModeClick()
+    {
+        await JsRuntime.InvokeVoidAsync("alert", "Coming Soon!");
+    }
+}

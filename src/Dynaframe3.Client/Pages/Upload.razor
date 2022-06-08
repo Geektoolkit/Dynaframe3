@@ -1,0 +1,105 @@
+﻿@page "/upload"
+@using System.Net.Http.Headers;
+@inject HttpClient Client  
+
+<br>
+<br>
+<!-- IMAGE UPLOAD -->
+<legend>Upload Images</legend>
+<div class="d-grid gap-2 d-md-block">
+    @*<form name="fileUploadForm" id="fileUploadForm" method="post" enctype="multipart/form-data">*@
+        @*<input type="file" name="file" id="file" accept="image/*" />*@
+        <InputFile OnChange="OnInputFileChangeAsync" AdditionalAttributes="inputFileAttributes" />
+    @*</form>*@
+    @if (imageUploadFailed)
+    {
+        <label id="lblWarning" style="color:red;background-color:yellow;">Image upload failed! Please try again</label>
+    }
+    <br>
+
+    @if (files is null)
+    {
+        <div>Loading...</div>
+    }
+    else
+    {
+        <div>
+            <table id="tblUploadedFiles">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var file in files)
+                    {
+                        <tr>
+                            <td>
+                                <img class='myImg' src='@file' style='width:80%; max-width:175px; max-height:175px'>
+                            </td>
+                            <td>
+                                <a href='#' @onclick="async () => await DeleteFileAsync(file)"
+                                   @onclick:preventDefault="true">Delete</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table><br><br>
+            <center>
+                <div class="d-grid gap-2 d-md-block">
+                    <a class="btn btn-primary btn-lg" href="/">Back</a>
+                </div>
+            </center><br><br>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly Dictionary<string, object> inputFileAttributes = new()
+    {
+        ["accept"] = "image/*"
+    };
+
+    private bool imageUploadFailed;
+    private List<string> files = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        files = await Client.GetFromJsonAsync<List<string>>($"{ApiVersion.Version}/uploads");
+    }
+
+    private async Task OnInputFileChangeAsync(InputFileChangeEventArgs e)
+    {
+        using var form = new MultipartFormDataContent();
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiVersion.Version}/uploads")
+        {
+            Content = form
+        };
+
+        var stream = e.File.OpenReadStream();
+        var fileContent = new StreamContent(stream);
+        fileContent.Headers.ContentType = MediaTypeHeaderValue.Parse($"multipart/form-data; boundary={Guid.NewGuid()}");
+        form.Add(fileContent, "file", e.File.Name);
+
+        var resp = await Client.SendAsync(request);
+
+        imageUploadFailed = !resp.IsSuccessStatusCode;
+
+        StateHasChanged();
+    }
+
+    private async Task DeleteFileAsync(string fileName)
+    {
+        var resp = await Client.DeleteAsync($"{ApiVersion.Version}/uploads/{fileName}");
+
+        resp.EnsureSuccessStatusCode();
+
+        files.Remove(fileName);
+
+        StateHasChanged();
+    }
+}

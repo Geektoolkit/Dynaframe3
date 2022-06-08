@@ -1,0 +1,12 @@
+﻿@inject HttpClient Client 
+
+<button class="btn btn-warning btn-lg" @onclick="OnClick">Exit Dynaframe</button>
+
+@code {
+    private async Task OnClick()
+    {
+        var resp = await Client.SendAsync(new HttpRequestMessage(HttpMethod.Post, $"{ApiVersion.Version}/commands/EXITAPP"));
+
+        resp.EnsureSuccessStatusCode();
+    }
+}

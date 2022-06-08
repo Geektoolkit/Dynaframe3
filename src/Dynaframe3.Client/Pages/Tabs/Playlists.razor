@@ -1,0 +1,169 @@
+﻿@using Dynaframe3.Client.Services
+@using Microsoft.AspNetCore.JsonPatch
+
+@inherits AppSettingsPage
+
+@inject IJSRuntime JsRuntime
+@inject AppSettingsService Service
+
+<section>
+    <p style="font-size: 32px;">Playlists</p>
+    <div class="form">
+        <div class="grid-container">
+            <br />
+            @foreach (var directory in appSettings.SearchDirectories)
+            {
+                <ul class="directorylist" id="@(directory.GetHashCode())">
+                    <li class="topleveldirectory">
+                        @directory
+                        <ul>
+                            @foreach (var subDir in appSettings.SearchSubDirectories[directory])
+                            {
+                                <li class="subdirectory">
+                                    <input type="checkbox" class="directorydb" value="@subDir" 
+                                        checked="@SubDirectoryChecked(subDir)"
+                                        @onchange="eventArg => ToggleSubDir(subDir, (bool)eventArg.Value)"/>@subDir
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                </ul>
+            }
+        </div>
+        <br />
+
+        <br>
+        <br>
+        <br>
+        <div class='settings'>
+            <h4>Search Directories: </h4>
+            @foreach (var directory in appSettings.SearchDirectories)
+            {
+                <div>
+                    @directory
+                    <br />
+                    <button class="btn btn-danger btn-sm"
+                            disabled="@(directory == AppDomain.CurrentDomain.BaseDirectory + "web/uploads/")"
+                            @onclick="async () => await RemoveDirectoryAsync(directory)">
+                        Remove
+                    </button>
+                </div>
+            }
+        </div>
+        <br />
+        <div class="form-row">
+            <div class='settings'>
+                <h4>Add Directory</h4>
+                <div class="form-input">
+                    <input type="text" name="directoryAdd" width="300" placeholder="/home/pi/pics" @bind="addDirectory" />
+                </div>
+            </div><br>
+            <div class='settings'>
+                <h4>Tag Filters</h4>
+                <p>This will filter images to only ones that include these tags. Leave blank to include all please leave blank </p>
+                <div class="form-input">
+                    <input type="text" name="InclusiveTagFilters" width="300" placeholder="@(appSettings.InclusiveTagFilters)" @bind="filterTags" />
+                </div>
+            </div><br>
+            <div class="form-row">
+                <div class="d-grid gap-2 d-md-block">
+                    <input type="hidden" name="PlaylistsPageTab2" />
+                    <button class="btn btn-primary btn-lg" @onclick="SaveAsync">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>
+
+@code {
+    private string addDirectory;
+    private string filterTags;
+
+    private List<string> jsListEntries = new();
+
+    private Dictionary<string, bool> subDirChanges = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        foreach (var dir in appSettings.SearchDirectories.Where(s => !jsListEntries.Contains(s)))
+        {
+            await JsRuntime.InvokeVoidAsync("setupList", dir.GetHashCode().ToString());
+            jsListEntries.Add(dir);
+        }
+    }
+
+    protected override void OnSettingsUpdated(AppSettings appSettings)
+    {
+        jsListEntries.Clear();
+
+        base.OnSettingsUpdated(appSettings);
+    }
+
+    private void ToggleSubDir(string subDir, bool value)
+    {
+        subDirChanges[subDir] = value;
+    }
+
+    private bool SubDirectoryChecked(string subDir)
+        => appSettings.CurrentPlayList.Contains(subDir);
+
+    private async Task RemoveDirectoryAsync(string directory)
+    {
+        var doc = new JsonPatchDocument<AppSettings>();
+
+        doc.Remove(d => d.SearchDirectories, appSettings.SearchDirectories.IndexOf(directory));
+
+        await Service.UpdateAppSettingsAsync(doc);
+
+        await State.SettingsUpdatedAsync();
+    }
+
+    private async Task SaveAsync()
+    {
+        var doc = new JsonPatchDocument<AppSettings>();
+
+        if (!string.IsNullOrWhiteSpace(addDirectory))
+        {
+            doc.Add(d => d.SearchDirectories, addDirectory);
+        }
+        doc.Replace(d => d.InclusiveTagFilters, filterTags);
+
+        // Reset current playlist
+        foreach (var subDir in subDirChanges)
+        {
+            if (subDir.Value && !appSettings.CurrentPlayList.Contains(subDir.Key))
+            {
+                doc.Add(d => d.CurrentPlayList, subDir.Key);
+            }
+            else if (!subDir.Value)
+            {
+                var index = appSettings.CurrentPlayList.IndexOf(subDir.Key);
+                if (index > -1)
+                {
+                    doc.Remove(d => d.CurrentPlayList, index);
+                }
+            }
+        }
+
+        var resp = await Service.UpdateAppSettingsAsync(doc, false);
+
+        if (resp.StatusCode == System.Net.HttpStatusCode.BadRequest)
+        {
+            await JsRuntime.InvokeVoidAsync("alert", await resp.Content.ReadAsStringAsync());
+            return;
+        }
+
+        resp.EnsureSuccessStatusCode();
+
+        addDirectory = "";
+
+        subDirChanges.Clear();
+
+        await State.SettingsUpdatedAsync();
+
+        await JsRuntime.InvokeVoidAsync("scrollTop");
+    }
+}
