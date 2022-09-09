@@ -1,6 +1,6 @@
  #!/bin/bash
 version=$1
-file="/home/pi/Dynaframe/appsettings.json"
+file="/home/$USER/Dynaframe/appsettings.json"
 
 GREEN='\033[1;32m'
 CYAN='\033[0;96m'
@@ -26,25 +26,25 @@ echo -e "==========================================================${NC}"
 if [ -f "$file" ];
 then
   echo -e "${GREEN} Found old appsettings..backing up ${NC}"
-  cp $file "/home/pi/"
+  cp $file "/home/$USER/"
 fi
 
 echo "Cleaning up before we begin..."
 
-#cd /home/pi/
-#rm -rf /home/pi/Dynaframe
-cd /home/pi/
-rm -rf /home/pi/.config/autostart/dynaframe.desktop
-cd /home/pi/
-rm /home/pi/Dynaframe/*.*
-rm /home/pi/Dynaframe/Dynaframe
-rm /home/pi/Dynaframe/createdump
-rm -rf /home/pi/Dynaframe/web/ico
-rm /home/pi/Dynaframe/web/*.*
-rm -rf /home/pi/Dynaframe/web/css
-rm -rf /home/pi/Dynaframe/web/js
-rm -rf /home/pi/Dynaframe/web/images
-rm -rf /home/pi/Dynaframe/images
+#cd /home/$USER/
+#rm -rf /home/$USER/Dynaframe
+cd /home/$USER/
+rm -rf /home/$USER/.config/autostart/dynaframe.desktop
+cd /home/$USER/
+rm /home/$USER/Dynaframe/*.*
+rm /home/$USER/Dynaframe/Dynaframe
+rm /home/$USER/Dynaframe/createdump
+rm -rf /home/$USER/Dynaframe/web/ico
+rm /home/$USER/Dynaframe/web/*.*
+rm -rf /home/$USER/Dynaframe/web/css
+rm -rf /home/$USER/Dynaframe/web/js
+rm -rf /home/$USER/Dynaframe/web/images
+rm -rf /home/$USER/Dynaframe/images
 
 
 
@@ -52,7 +52,7 @@ rm -rf /home/pi/Dynaframe/images
 echo -e "${GREEN}Installing a few tools before we begin (unclutter/unzip) ${NC}"
 sudo apt-get install unzip
 sudo apt-get install unclutter
-mkdir -p  /home/pi/Dynaframe
+mkdir -p  /home/$USER/Dynaframe
 cd Dynaframe
 
 sudo chmod 777 .
@@ -61,7 +61,7 @@ echo -e "${GREEN}Grabbing the files from github...hold please..${NC}"
 
 wget "https://github.com/Geektoolkit/Dynaframe3/releases/download/$version/Dynaframe2.zip"
 
-if [ -f "/home/pi/Dynaframe/Dynaframe2.zip" ]
+if [ -f "/home/$USER/Dynaframe/Dynaframe2.zip" ]
 then
   echo -e "${GREEN}Successfully downloaded archive from Github!${NC}"
 else
@@ -75,18 +75,17 @@ echo -e "${GREEN}Adding Execution Permissions to Dynaframe ${NC}"
 sudo chmod +x Dynaframe
 sudo chmod +x run.sh
 echo -e "${GREEN}Setting it up to autostart ${NC}"
-mkdir -p /home/pi/.config/autostart
-sudo cp dynaframe.desktop  /home/pi/.config/autostart
+mkdir -p /home/$USER/.config/autostart
+sudo cp dynaframe.desktop  /home/$USER/.config/autostart
 echo -e "${GREEN}cleaning up zip file ${NC}"
 rm Dynaframe2.zip
 echo -e "${GREEN}cleaning up upload dir ${NC}"
-rm /home/pi/Dynaframe/web/uploads/README.txt
-if [ -f "/home/pi/appsettings.json" ];
+rm /home/$USER/Dynaframe/web/uploads/README.txt
+if [ -f "/home/$USER/appsettings.json" ];
 then
   echo -e "${GREEN}Restoring old appsettings...${NC}"
-  cd /home/pi/
-  cp "appsettings.json" "/home/pi/Dynaframe"
+  cd /home/$USER/
+  cp "appsettings.json" "/home/$USER/Dynaframe"
 fi
-cp "/home/pi/Dynaframe/install.sh" "/home/pi/UpgradeDynaframe.sh"
-chmod +x /home/pi/UpgradeDynaframe.sh
-
+cp "/home/$USER/Dynaframe/install.sh" "/home/$USER/UpgradeDynaframe.sh"
+chmod +x /home/$USER/UpgradeDynaframe.sh
