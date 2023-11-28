@@ -21,12 +21,9 @@ using System.Threading.Tasks;
 
 namespace Dynaframe3
 {
-    public class MainWindow : Window
-    {
+    public partial class MainWindow : Window
+  {
         CrossFadeTransition crossFadeTransition;
-        TextBlock tb;
-        Window mainWindow;
-        Panel mainPanel;
 
         // Engines
         internal PlayListEngine playListEngine;
@@ -95,16 +92,14 @@ namespace Dynaframe3
             fadeTransition.Property = UserControl.OpacityProperty;
 
             mainWindow = this.FindControl<Window>("mainWindow");
-            mainWindow.Transitions = new Transitions();
-            mainWindow.Transitions.Add(windowTransition);
-
             mainWindow.SystemDecorations = SystemDecorations.None;
             mainWindow.WindowState = WindowState.FullScreen;
             mainWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            mainWindow.Transitions = new Transitions { windowTransition };
 
             mainPanel = this.FindControl<Panel>("mainPanel");
-            mainPanel.Transitions = new Transitions();
-            mainPanel.Transitions.Add(panelTransition);
+            mainPanel.Transitions = new Transitions { panelTransition };
+
             if (appSettings.Rotation != 0)
             {
                 RotateMainPanel();
@@ -116,8 +111,7 @@ namespace Dynaframe3
             tb.FontFamily = new FontFamily("Terminal");
             tb.FontWeight = FontWeight.Bold;
             tb.FontSize = appSettings.InfoBarFontSize;
-            tb.Transitions = new Transitions();
-            tb.Transitions.Add(fadeTransition);
+            tb.Transitions = new Transitions { fadeTransition };
             tb.Padding = new Thickness(30);
 
             VideoPlayer.MainPanelHandle = this.mainPanel;
@@ -545,5 +539,10 @@ namespace Dynaframe3
             appSettings.OXMOrientnation = "--orientation " + degrees.ToString();
 
         }
+
+    public void Dispose()
+    {
+      throw new NotImplementedException();
     }
+  }
 }

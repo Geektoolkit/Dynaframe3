@@ -1,14 +1,9 @@
 using System;
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using Avalonia.Platform;
-using Avalonia.Rendering.SceneGraph;
-using Avalonia.Skia;
-using Avalonia.Threading;
 using SkiaSharp;
 using Splat;
 
@@ -16,13 +11,10 @@ namespace Dynaframe3.ImagePresenters
 {
     public partial class BlurBoxImage : UserControl
     {
-        Image backgroundImage;
-        Image foregroundImage;
-
         Bitmap bitmapData;
         SKImageInfo blurInfo;
         SKBitmap blurredbitmap;
-        SKPaint blurPaint;
+        SKPaint blurPaint = new SKPaint();
 
         readonly DeviceCache deviceCache;
 
@@ -32,14 +24,15 @@ namespace Dynaframe3.ImagePresenters
             ClipToBounds = false;
             InitializeComponent();
             ImageString = "";
-            backgroundImage = this.FindControl<Image>("backgroundImage");
-            foregroundImage = this.FindControl<Image>("foregroundImage");
 
             // Frontloading some allocations
             blurInfo = new SKImageInfo(640, 480);
             blurredbitmap = new SKBitmap(blurInfo);
 
             deviceCache = Locator.Current.GetService<DeviceCache>();
+
+            backgroundImage = this.FindControl<Image>("backgroundImage");
+            foregroundImage = this.FindControl<Image>("foregroundImage");
 
             Initialized += BlurBoxImage_Initialized;
         }
@@ -48,7 +41,7 @@ namespace Dynaframe3.ImagePresenters
         {
             var appSettings = deviceCache.CurrentDevice.AppSettings;
 
-            blurPaint = new SKPaint();
+            //blurPaint = new SKPaint();
             blurPaint.ImageFilter = SKImageFilter.CreateBlur(appSettings.BlurBoxSigmaX, appSettings.BlurBoxSigmaY);
 
             backgroundImage.Margin = new Thickness(appSettings.BlurBoxMargin);

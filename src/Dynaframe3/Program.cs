@@ -52,7 +52,7 @@ namespace Dynaframe3.Server
             => AppBuilder
             .Configure<App>()
             .UsePlatformDetect()
-            .With(new AvaloniaNativePlatformOptions { UseGpu = true })
+            //.With(new AvaloniaNativePlatformOptions { RenderingMode = AvaloniaNativeRenderingMode.OpenGl })
             .LogToTrace();
 
         public static void ConfigureServices(string[] args)

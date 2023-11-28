@@ -20,5 +20,6 @@ namespace Dynaframe3
 
             base.OnFrameworkInitializationCompleted();
         }
+
     }
 }

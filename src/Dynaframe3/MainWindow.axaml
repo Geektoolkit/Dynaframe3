@@ -1,23 +1,26 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:custom="using:Dynaframe3.TransitionTypes"
-        mc:Ignorable="d"
-        x:Class="Dynaframe3.MainWindow"
-        TransparencyLevelHint="Transparent"
-        Background="Black"
-        Name="mainWindow"
-        >
+﻿<Window 
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:custom="using:Dynaframe3.TransitionTypes"
+  mc:Ignorable="d"
+  x:Class="Dynaframe3.MainWindow"
+  TransparencyLevelHint="Transparent"
+  Background="Black"
+  Name="mainWindow"
+>
   <Panel Name="mainPanel">
     <custom:CrossFadeTransition Name="CrossFadeImage"/>
-      <TextBlock Name="tb" 
-                 Text="" 
-                 FontSize="30" 
-                 HorizontalAlignment="Left" 
-                 VerticalAlignment="Bottom" 
-                 Foreground="AliceBlue" 
-                 Opacity="1" 
-                 Margin="0"/>
+      <TextBlock 
+        Name="tb" 
+        Text="" 
+        FontSize="30" 
+        HorizontalAlignment="Left" 
+        VerticalAlignment="Bottom" 
+        Foreground="AliceBlue" 
+        Opacity="1" 
+        Margin="0"
+      />
   </Panel>
 </Window>

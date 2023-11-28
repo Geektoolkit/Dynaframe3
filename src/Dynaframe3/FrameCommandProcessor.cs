@@ -1,4 +1,5 @@
-﻿using Dynaframe3.Shared;
+﻿using Avalonia.Controls;
+using Dynaframe3.Shared;
 using Dynaframe3.Shared.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
@@ -56,25 +57,22 @@ namespace Dynaframe3
 
         Task IFrameClient.BackAsync()
         {
-            return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => _window.GoToPreviousImage());
+          return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => _window.GoToPreviousImage()).GetTask();
         }
 
         Task IFrameClient.ExitAsync()
         {
-            return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                _window.Close();
-            });
+          return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => { _window.Close(); }).GetTask();
         }
 
         Task IFrameClient.FirstAsync()
         {
-            return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => _window.GoToFirstImage());
+            return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => _window.GoToFirstImage()).GetTask();
         }
 
         Task IFrameClient.ForwardAsync()
         {
-            return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => _window.GoToNextImage());
+            return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => _window.GoToNextImage()).GetTask();
         }
 
         Task IFrameClient.ProcessSetFileAsync(string filename)
@@ -110,10 +108,7 @@ namespace Dynaframe3
 
         Task IFrameClient.TogglePauseAsync()
         {
-            return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                _window.Pause();
-            });
+            return Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => { _window.Pause(); }).GetTask();
         }
 
         Task IFrameClient.TurnOffScreenAsync()
