@@ -191,6 +191,7 @@ namespace Dynaframe3
             lastUpdated = DateTime.Now;
             tb.Transitions.Add(fadeTransition);
         }
+
         public void Pause()
         {
             if (IsPaused)
@@ -292,7 +293,7 @@ namespace Dynaframe3
         {
             if (IsPaused)
             {
-                Logger.LogComment("Timer_Tick: Currently paused..Updating the infobar...");
+                Logger.LogComment("Timer_Tick: Currently paused... Updating the infobar...");
                 UpdateInfoBar();
                 // Note: Do not stop the timer...we need it to 'recheck'
                 slideTimer.Start();
@@ -339,7 +340,6 @@ namespace Dynaframe3
                 }
             }
 
-
             // check transpired time against transition time...
             if ((DateTime.Now.Subtract(lastUpdated).TotalMilliseconds > appSettings.SlideshowTransitionTime) || GoToNext == true)
             {
@@ -361,8 +361,8 @@ namespace Dynaframe3
                 }
                 PlayFile(playListEngine.CurrentMediaFile.Path);
             }
-            slideTimer.Start(); // start next iterations...this prevents reentry...
 
+            slideTimer.Start(); // start next iterations...this prevents reentry...
         }
 
         private async Task ResetSettings(JsonPatchDocument<AppSettings> doc)

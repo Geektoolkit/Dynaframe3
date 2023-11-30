@@ -1,14 +1,9 @@
 ﻿using MetadataExtractor;
-using MetadataExtractor.Formats.Exif;
-using MetadataExtractor.Formats.Iptc;
-using MetadataExtractor.Formats.Xmp;
-using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Dynaframe3.Models;
 using Dynaframe3.Shared;
 
@@ -170,7 +165,6 @@ namespace Dynaframe3
             }
 
             // Go through remaining folders and get files
-
             foreach (string Folder in Folders)
             {
                 if (!System.IO.Directory.Exists(Folder))

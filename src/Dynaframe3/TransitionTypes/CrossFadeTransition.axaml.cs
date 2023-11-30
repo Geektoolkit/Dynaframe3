@@ -5,11 +5,9 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Dynaframe3.ImagePresenters;
-using Dynaframe3.Shared;
 using Splat;
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Dynaframe3.TransitionTypes
 {
@@ -40,16 +38,9 @@ namespace Dynaframe3.TransitionTypes
 
         public void SetTransitions()
         {
-            // Setup animations
-            if (ForegroundImage.Transitions == null)
-            {
-                ForegroundImage.Transitions = new Transitions();
-            }
-            if (BackgroundImage.Transitions == null)
-            {
-                BackgroundImage.Transitions = new Transitions();
-            }
-
+            ForegroundImage.Transitions = new Transitions();
+            BackgroundImage.Transitions = new Transitions();
+            
             foregroundTransition = new DoubleTransition();
             foregroundTransition.Easing = new QuadraticEaseIn();
 
@@ -58,12 +49,12 @@ namespace Dynaframe3.TransitionTypes
                 var appSettings = appSettingsManager.CurrentDevice.AppSettings;
 
                 foregroundTransition.Duration = TimeSpan.FromMilliseconds(appSettings.FadeTransitionTime);
-                foregroundTransition.Property = BlurBoxImage.OpacityProperty;
+                foregroundTransition.Property = OpacityProperty;
 
                 backgroundTransition = new DoubleTransition();
                 backgroundTransition.Easing = new QuadraticEaseIn();
                 backgroundTransition.Duration = TimeSpan.FromMilliseconds(appSettings.FadeTransitionTime);
-                backgroundTransition.Property = UserControl.OpacityProperty;
+                backgroundTransition.Property = OpacityProperty;
 
                 ForegroundImage.Transitions.Clear();
                 BackgroundImage.Transitions.Clear();
@@ -87,7 +78,6 @@ namespace Dynaframe3.TransitionTypes
                     Logger.LogComment("Exception in SetImage: " + exc.ToString());
                 }
             });
-
 
             Thread.Sleep(millisecondsDelay);
 
@@ -116,6 +106,7 @@ namespace Dynaframe3.TransitionTypes
             BackgroundImage.SetImageStretch(stretch);
 
         }
+
         public void CrossFade()
         {
             Logger.LogComment("Crossfade called");

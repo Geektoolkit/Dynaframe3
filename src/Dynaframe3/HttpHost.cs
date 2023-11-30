@@ -14,10 +14,7 @@ namespace Dynaframe3
 
             builder.Host.UseSerilog((ctx, log) =>
             {
-                log
-                    .WriteTo.Console()
-                    .WriteTo.Debug()
-                    ;
+                log.WriteTo.Console().WriteTo.Debug();
             });
 
             builder.Services.AddControllersWithViews()

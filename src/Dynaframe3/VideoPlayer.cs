@@ -1,17 +1,11 @@
 ﻿using Avalonia.Controls;
 using Dynaframe3.Shared;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dynaframe3
 {
-
-
     static class VideoPlayer
     {
         static public bool IsPlaying;
