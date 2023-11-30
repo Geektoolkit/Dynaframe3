@@ -11,7 +11,7 @@
   Name="mainWindow"
 >
   <Panel Name="mainPanel">
-    <custom:CrossFadeTransition Name="CrossFadeImage"/>
+    <custom:DynaCrossFade Name="CrossFadeImage"/>
       <TextBlock 
         Name="tb" 
         Text="" 

@@ -5,6 +5,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
+using Dynaframe3.Models;
 using Dynaframe3.Shared;
 using Dynaframe3.TransitionTypes;
 using MetadataExtractor;
@@ -22,11 +23,11 @@ using System.Threading.Tasks;
 namespace Dynaframe3
 {
     public partial class MainWindow : Window
-  {
-        CrossFadeTransition crossFadeTransition;
+    {
+        DynaCrossFade crossFadeTransition;
 
         // Engines
-        internal PlayListEngine playListEngine;
+        internal Playlist.Engine playListEngine;
 
         /// <summary>
         /// This controls the time between 'slides'
@@ -53,7 +54,7 @@ namespace Dynaframe3
 
         public MainWindow()
         {
-            playListEngine = new PlayListEngine();
+            playListEngine = new Playlist.Engine();
 
             deviceCache = Locator.Current.GetService<DeviceCache>();
 
@@ -84,7 +85,7 @@ namespace Dynaframe3
             panelTransition.Duration = TimeSpan.FromMilliseconds(1200);
             panelTransition.Property = Panel.OpacityProperty;
 
-            crossFadeTransition = this.FindControl<CrossFadeTransition>("CrossFadeImage");
+            crossFadeTransition = this.FindControl<DynaCrossFade>("CrossFadeImage");
 
             fadeTransition = new DoubleTransition();
             fadeTransition.Easing = new QuadraticEaseIn();
@@ -381,7 +382,7 @@ namespace Dynaframe3
         public void PlayFile(string path, int transitionTime)
         {
             Logger.LogComment("PlayFile() called with TransitionTime=" + transitionTime + " and path: " + path);
-            PlayListItemType type = PlayListEngineHelper.GetPlayListItemTypeFromPath(path);
+            PlaylistItemType type = Playlist.Helpers.GetPlayListItemTypeFromPath(path);
             VideoPlayer.KillVideoPlayer(); // Kill this...if this is called from gotonext / gotoprevious it can cause bad effects.
             try
             {

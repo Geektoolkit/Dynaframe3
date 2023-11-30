@@ -2,7 +2,6 @@
  
 version="3.0"
 
-
 GREEN='\033[1;32m'
 CYAN='\033[0;96m'
 RED='\033[0;31m'
@@ -64,9 +63,6 @@ echo "Cleaning up before we begin..."
 #cd /home/pi/
 #rm -rf /home/pi/Dynaframe
 cd /home/pi/
-
-
-
 
 echo -e "${GREEN}Installing a few tools before we begin (unclutter/unzip) ${NC}"
 sudo apt-get install unzip

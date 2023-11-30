@@ -1,15 +1,13 @@
 using System;
-using System.Numerics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
-using ReactiveUI;
 using SkiaSharp;
 using Splat;
 
-namespace Dynaframe3.ImagePresenters
+namespace Dynaframe3.Presenters
 {
   public partial class BlurBoxImage : UserControl
   {

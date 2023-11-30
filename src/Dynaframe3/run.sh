@@ -28,21 +28,21 @@ endTime=$(( $(date +%s) + secs ))
 
 echo "Ensuring connection to Dynaframe Server at {{serverurl}}" >> /home/pi/DynaframeServer/logs/run.sh.log
 while [ $(date +%s) -lt $endTime ]; do  # Loop until interval has elapsed.
-    if [[ "$(curl -s -o /dev/null -w ''%{http_code}'' {{serverurl}}/Heartbeat)" == "200" ]];
-    then
-        export serverresponded="true"
-        break
-    else
-        sleep 1s
-    fi
+  if [[ "$(curl -s -o /dev/null -w ''%{http_code}'' {{serverurl}}/Heartbeat)" == "200" ]];
+  then
+    export serverresponded="true"
+    break
+  else
+    sleep 1s
+  fi
 done
 
 if [[ "$serverresponded" == "true" ]]
 then
-    # set date and time, create log file oneach reboot
-    now=$(date +"%Y-%m-%d-%H-%M")
-    ./Dynaframe --urls {{urls}} --dynaframe_server {{serverurl}} > /home/pi/Dynaframe/logs/dynaframe-${now}.log 2>&1
+  # set date and time, create log file oneach reboot
+  now=$(date +"%Y-%m-%d-%H-%M")
+  ./Dynaframe --urls {{urls}} --dynaframe_server {{serverurl}} > /home/pi/Dynaframe/logs/dynaframe-${now}.log 2>&1
 else
-    echo "Dynaframe Server did not respond" >> /home/pi/DynaframeServer/logs/run.sh.log
-    exit 1
+  echo "Dynaframe Server did not respond" >> /home/pi/DynaframeServer/logs/run.sh.log
+  exit 1
 fi

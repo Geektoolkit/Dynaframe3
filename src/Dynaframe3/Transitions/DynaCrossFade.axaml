@@ -1,0 +1,18 @@
+<UserControl 
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:custom="using:Dynaframe3.Presenters"
+  mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+  x:Class="Dynaframe3.TransitionTypes.DynaCrossFade" 
+  HorizontalAlignment="Stretch" 
+  VerticalAlignment="Stretch" 
+  Background="Black">
+
+  <Grid>
+    <custom:BlurBoxImage Name="ForegroundBlurBox"></custom:BlurBoxImage>
+    <custom:BlurBoxImage Name="BackgroundBlurBox"></custom:BlurBoxImage>
+  </Grid>
+
+</UserControl>

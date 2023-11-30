@@ -13,6 +13,7 @@ namespace Dynaframe3.Models
                 $"Data Source={AppDomain.CurrentDomain.BaseDirectory}dynaframe.db");
         }
     }
+
     public class MediaFile
     {
         public int Id { get; set; }

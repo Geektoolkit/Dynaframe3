@@ -4,14 +4,14 @@ using Avalonia.Animation.Easings;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
-using Dynaframe3.ImagePresenters;
+using Dynaframe3.Presenters;
 using Splat;
 using System;
 using System.Threading;
 
 namespace Dynaframe3.TransitionTypes
 {
-    public partial class CrossFadeTransition : UserControl
+    public partial class DynaCrossFade : UserControl
     {
         BlurBoxImage ForegroundImage;
         BlurBoxImage BackgroundImage;
@@ -22,7 +22,7 @@ namespace Dynaframe3.TransitionTypes
 
         readonly DeviceCache appSettingsManager;
 
-        public CrossFadeTransition()
+        public DynaCrossFade()
         {
             appSettingsManager = Locator.Current.GetService<DeviceCache>()!;
 

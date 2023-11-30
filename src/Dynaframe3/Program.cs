@@ -3,7 +3,6 @@ using Dynaframe3.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Extensions.Http;
 using Serilog;
@@ -33,7 +32,7 @@ namespace Dynaframe3.Server
             BuildAvaloniaApp()
                     .StartWithClassicDesktopLifetime(args, Avalonia.Controls.ShutdownMode.OnMainWindowClose);
             
-            // Avalonia cretaes it's own SerializationContext that it doesn't remove afterward. Since everything
+            // Avalonia creates it's own SerializationContext that it doesn't remove afterward. Since everything
             // is already done from Avalonia's standpoint. This causes a deadlock with the following async calls
             // so we need to clean it up ourselves.
             SynchronizationContext.SetSynchronizationContext(null);

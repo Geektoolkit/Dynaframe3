@@ -2,28 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Dynaframe3
 {
     public static class Helpers
     {
-        // Fisher Yates shuffle - source: https://stackoverflow.com/questions/273313/randomize-a-listt/4262134#4262134
-        // Modified on 3/11 based on A380Coding's feedback. Long lists aren't getting as well shuffled (thousands of images) towards the end with
-        // the original algo.
-        public static IList<T> Shuffle<T>(this IList<T> list, Random rnd)
-        {
-            for (var i = list.Count-1; i > 0; i--)
-                list.Swap(i, rnd.Next(list.Count-1));
-            return list;
-        }
 
         public static void Swap<T>(this IList<T> list, int i, int j)
         {
@@ -83,7 +70,6 @@ namespace Dynaframe3
         /// <param name="process">Process path and name</param>
         /// <param name="args">any arguments to pass</param>
         /// <returns>Process ID if it runs, else -1 if something fails</returns>
-
         public static Task RunProcessAsync(string patoToProcess, string args)
         {
             try
@@ -135,8 +121,6 @@ namespace Dynaframe3
             Logger.LogComment("isSyncEnabled: " + appSettings.IsSyncEnabled);
             Logger.LogComment("Number of Sync Clients: " + appSettings.RemoteClients.Count);
         }
-
-
 
     }   
 }
